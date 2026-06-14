@@ -63,3 +63,21 @@ def test_thingspeak_sends_mapped_fields() -> None:
         assert params["api_key"] == "TESTKEY123"
         assert params["field1"] == pytest.approx(45.2)
         assert params["field2"] == pytest.approx(34.1)
+
+
+from honeypi_agent.exporters.influxdb import InfluxDBExporter
+
+
+def test_influxdb_writes_point(mocker: MagicMock) -> None:
+    mock_client_cls = mocker.patch("honeypi_agent.exporters.influxdb.InfluxDBClient")
+    mock_client = mock_client_cls.return_value
+    mock_write_api = mock_client.write_api.return_value
+
+    cfg = {"enabled": True, "url": "http://localhost:8086", "token": "tok", "org": "myorg", "bucket": "honeypi"}
+    exp = InfluxDBExporter(cfg)
+    m = Measurement(name="Hive1", values={"weight_kg": 45.2}, timestamp=time.time())
+    exp.export(m)
+
+    mock_write_api.write.assert_called_once()
+    call_kwargs = mock_write_api.write.call_args.kwargs
+    assert call_kwargs["bucket"] == "honeypi"
