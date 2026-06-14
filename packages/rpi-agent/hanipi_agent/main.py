@@ -14,7 +14,15 @@ logger = logging.getLogger(__name__)
 
 def main() -> None:
     cfg = load_config(Path("/etc/hanipi/hanipi.json"))
-    sensors = [create_sensor(s) for s in cfg.sensors]
+    sensors = []
+    for s_cfg in cfg.sensors:
+        try:
+            sensors.append(create_sensor(s_cfg))
+        except Exception as exc:
+            logger.error(
+                "Sensor '%s' (%s) konnte nicht initialisiert werden: %s",
+                s_cfg.get("name", "?"), s_cfg.get("type", "?"), exc,
+            )
     exporters = create_exporters(cfg.exporters)
 
     if not sensors:

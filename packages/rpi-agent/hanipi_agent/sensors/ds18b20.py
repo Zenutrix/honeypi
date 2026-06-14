@@ -1,41 +1,54 @@
 from __future__ import annotations
+import glob
 import time
+from pathlib import Path
 from .base import BaseSensor, Measurement
 
-try:
-    from w1thermsensor import W1ThermSensor  # type: ignore[import-untyped]
-except Exception:
-    W1ThermSensor = None  # type: ignore[assignment,misc]
+_W1_BASE = Path("/sys/bus/w1/devices")
+
+
+def _find_devices() -> list[Path]:
+    return sorted(Path(p) for p in glob.glob(str(_W1_BASE / "28-*" / "w1_slave")))
+
+
+def _read_temp(device: Path) -> float:
+    lines = device.read_text().splitlines()
+    if not lines or "YES" not in lines[0]:
+        raise RuntimeError(f"CRC-Fehler beim Lesen von {device}")
+    temp_part = lines[1].split("t=")
+    if len(temp_part) < 2:
+        raise RuntimeError(f"Ungültiges Datenformat: {device}")
+    return round(int(temp_part[1]) / 1000.0, 2)
 
 
 class DS18B20Sensor(BaseSensor):
-    """DS18B20 1-Wire temperature sensor.
-
-    Multiple DS18B20 on the same bus: use sensor_index (0 = first, 1 = second …)
-    or sensor_id (e.g. '28-0000000abc12') for stable identification.
-    """
+    """DS18B20 1-Wire Temperatursensor (liest direkt aus /sys/bus/w1/devices)."""
 
     def _configure(self, config: dict) -> None:
-        if W1ThermSensor is None:
-            raise RuntimeError("w1thermsensor package not installed")
         self._index = int(config.get("sensor_index", 0))
         self._sensor_id: str | None = config.get("sensor_id")
 
-    def read(self) -> Measurement:
+    def _get_device(self) -> Path:
         if self._sensor_id:
-            sensor = W1ThermSensor(sensor_id=self._sensor_id)
-        else:
-            available = W1ThermSensor.get_available_sensors()
-            if not available:
-                raise RuntimeError("Kein DS18B20 Sensor am 1-Wire Bus gefunden")
-            if self._index >= len(available):
-                raise RuntimeError(
-                    f"DS18B20 Index {self._index} nicht vorhanden "
-                    f"({len(available)} Sensor(en) angeschlossen)"
-                )
-            sensor = available[self._index]
+            device = _W1_BASE / self._sensor_id / "w1_slave"
+            if not device.exists():
+                raise RuntimeError(f"DS18B20 mit ID '{self._sensor_id}' nicht gefunden")
+            return device
+        devices = _find_devices()
+        if not devices:
+            raise RuntimeError("Kein DS18B20 am 1-Wire Bus (dtoverlay=w1-gpio in config.txt?)")
+        if self._index >= len(devices):
+            raise RuntimeError(
+                f"DS18B20 Index {self._index} nicht vorhanden "
+                f"({len(devices)} Sensor(en) angeschlossen)"
+            )
+        return devices[self._index]
+
+    def read(self) -> Measurement:
+        temp = _read_temp(self._get_device())
         return Measurement(
             name=self.name,
-            values={"temperature_c": round(sensor.get_temperature(), 2)},
+            values={"temperature_c": temp},
             timestamp=time.time(),
+            hive_id=self.hive_id,
         )
