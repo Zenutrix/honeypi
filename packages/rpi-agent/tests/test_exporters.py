@@ -41,3 +41,25 @@ def test_local_exporter_stores_measurement(tmp_path: Path) -> None:
     keys = {r[1] for r in rows}
     assert "weight_kg" in keys
     assert "temperature_c" in keys
+
+
+from honeypi_agent.exporters.thingspeak import ThingSpeakExporter
+
+
+def test_thingspeak_sends_mapped_fields() -> None:
+    cfg = {
+        "enabled": True,
+        "api_key": "TESTKEY123",
+        "field_mapping": {"weight_kg": "field1", "temperature_c": "field2"},
+    }
+    m = Measurement(name="Hive1", values={"weight_kg": 45.2, "temperature_c": 34.1}, timestamp=time.time())
+
+    with patch("honeypi_agent.exporters.thingspeak.httpx.get") as mock_get:
+        exp = ThingSpeakExporter(cfg)
+        exp.export(m)
+        mock_get.assert_called_once()
+        args, kwargs = mock_get.call_args
+        params = kwargs["params"]
+        assert params["api_key"] == "TESTKEY123"
+        assert params["field1"] == pytest.approx(45.2)
+        assert params["field2"] == pytest.approx(34.1)
