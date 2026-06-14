@@ -1,1 +1,92 @@
-<!DOCTYPE html><html><body>HoneyPi</body></html>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HoneyPi Einstellungen</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>🍯 HoneyPi</h1>
+    <nav>
+      <a href="/">Dashboard</a>
+      <a href="/config-ui">Einstellungen</a>
+    </nav>
+  </header>
+  <div class="container">
+    <h2 style="margin-bottom:1rem">Konfiguration</h2>
+    <form id="cfg-form">
+      <div class="field">
+        <label>Messintervall (Sekunden)</label>
+        <input type="number" id="interval" min="30" max="3600">
+      </div>
+      <h3 style="margin:1rem 0 0.5rem">Exporters</h3>
+      <div class="field">
+        <label><input type="checkbox" id="ts-enabled"> ThingSpeak aktiviert</label>
+        <input type="text" id="ts-key" placeholder="API Key" style="margin-top:0.5rem">
+      </div>
+      <div class="field">
+        <label><input type="checkbox" id="idb-enabled"> InfluxDB aktiviert</label>
+        <input type="text" id="idb-url" placeholder="URL (z.B. http://server:8086)" style="margin-top:0.5rem">
+        <input type="text" id="idb-token" placeholder="Token" style="margin-top:0.25rem">
+        <input type="text" id="idb-org" placeholder="Organisation" style="margin-top:0.25rem">
+        <input type="text" id="idb-bucket" placeholder="Bucket" style="margin-top:0.25rem">
+      </div>
+      <div class="field">
+        <label><input type="checkbox" id="mqtt-enabled"> MQTT aktiviert</label>
+        <input type="text" id="mqtt-broker" placeholder="Broker IP/Hostname" style="margin-top:0.5rem">
+        <input type="text" id="mqtt-topic" placeholder="Topic (z.B. honeypi)" style="margin-top:0.25rem">
+      </div>
+      <button type="submit">Speichern & Neustart</button>
+    </form>
+    <div style="margin-top:2rem">
+      <h3 style="margin-bottom:0.5rem">Agent-Steuerung</h3>
+      <button onclick="control('start')">Start</button>
+      <button onclick="control('stop')" style="margin-left:0.5rem;background:#888">Stop</button>
+      <button onclick="control('restart')" style="margin-left:0.5rem;background:#e07b00">Neustart</button>
+    </div>
+    <p id="status" style="margin-top:1rem;color:#666"></p>
+  </div>
+  <script>
+    async function loadConfig() {
+      const cfg = await fetch('/api/config').then(r => r.json());
+      document.getElementById('interval').value = cfg.interval ?? 300;
+      const exp = cfg.exporters ?? {};
+      document.getElementById('ts-enabled').checked = exp.thingspeak?.enabled ?? false;
+      document.getElementById('ts-key').value = exp.thingspeak?.api_key ?? '';
+      document.getElementById('idb-enabled').checked = exp.influxdb?.enabled ?? false;
+      document.getElementById('idb-url').value = exp.influxdb?.url ?? '';
+      document.getElementById('idb-token').value = exp.influxdb?.token ?? '';
+      document.getElementById('idb-org').value = exp.influxdb?.org ?? '';
+      document.getElementById('idb-bucket').value = exp.influxdb?.bucket ?? 'honeypi';
+      document.getElementById('mqtt-enabled').checked = exp.mqtt?.enabled ?? false;
+      document.getElementById('mqtt-broker').value = exp.mqtt?.broker ?? '';
+      document.getElementById('mqtt-topic').value = exp.mqtt?.topic ?? 'honeypi';
+    }
+
+    document.getElementById('cfg-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const cfg = {
+        interval: parseInt(document.getElementById('interval').value),
+        sensors: [],
+        exporters: {
+          local: { enabled: true },
+          thingspeak: { enabled: document.getElementById('ts-enabled').checked, api_key: document.getElementById('ts-key').value },
+          influxdb: { enabled: document.getElementById('idb-enabled').checked, url: document.getElementById('idb-url').value, token: document.getElementById('idb-token').value, org: document.getElementById('idb-org').value, bucket: document.getElementById('idb-bucket').value },
+          mqtt: { enabled: document.getElementById('mqtt-enabled').checked, broker: document.getElementById('mqtt-broker').value, topic: document.getElementById('mqtt-topic').value },
+        }
+      };
+      await fetch('/api/config', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(cfg) });
+      document.getElementById('status').textContent = 'Gespeichert und Agent neugestartet.';
+    });
+
+    async function control(action) {
+      await fetch(`/api/control/${action}`, { method: 'POST' });
+      document.getElementById('status').textContent = `Agent ${action} ausgeführt.`;
+    }
+
+    loadConfig();
+  </script>
+</body>
+</html>

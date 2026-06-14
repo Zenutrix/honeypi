@@ -1,1 +1,25 @@
-<!DOCTYPE html><html><body>HoneyPi</body></html>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HoneyPi Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>🍯 HoneyPi</h1>
+    <nav>
+      <a href="/">Dashboard</a>
+      <a href="/config-ui">Einstellungen</a>
+    </nav>
+  </header>
+  <div id="cards" class="cards"></div>
+  <div class="chart-section">
+    <h2>Verlauf (24h)</h2>
+    <canvas id="chart" height="80"></canvas>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

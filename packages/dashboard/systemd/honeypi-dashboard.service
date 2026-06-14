@@ -1,0 +1,15 @@
+[Unit]
+Description=HoneyPi Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=honeypi
+ExecStart=/opt/honeypi/venv/bin/uvicorn honeypi_dashboard.main:app --host 0.0.0.0 --port 80
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
