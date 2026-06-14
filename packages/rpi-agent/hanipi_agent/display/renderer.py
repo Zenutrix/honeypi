@@ -35,7 +35,6 @@ class DisplayRenderer:
 
     def start(self) -> None:
         self._display.start()
-        self._show_splash()
         self._stop_event.clear()
         self._thread = threading.Thread(
             target=self._loop, daemon=True, name="display-renderer"
@@ -48,21 +47,14 @@ class DisplayRenderer:
             self._thread.join(timeout=3)
         self._display.stop()
 
-    def _show_splash(self) -> None:
-        """Zeigt sofort beim Start eine Warteseite — überschreibt den Linux-Boot-Log."""
-        splash = DisplayPage(
-            hive_name="HaniPi",
-            timestamp=time.time(),
-            values={},
-            hive_color="#f59e0b",
-        )
+    def _show_idle(self) -> None:
+        page = DisplayPage(hive_name="HaniPi", timestamp=time.time(), values={})
         try:
-            self._display.show_splash(splash)
+            self._display.show_splash(page)  # type: ignore[attr-defined]
         except AttributeError:
-            # Display unterstützt kein show_splash — normale Seite zeigen
-            self._display.show_page(splash)
+            self._display.show_page(page)
         except Exception as exc:
-            logger.warning("Splash konnte nicht angezeigt werden: %s", exc)
+            logger.warning("Idle screen error: %s", exc)
 
     def _build_pages(self) -> list[DisplayPage]:
         with self._lock:
@@ -85,7 +77,7 @@ class DisplayRenderer:
                 name = hive.get("name", hid)
                 color = hive.get("color", "#f59e0b")
             else:
-                name = "Umgebung" if hid is None else hid
+                name = "Alle Sensoren" if hid is None else hid
                 color = "#f59e0b"
 
             batt = values.pop("voltage_v", None)
@@ -99,6 +91,15 @@ class DisplayRenderer:
         return pages
 
     def _loop(self) -> None:
+        # Boot-Splash 4 Sekunden anzeigen
+        try:
+            self._display.show_boot_splash()  # type: ignore[attr-defined]
+            self._stop_event.wait(timeout=4)
+        except AttributeError:
+            pass
+        except Exception as exc:
+            logger.warning("Boot splash error: %s", exc)
+
         while not self._stop_event.is_set():
             pages = self._build_pages()
             if pages:
@@ -108,4 +109,7 @@ class DisplayRenderer:
                 except Exception as exc:
                     logger.error("Display show_page error: %s", exc)
                 self._page_index += 1
+            else:
+                # Noch keine Messdaten — Idle-Screen mit Netzwerkinfo aktualisieren
+                self._show_idle()
             self._stop_event.wait(timeout=float(self._page_interval))
