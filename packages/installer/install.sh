@@ -14,7 +14,7 @@ sudo apt-get install -y -qq git python3 python3-pip avahi-daemon
 echo "==> Installing uv..."
 curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
-UV="$HOME/.local/bin/uv"
+sudo ln -sf "$HOME/.local/bin/uv" /usr/local/bin/uv
 
 echo "==> Cloning repository..."
 if [ -d "$INSTALL_DIR" ]; then
@@ -28,8 +28,8 @@ id -u honeypi &>/dev/null || sudo useradd --system --no-create-home honeypi
 
 echo "==> Setting up Python environment..."
 cd "$INSTALL_DIR"
-sudo "$UV" venv /opt/honeypi/venv
-sudo "$UV" pip install --python /opt/honeypi/venv/bin/python \
+sudo uv venv /opt/honeypi/venv
+sudo uv pip install --python /opt/honeypi/venv/bin/python \
   packages/rpi-agent packages/dashboard
 
 echo "==> Creating directories..."
