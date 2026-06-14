@@ -129,6 +129,19 @@ sudo systemctl enable --now hanipi-agent hanipi-dashboard
 sudo systemctl enable ModemManager
 sudo systemctl start ModemManager || true
 
+# Disable login prompt on HDMI (tty1) so display can take over
+sudo systemctl disable getty@tty1 2>/dev/null || true
+sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
+sudo tee /etc/systemd/system/getty@tty1.service.d/override.conf > /dev/null <<'GETTY_OVERRIDE'
+[Service]
+ExecStart=
+ExecStart=-/bin/sleep infinity
+GETTY_OVERRIDE
+
+# Allow hanipi to write to framebuffer
+echo 'SUBSYSTEM=="graphics", KERNEL=="fb*", GROUP="video", MODE="0660"' | \
+  sudo tee /etc/udev/rules.d/99-hanipi-fb.rules > /dev/null
+
 # Set avahi hostname for easy LAN access
 if command -v hostnamectl &>/dev/null; then
   sudo hostnamectl set-hostname hanipi
