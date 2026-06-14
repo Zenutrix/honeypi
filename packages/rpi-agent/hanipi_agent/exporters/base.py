@@ -4,6 +4,8 @@ from ..sensors.base import Measurement
 
 
 class BaseExporter(ABC):
+    realtime: bool = False   # if True, called on every measure cycle; if False, only on export cycle
+
     @abstractmethod
     def export(self, measurement: Measurement) -> None:
         ...

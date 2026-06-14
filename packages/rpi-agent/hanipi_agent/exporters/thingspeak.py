@@ -16,7 +16,8 @@ class ThingSpeakExporter(BaseExporter):
     def export(self, measurement: Measurement) -> None:
         params: dict[str, object] = {"api_key": self._api_key}
         for key, value in measurement.values.items():
-            field = self._field_mapping.get(key)
+            full_key = f"{measurement.name}.{key}"
+            field = self._field_mapping.get(full_key) or self._field_mapping.get(key)
             if field:
                 params[field] = value
         if len(params) < 2:
