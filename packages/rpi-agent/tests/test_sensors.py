@@ -19,3 +19,19 @@ def test_measurement_has_values() -> None:
     m = s.read()
     assert "x" in m.values
     assert m.name == "Test"
+
+
+from honeypi_agent.sensors.dummy import DummySensor
+
+
+def test_dummy_sensor_returns_configured_values() -> None:
+    s = DummySensor({"type": "dummy", "name": "Fake", "values": {"weight": 42.5, "temp": 21.0}})
+    m = s.read()
+    assert m.values["weight"] == pytest.approx(42.5, abs=5.0)
+    assert "temp" in m.values
+
+
+def test_dummy_sensor_default_values() -> None:
+    s = DummySensor({"type": "dummy", "name": "Default"})
+    m = s.read()
+    assert "value" in m.values
