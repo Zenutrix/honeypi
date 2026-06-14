@@ -35,6 +35,7 @@ class DisplayRenderer:
 
     def start(self) -> None:
         self._display.start()
+        self._show_splash()
         self._stop_event.clear()
         self._thread = threading.Thread(
             target=self._loop, daemon=True, name="display-renderer"
@@ -46,6 +47,22 @@ class DisplayRenderer:
         if self._thread:
             self._thread.join(timeout=3)
         self._display.stop()
+
+    def _show_splash(self) -> None:
+        """Zeigt sofort beim Start eine Warteseite — überschreibt den Linux-Boot-Log."""
+        splash = DisplayPage(
+            hive_name="HaniPi",
+            timestamp=time.time(),
+            values={},
+            hive_color="#f59e0b",
+        )
+        try:
+            self._display.show_splash(splash)
+        except AttributeError:
+            # Display unterstützt kein show_splash — normale Seite zeigen
+            self._display.show_page(splash)
+        except Exception as exc:
+            logger.warning("Splash konnte nicht angezeigt werden: %s", exc)
 
     def _build_pages(self) -> list[DisplayPage]:
         with self._lock:

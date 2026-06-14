@@ -91,6 +91,60 @@ class HDMIDisplay(BaseDisplay):
         self._available = True
         logger.info("HDMIDisplay bereit: %dx%d %d-bit (%s)", self._w, self._h, self._bpp, _FB)
 
+    def show_splash(self, page: DisplayPage) -> None:
+        """Startbildschirm — überschreibt Linux-Boot-Log sofort."""
+        if not self._available:
+            return
+        try:
+            from PIL import Image, ImageDraw, ImageFont  # type: ignore[import-untyped]
+            img = Image.new("RGB", (self._w, self._h), (26, 26, 46))
+            draw = ImageDraw.Draw(img)
+            try:
+                font_xl = ImageFont.truetype(
+                    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 72)
+                font_md = ImageFont.truetype(
+                    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32)
+                font_sm = ImageFont.truetype(
+                    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
+            except OSError:
+                font_xl = font_md = font_sm = ImageFont.load_default()
+
+            cx = self._w // 2
+
+            # Honig-Wabe Hintergrundkreis
+            r = 120
+            draw.ellipse([cx - r, self._h // 2 - 180 - r,
+                          cx + r, self._h // 2 - 180 + r],
+                         fill=(245, 158, 11))
+
+            # Emoji-Ersatz: Bienenkorb-Text
+            draw.text((cx, self._h // 2 - 180), "🍯", fill=WHITE,
+                      font=font_xl, anchor="mm")
+
+            # Titel
+            draw.text((cx, self._h // 2 - 40), "HaniPi",
+                      fill=WHITE, font=font_xl, anchor="mm")
+
+            # Untertitel
+            draw.text((cx, self._h // 2 + 50),
+                      "Bienenstock-Monitoring", fill=GREY, font=font_md, anchor="mm")
+
+            # Warteanimation — Punkte
+            draw.text((cx, self._h // 2 + 110),
+                      "Warte auf Sensordaten …", fill=(100, 100, 120),
+                      font=font_sm, anchor="mm")
+
+            # Version/Footer
+            draw.text((cx, self._h - 30),
+                      "github.com/Zenutrix/HaniPi", fill=(60, 60, 80),
+                      font=font_sm, anchor="mm")
+
+            raw = _img_to_fb_bytes(img, self._bpp)
+            if raw:
+                _FB.write_bytes(raw)
+        except Exception as exc:
+            logger.warning("Splash render error: %s", exc)
+
     def show_page(self, page: DisplayPage) -> None:
         if not self._available:
             return
