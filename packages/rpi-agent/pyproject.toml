@@ -14,6 +14,7 @@ dependencies = [
     "adafruit-circuitpython-dht>=3.7",
     "adafruit-blinka>=8.0",
     "RPi.GPIO>=0.7",
+    "hx711>=0.1",
 ]
 
 [project.optional-dependencies]
