@@ -193,6 +193,25 @@ main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
 .toast.ok { background: #064e3b; }
 .toast.err { background: #7f1d1d; }
 
+/* ── Wiring guide ────────────────────────── */
+.wiring-guide { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--border); }
+.wiring-toggle { background: none; border: none; cursor: pointer; font-size: .78rem; font-weight: 700; color: var(--honey-dark); padding: 0; display: flex; align-items: center; gap: .35rem; }
+.wiring-toggle:hover { color: var(--honey); }
+.wiring-toggle .wt-arrow { font-size: .65rem; transition: transform .2s; }
+.wiring-toggle.open .wt-arrow { transform: rotate(90deg); }
+.wiring-content { display: none; margin-top: .6rem; }
+.wiring-content.open { display: block; }
+.wiring-table { width: 100%; border-collapse: collapse; font-size: .8rem; margin-bottom: .5rem; }
+.wiring-table tr:nth-child(odd) td { background: var(--bg); }
+.wiring-table td { padding: .3rem .5rem; vertical-align: top; }
+.wiring-table td.wt-sensor { font-family: 'SF Mono', 'Consolas', monospace; font-weight: 700; white-space: nowrap; color: var(--text); border-radius: 4px 0 0 4px; }
+.wiring-table td.wt-arrow { color: var(--muted); width: 1.5rem; text-align: center; }
+.wiring-table td.wt-rpi { font-family: 'SF Mono', 'Consolas', monospace; color: #1d4ed8; white-space: nowrap; }
+.wiring-table td.wt-note { color: var(--muted); font-size: .74rem; }
+.wiring-note { font-size: .78rem; color: var(--muted); padding: .4rem .65rem; margin-top: .35rem; background: var(--honey-light); border-left: 3px solid var(--honey); border-radius: 0 4px 4px 0; line-height: 1.4; }
+.wiring-note.info { background: #eff6ff; border-color: var(--blue); }
+.multi-badge { font-size: .68rem; font-weight: 700; padding: .1rem .45rem; border-radius: 4px; background: #eff6ff; color: #1d4ed8; white-space: nowrap; }
+
 /* ── Responsive ──────────────────────────── */
 @media (max-width: 640px) {
   .field-row, .field-row-3 { grid-template-columns: 1fr; }
