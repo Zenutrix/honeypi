@@ -12,5 +12,10 @@ RestartSec=30
 StandardOutput=journal
 StandardError=journal
 
+# HDMI display via pygame (KMS/DRM, no X server needed)
+Environment=SDL_VIDEODRIVER=kmsdrm
+Environment=SDL_AUDIODRIVER=dummy
+Environment=PYTHONUNBUFFERED=1
+
 [Install]
 WantedBy=multi-user.target

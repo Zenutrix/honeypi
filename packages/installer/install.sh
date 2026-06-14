@@ -43,7 +43,7 @@ echo "==> Creating hanipi user..."
 id -u hanipi &>/dev/null || sudo useradd --system --no-create-home hanipi
 
 # Add hanipi user to hardware and network groups
-sudo usermod -aG i2c,gpio,dialout,netdev hanipi 2>/dev/null || true
+sudo usermod -aG i2c,gpio,dialout,netdev,video,input,render hanipi 2>/dev/null || true
 
 echo "==> Configuring sudoers for hanipi..."
 cat > /tmp/hanipi-sudoers <<'SUDOERS'
