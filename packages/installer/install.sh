@@ -129,6 +129,13 @@ sudo systemctl enable --now hanipi-agent hanipi-dashboard
 sudo systemctl enable ModemManager
 sudo systemctl start ModemManager || true
 
+# Cursor auf Framebuffer permanent deaktivieren (kein blinkender Cursor)
+CMDLINE="/boot/firmware/cmdline.txt"
+[ -f "$CMDLINE" ] || CMDLINE="/boot/cmdline.txt"
+if ! grep -q "vt.global_cursor_default=0" "$CMDLINE" 2>/dev/null; then
+  sudo sed -i 's/$/ vt.global_cursor_default=0 loglevel=3 logo.nologo/' "$CMDLINE"
+fi
+
 # Disable login prompt on HDMI (tty1) so display can take over
 sudo systemctl disable getty@tty1 2>/dev/null || true
 sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
