@@ -13,6 +13,7 @@ sudo apt-get install -y -qq \
   git python3 python3-pip python3-dev \
   avahi-daemon \
   i2c-tools \
+  network-manager \
   modemmanager usb-modeswitch usb-modeswitch-data \
   build-essential
 
@@ -100,6 +101,24 @@ if [ ! -f "$CFG_DIR/hanipi.json" ]; then
 HANIPI_JSON
 fi
 
+echo "==> Setting up HaniPi-Wartung hotspot connection..."
+if ! sudo nmcli connection show "HaniPi-Wartung" &>/dev/null; then
+  sudo nmcli connection add \
+    type wifi \
+    con-name "HaniPi-Wartung" \
+    ssid "HaniPi-Setup" \
+    ifname wlan0 \
+    mode ap \
+    ipv4.method shared \
+    ipv4.addresses "10.42.0.1/24" \
+    wifi-sec.key-mgmt wpa-psk \
+    wifi-sec.psk "hanipi123" \
+    connection.autoconnect no
+  echo "    Hotspot 'HaniPi-Setup' (SSID) created, password: hanipi123"
+else
+  echo "    HaniPi-Wartung connection already exists – skipping"
+fi
+
 echo "==> Installing systemd services..."
 sudo cp "$INSTALL_DIR/packages/rpi-agent/systemd/hanipi-agent.service" /etc/systemd/system/
 sudo cp "$INSTALL_DIR/packages/dashboard/systemd/hanipi-dashboard.service" /etc/systemd/system/
@@ -131,5 +150,6 @@ echo "    bme680  - Temp/Feuchte/Druck/Gas (I2C)"
 echo "    bh1750  - Licht/Beleuchtung (I2C)"
 echo "    ads1115 - ADC / Batteriespannung (I2C)"
 echo ""
+echo "  Wartungs-Hotspot: SSID 'HaniPi-Setup', PW: hanipi123"
 echo "  4G-Stick einrichten: sudo bash $INSTALL_DIR/packages/installer/setup_4g.sh"
 echo "=========================================="

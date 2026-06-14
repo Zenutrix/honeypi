@@ -16,6 +16,12 @@ dependencies = [
     "RPi.GPIO>=0.7",
 ]
 
+[project.optional-dependencies]
+display = [
+    "pygame>=2.5",
+    "Pillow>=10.0",
+]
+
 [project.scripts]
 hanipi-agent = "hanipi_agent.main:main"
 

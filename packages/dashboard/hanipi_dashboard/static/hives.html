@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HaniPi – Stöcke</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <a href="/" class="logo"><span class="logo-icon">🍯</span><span>HaniPi</span></a>
+  <nav>
+    <a href="/" class="nav-tab">Dashboard</a>
+    <a href="/config-ui" class="nav-tab">Einstellungen</a>
+    <a href="/hives" class="nav-tab active">Stöcke</a>
+    <a href="/maintenance" class="nav-tab">Wartung</a>
+  </nav>
+</header>
+
+<main>
+  <div class="page-header">
+    <span class="page-title">🐝 Bienenstöcke</span>
+  </div>
+
+  <div class="hive-list" id="hiveList"></div>
+
+  <div class="inline-form" id="addForm" style="display:none">
+    <div class="field-row">
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="newName" placeholder="z.B. Apfelgarten">
+      </div>
+      <div class="field">
+        <label>Farbe</label>
+        <input type="color" id="newColor" value="#f59e0b" style="height:42px">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-primary" onclick="addHive()">✓ Hinzufügen</button>
+      <button class="btn btn-secondary" onclick="toggleAddForm()">Abbrechen</button>
+    </div>
+  </div>
+
+  <button class="add-btn" onclick="toggleAddForm()">+ Bienenstock hinzufügen</button>
+</main>
+
+<nav class="bottom-nav">
+  <a href="/"><span class="bn-icon">📊</span>Dashboard</a>
+  <a href="/config-ui"><span class="bn-icon">⚙️</span>Einstellungen</a>
+  <a href="/hives" class="active"><span class="bn-icon">🐝</span>Stöcke</a>
+  <a href="/maintenance"><span class="bn-icon">🔧</span>Wartung</a>
+</nav>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal" onclick="closeEditModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Stock bearbeiten</span>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="field">
+        <label>Name</label>
+        <input type="text" id="editName">
+      </div>
+      <div class="field">
+        <label>Farbe</label>
+        <input type="color" id="editColor" style="height:42px">
+      </div>
+      <button class="btn btn-primary btn-full mt-16" onclick="saveEdit()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+let hives = [];
+let sensorCounts = {};
+
+async function loadHives() {
+  try { const r = await fetch('/api/hives'); hives = await r.json(); } catch { hives = []; }
+  // count sensors per hive from config
+  try {
+    const r = await fetch('/api/config');
+    if (r.ok) {
+      const cfg = await r.json();
+      sensorCounts = {};
+      (cfg.sensors || []).forEach(s => {
+        if (s.hive_id) sensorCounts[s.hive_id] = (sensorCounts[s.hive_id] || 0) + 1;
+      });
+    }
+  } catch {}
+  render();
+}
+
+function render() {
+  const list = document.getElementById('hiveList');
+  if (hives.length === 0) {
+    list.innerHTML = `<div class="empty-state" style="padding:32px 0">
+      <div class="es-icon">🐝</div>
+      <p>Noch keine Stöcke konfiguriert.</p>
+    </div>`;
+    return;
+  }
+  list.innerHTML = '';
+  hives.forEach(h => {
+    const cnt = sensorCounts[h.id] || 0;
+    const item = document.createElement('div');
+    item.className = 'hive-item';
+    item.innerHTML = `
+      <span class="hive-color-dot" style="background:${h.color}"></span>
+      <div class="hive-info">
+        <div class="hive-item-name">${h.name}</div>
+        <div class="hive-item-meta">${cnt} Sensor${cnt !== 1 ? 'en' : ''}</div>
+      </div>
+      <div class="hive-actions">
+        <button class="icon-btn" onclick="openEdit('${h.id}')" title="Bearbeiten">✏️</button>
+        <button class="icon-btn danger" onclick="deleteHive('${h.id}')" title="Löschen">🗑️</button>
+      </div>`;
+    list.appendChild(item);
+  });
+}
+
+function toggleAddForm() {
+  const f = document.getElementById('addForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+async function addHive() {
+  const name = document.getElementById('newName').value.trim();
+  if (!name) return;
+  await fetch('/api/hives', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name, color: document.getElementById('newColor').value }),
+  });
+  document.getElementById('newName').value = '';
+  document.getElementById('addForm').style.display = 'none';
+  await loadHives();
+}
+
+function openEdit(id) {
+  const h = hives.find(x => x.id === id);
+  if (!h) return;
+  document.getElementById('editId').value = h.id;
+  document.getElementById('editName').value = h.name;
+  document.getElementById('editColor').value = h.color;
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeEditModal(e) {
+  if (!e || e.target === document.getElementById('editModal'))
+    document.getElementById('editModal').classList.remove('open');
+}
+
+async function saveEdit() {
+  const id = document.getElementById('editId').value;
+  await fetch(`/api/hives/${id}`, {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      name: document.getElementById('editName').value,
+      color: document.getElementById('editColor').value,
+    }),
+  });
+  document.getElementById('editModal').classList.remove('open');
+  await loadHives();
+}
+
+async function deleteHive(id) {
+  if (!confirm('Stock wirklich löschen? Sensor-Zuweisungen werden aufgehoben.')) return;
+  await fetch(`/api/hives/${id}`, { method: 'DELETE' });
+  await loadHives();
+}
+
+loadHives();
+</script>
+</body>
+</html>

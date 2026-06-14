@@ -20,11 +20,54 @@ def main() -> None:
     if not sensors:
         logger.warning("No sensors configured — check /etc/hanipi/hanipi.json")
 
-    runner = MeasurementRunner(sensors=sensors, exporters=exporters, interval=cfg.interval)
+    maintenance_monitor = None
+    if cfg.maintenance_switch.enabled:
+        try:
+            from .maintenance import MaintenanceMonitor
+            maintenance_monitor = MaintenanceMonitor(
+                gpio_pin=cfg.maintenance_switch.gpio_pin,
+                sensors=sensors,
+            )
+        except Exception as exc:
+            logger.warning("Could not initialize MaintenanceMonitor: %s", exc)
+
+    display_renderer = None
+    if cfg.display.enabled and cfg.display.type != "none":
+        try:
+            from .display.renderer import DisplayRenderer
+            if cfg.display.type == "hdmi":
+                from .display.hdmi import HDMIDisplay
+                display_obj: object = HDMIDisplay(rotation=cfg.display.rotation)
+            else:
+                from .display.tft import TFTDisplay
+                display_obj = TFTDisplay(
+                    device=cfg.display.tft_device, rotation=cfg.display.rotation
+                )
+            hives_dicts = [h.model_dump() for h in cfg.hives]
+            display_renderer = DisplayRenderer(
+                display=display_obj,  # type: ignore[arg-type]
+                hives=hives_dicts,
+                page_interval=cfg.display.page_interval,
+            )
+            display_renderer.start()
+        except Exception as exc:
+            logger.warning("Could not initialize display: %s", exc)
+
+    runner = MeasurementRunner(
+        sensors=sensors,
+        exporters=exporters,
+        interval=cfg.interval,
+        measure_interval=cfg.effective_measure_interval,
+        export_interval=cfg.effective_export_interval,
+        display_renderer=display_renderer,
+        maintenance_monitor=maintenance_monitor,
+    )
 
     def _shutdown(sig: int, frame: object) -> None:
         logger.info("Shutting down...")
         runner.stop()
+        if display_renderer is not None:
+            display_renderer.stop()
         for exp in exporters:
             exp.close()
         sys.exit(0)
@@ -32,8 +75,13 @@ def main() -> None:
     signal.signal(signal.SIGTERM, _shutdown)
     signal.signal(signal.SIGINT, _shutdown)
 
-    logger.info("HaniPi Agent started. Interval: %ds, Sensors: %d, Exporters: %d",
-                cfg.interval, len(sensors), len(exporters))
+    logger.info(
+        "HaniPi Agent started. Measure: %ds, Export: %ds, Sensors: %d, Exporters: %d",
+        cfg.effective_measure_interval,
+        cfg.effective_export_interval,
+        len(sensors),
+        len(exporters),
+    )
     runner.run()
 
 

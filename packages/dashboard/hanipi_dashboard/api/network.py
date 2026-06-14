@@ -92,3 +92,40 @@ def connect(req: ConnectRequest) -> dict:
 def disconnect() -> dict:
     _run(["sudo", "nmcli", "connection", "down", "hanipi-4g"])
     return {"status": "disconnected"}
+
+
+@router.get("/network/wifi/scan")
+def wifi_scan() -> list[dict]:
+    _, out, _ = _run(["nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "dev", "wifi", "list"], timeout=20)
+    results: list[dict] = []
+    seen: set[str] = set()
+    for line in out.splitlines():
+        parts = line.split(":")
+        if len(parts) >= 2:
+            ssid = parts[0].strip()
+            if ssid and ssid not in seen:
+                seen.add(ssid)
+                signal = int(parts[1]) if parts[1].isdigit() else 0
+                security = parts[2].strip() if len(parts) > 2 else ""
+                results.append({"ssid": ssid, "signal": signal, "security": security})
+    results.sort(key=lambda x: x["signal"], reverse=True)
+    return results
+
+
+class WifiConnectRequest(BaseModel):
+    ssid: str
+    password: str = ""
+
+
+@router.post("/network/wifi/connect")
+def wifi_connect(req: WifiConnectRequest) -> dict:
+    if not req.ssid:
+        raise HTTPException(status_code=400, detail="SSID fehlt")
+    if req.password:
+        cmd = ["sudo", "nmcli", "device", "wifi", "connect", req.ssid, "password", req.password]
+    else:
+        cmd = ["sudo", "nmcli", "device", "wifi", "connect", req.ssid]
+    rc, out, err = _run(cmd, timeout=30)
+    if rc != 0:
+        raise HTTPException(status_code=400, detail=f"WLAN-Verbindung fehlgeschlagen: {err.strip()}")
+    return {"status": "connected", "ssid": req.ssid}

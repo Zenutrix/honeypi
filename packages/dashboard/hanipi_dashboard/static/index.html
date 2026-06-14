@@ -8,43 +8,56 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <header>
-    <div class="logo">
-      <span class="logo-icon">🍯</span>
-      <span>HaniPi</span>
-    </div>
-    <nav>
-      <a href="/" class="active">Dashboard</a>
-      <a href="/config-ui">Einstellungen</a>
-    </nav>
-    <div class="status-badge">
-      <div class="dot grey" id="sdot"></div>
-      <span id="stext">…</span>
-    </div>
-  </header>
+<header>
+  <a href="/" class="logo"><span class="logo-icon">🍯</span><span>HaniPi</span></a>
+  <nav>
+    <a href="/" class="nav-tab active">Dashboard</a>
+    <a href="/config-ui" class="nav-tab">Einstellungen</a>
+    <a href="/hives" class="nav-tab">Stöcke</a>
+    <a href="/maintenance" class="nav-tab">Wartung</a>
+  </nav>
+  <div class="header-status">
+    <span class="maintenance-badge" id="maintenanceBadge" title="Wartungsmodus aktiv">🔧</span>
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText" style="font-size:13px;color:var(--text-muted)">…</span>
+  </div>
+</header>
 
-  <main>
-    <div class="page-header">
-      <span class="page-title">Live-Werte</span>
-      <span class="last-updated" id="ts"></span>
+<main>
+  <div class="hive-tabs" id="hiveTabs" style="display:none"></div>
+
+  <div class="page-header">
+    <span class="page-title">Live-Werte</span>
+    <span class="last-updated" id="lastUpdated"></span>
+  </div>
+
+  <div class="time-range">
+    <button class="time-btn active" data-h="1">1h</button>
+    <button class="time-btn" data-h="6">6h</button>
+    <button class="time-btn" data-h="24">24h</button>
+    <button class="time-btn" data-h="168">7d</button>
+  </div>
+
+  <div class="cards-grid" id="cardsGrid">
+    <div class="empty-state">
+      <div class="es-icon">📡</div>
+      <p>Noch keine Messdaten vorhanden.</p>
+      <p>Sensoren in den <a href="/config-ui">Einstellungen</a> konfigurieren.</p>
     </div>
+  </div>
 
-    <div class="cards-grid" id="cards"></div>
+  <div class="chart-card hidden" id="chartCard">
+    <canvas id="chart" height="260"></canvas>
+  </div>
+</main>
 
-    <div class="chart-card" id="chart-card" style="display:none">
-      <div class="card-header">
-        <span class="card-title">Verlauf</span>
-        <div class="range-btns">
-          <button class="btn-range" onclick="setRange(1,this)">1h</button>
-          <button class="btn-range active" onclick="setRange(6,this)">6h</button>
-          <button class="btn-range" onclick="setRange(24,this)">24h</button>
-          <button class="btn-range" onclick="setRange(168,this)">7d</button>
-        </div>
-      </div>
-      <canvas id="chart"></canvas>
-    </div>
-  </main>
+<nav class="bottom-nav">
+  <a href="/" class="active"><span class="bn-icon">📊</span>Dashboard</a>
+  <a href="/config-ui"><span class="bn-icon">⚙️</span>Einstellungen</a>
+  <a href="/hives"><span class="bn-icon">🐝</span>Stöcke</a>
+  <a href="/maintenance"><span class="bn-icon">🔧</span>Wartung</a>
+</nav>
 
-  <script src="/static/app.js"></script>
+<script src="/static/app.js"></script>
 </body>
 </html>

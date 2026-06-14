@@ -1,184 +1,209 @@
 'use strict';
 
-const COLORS = ['#f59e0b','#3b82f6','#10b981','#8b5cf6','#ef4444','#06b6d4','#f97316','#84cc16','#ec4899','#14b8a6'];
-
 const UNITS = {
-  temperature_c:      '°C',
-  humidity_pct:       '%',
-  pressure_hpa:       'hPa',
-  weight_kg:          'kg',
-  voltage_v:          'V',
-  illuminance_lux:    'lx',
+  temperature_c: '°C', humidity_pct: '%', pressure_hpa: 'hPa',
+  weight_kg: 'kg', voltage_v: 'V', illuminance_lux: 'lx',
   gas_resistance_ohm: 'Ω',
 };
-
 const ICONS = {
-  temperature_c:      '🌡',
-  humidity_pct:       '💧',
-  pressure_hpa:       '🌬',
-  weight_kg:          '⚖',
-  voltage_v:          '🔋',
-  illuminance_lux:    '☀',
-  gas_resistance_ohm: '💨',
+  weight_kg: '⚖️', temperature_c: '🌡️', humidity_pct: '💧',
+  pressure_hpa: '🌀', illuminance_lux: '🔆', gas_resistance_ohm: '💨',
+  voltage_v: '🔋',
 };
+const HIVE_COLORS = ['#f59e0b','#10b981','#3b82f6','#8b5cf6','#ef4444','#06b6d4','#f97316'];
 
-let chartInst = null;
-let currentHours = 6;
+let chart = null;
+let currentHours = 1;
+let currentHiveId = null;  // null = all
+let hives = [];
 
-function fmtValue(key, val) {
-  const n = parseFloat(val);
-  if (isNaN(n)) return val;
-  if (key === 'weight_kg') return n.toFixed(3);
-  if (key === 'pressure_hpa') return n.toFixed(1);
-  if (key === 'gas_resistance_ohm') return n >= 1000 ? (n / 1000).toFixed(1) + 'k' : n.toFixed(0);
-  return n.toFixed(1);
+function fmtTime(ts) {
+  if (!ts) return '';
+  return new Date(ts * 1000).toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' });
+}
+function fmtDate(ts) {
+  if (!ts) return '';
+  return new Date(ts * 1000).toLocaleString('de-AT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
 }
 
-function humanLabel(key) {
-  const map = {
-    temperature_c: 'Temperatur',
-    humidity_pct: 'Feuchte',
-    pressure_hpa: 'Luftdruck',
-    weight_kg: 'Gewicht',
-    voltage_v: 'Spannung',
-    illuminance_lux: 'Helligkeit',
-    gas_resistance_ohm: 'Gaswiederstand',
-  };
-  return map[key] ?? key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
-
-async function loadStatus() {
+// ── Status ──────────────────────────────────────────────────────────────────
+async function refreshStatus() {
   try {
-    const s = await fetch('/api/status').then(r => r.json());
-    const dot = document.getElementById('sdot');
-    const txt = document.getElementById('stext');
-    if (s.active) {
-      dot.className = 'dot pulse';
-      txt.textContent = 'Aktiv';
-    } else {
-      dot.className = 'dot red';
-      txt.textContent = s.status || 'Gestoppt';
-    }
-  } catch { /* server unreachable */ }
+    const r = await fetch('/api/status');
+    const d = await r.json();
+    const dot = document.getElementById('statusDot');
+    const txt = document.getElementById('statusText');
+    dot.className = 'status-dot ' + (d.active ? 'online' : 'offline');
+    txt.textContent = d.active ? 'Agent aktiv' : 'Agent gestoppt';
+  } catch {}
+
+  try {
+    const r = await fetch('/api/maintenance/status');
+    const d = await r.json();
+    const badge = document.getElementById('maintenanceBadge');
+    if (badge) badge.classList.toggle('visible', !!d.active);
+  } catch {}
 }
 
-async function loadLatest() {
+// ── Hive Tabs ───────────────────────────────────────────────────────────────
+async function loadHives() {
   try {
-    const data = await fetch('/api/data/latest').then(r => r.json());
-    const box = document.getElementById('cards');
-    const chartCard = document.getElementById('chart-card');
-    box.innerHTML = '';
-
-    if (!data.length) {
-      box.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon">🍯</div>
-          <h3>Noch keine Messwerte</h3>
-          <p>Sensoren in den <a href="/config-ui">Einstellungen</a> hinzufügen und speichern.<br>
-          Der Agent sammelt dann automatisch Daten.</p>
-        </div>`;
-      chartCard.style.display = 'none';
-      return;
-    }
-
-    data.forEach(row => {
-      const unit = UNITS[row.key] ?? '';
-      const icon = ICONS[row.key] ?? '📊';
-      const card = document.createElement('div');
-      card.className = 'metric-card';
-      card.innerHTML = `
-        <div class="metric-icon">${icon}</div>
-        <div class="metric-label">${humanLabel(row.key)}</div>
-        <div class="metric-value">${fmtValue(row.key, row.value)}<span class="metric-unit">${unit}</span></div>
-        <div class="metric-sensor">${row.sensor_name}</div>`;
-      box.appendChild(card);
-    });
-
-    chartCard.style.display = '';
-    document.getElementById('ts').textContent =
-      'Aktualisiert ' + new Date().toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
-  } catch (e) { console.error(e); }
+    const r = await fetch('/api/hives');
+    hives = await r.json();
+  } catch { hives = []; }
+  renderHiveTabs();
 }
 
-async function loadChart(hours) {
+function renderHiveTabs() {
+  const container = document.getElementById('hiveTabs');
+  if (!container) return;
+  if (hives.length === 0) { container.style.display = 'none'; return; }
+  container.style.display = 'flex';
+  container.innerHTML = '';
+
+  const all = document.createElement('button');
+  all.className = 'hive-tab' + (currentHiveId === null ? ' active' : '');
+  all.textContent = 'Alle';
+  all.onclick = () => { currentHiveId = null; renderHiveTabs(); refreshData(); };
+  container.appendChild(all);
+
+  hives.forEach((h, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'hive-tab' + (currentHiveId === h.id ? ' active' : '');
+    const dot = `<span class="hive-dot" style="background:${h.color || HIVE_COLORS[i % HIVE_COLORS.length]}"></span>`;
+    btn.innerHTML = dot + h.name;
+    btn.onclick = () => { currentHiveId = h.id; renderHiveTabs(); refreshData(); };
+    container.appendChild(btn);
+  });
+}
+
+// ── Cards ────────────────────────────────────────────────────────────────────
+function hiveColorFor(hiveId) {
+  if (!hiveId) return '#f59e0b';
+  const h = hives.find(x => x.id === hiveId);
+  return h ? h.color : '#f59e0b';
+}
+
+async function refreshData() {
+  const params = new URLSearchParams();
+  if (currentHiveId) params.set('hive_id', currentHiveId);
+  let rows = [];
   try {
-    const data = await fetch(`/api/data/history?hours=${hours}`).then(r => r.json());
-    if (chartInst) { chartInst.destroy(); chartInst = null; }
-    if (!data.length) return;
+    const r = await fetch('/api/data/latest?' + params);
+    rows = await r.json();
+  } catch {}
 
-    // Build datasets grouped by sensor/key
-    const dsMap = {};
-    const tsSet = new Set();
-    data.forEach(r => {
-      const dk = `${r.sensor_name} – ${humanLabel(r.key)}`;
-      if (!dsMap[dk]) dsMap[dk] = {};
-      dsMap[dk][r.timestamp] = r.value;
-      tsSet.add(r.timestamp);
-    });
+  const grid = document.getElementById('cardsGrid');
+  if (!grid) return;
 
-    const tsList = [...tsSet].sort((a, b) => a - b);
-    const labels = tsList.map(t => {
-      const d = new Date(t * 1000);
-      return hours <= 6
-        ? d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'})
-        : d.toLocaleDateString('de-DE', {weekday:'short', hour:'2-digit', minute:'2-digit'});
-    });
+  if (rows.length === 0) {
+    grid.innerHTML = `<div class="empty-state">
+      <div class="es-icon">📡</div>
+      <p>Noch keine Messdaten vorhanden.</p>
+      <p>Sensoren in den <a href="/config-ui">Einstellungen</a> konfigurieren.</p>
+    </div>`;
+    document.getElementById('chartCard')?.classList.add('hidden');
+    return;
+  }
 
-    const datasets = Object.entries(dsMap).map(([label, pts], i) => ({
-      label,
-      data: tsList.map(t => pts[t] ?? null),
-      spanGaps: true,
-      borderColor: COLORS[i % COLORS.length],
-      backgroundColor: COLORS[i % COLORS.length] + '18',
-      borderWidth: 2,
-      pointRadius: 0,
-      tension: 0.35,
-      fill: false,
-    }));
+  grid.innerHTML = '';
+  rows.forEach(row => {
+    const unit = UNITS[row.key] || '';
+    const icon = ICONS[row.key] || '📈';
+    const color = hiveColorFor(row.hive_id);
+    const card = document.createElement('div');
+    card.className = 'sensor-card';
+    card.style.borderLeftColor = color;
+    card.innerHTML = `
+      <div class="card-icon">${icon}</div>
+      <div class="card-value">${parseFloat(row.value).toFixed(1)}<span class="card-unit">${unit}</span></div>
+      <div class="card-label">${row.sensor_name} · ${row.key}</div>
+      <div class="card-time">${fmtTime(row.timestamp)}</div>`;
+    card.onclick = () => loadChart(row.sensor_name, row.key);
+    grid.appendChild(card);
+  });
 
-    chartInst = new Chart(document.getElementById('chart'), {
-      type: 'line',
-      data: { labels, datasets },
-      options: {
-        responsive: true,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 }, padding: 12 } },
-          tooltip: {
-            callbacks: {
-              label: ctx => {
-                if (ctx.parsed.y === null) return null;
-                const rawKey = data.find(r =>
-                  `${r.sensor_name} – ${humanLabel(r.key)}` === ctx.dataset.label
-                )?.key ?? '';
-                const unit = UNITS[rawKey] ?? '';
-                return ` ${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(2)} ${unit}`;
-              }
-            }
-          }
-        },
-        scales: {
-          x: { ticks: { maxTicksLimit: 8, font: { size: 11 } }, grid: { display: false } },
-          y: { ticks: { font: { size: 11 } }, grid: { color: '#ede9e3' } },
+  const ts = document.getElementById('lastUpdated');
+  if (ts) ts.textContent = 'Aktualisiert: ' + new Date().toLocaleTimeString('de-AT');
+
+  loadChartAuto(rows);
+}
+
+async function loadChartAuto(rows) {
+  if (rows.length === 0) return;
+  await loadChart(rows[0].sensor_name, rows[0].key);
+}
+
+async function loadChart(sensor, key) {
+  const params = new URLSearchParams({ sensor, hours: currentHours });
+  if (currentHiveId) params.set('hive_id', currentHiveId);
+  let history = [];
+  try {
+    const r = await fetch('/api/data/history?' + params);
+    history = await r.json();
+  } catch {}
+
+  const card = document.getElementById('chartCard');
+  const canvas = document.getElementById('chart');
+  if (!card || !canvas) return;
+
+  const filtered = history.filter(r => r.sensor_name === sensor && r.key === key);
+  if (filtered.length === 0) { card.classList.add('hidden'); return; }
+
+  card.classList.remove('hidden');
+  const labels = filtered.map(r => fmtDate(r.timestamp));
+  const data = filtered.map(r => r.value);
+  const unit = UNITS[key] || '';
+
+  if (chart) chart.destroy();
+  chart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: `${sensor} · ${key}`,
+        data,
+        borderColor: '#f59e0b',
+        backgroundColor: 'rgba(245,158,11,.1)',
+        borderWidth: 2,
+        pointRadius: filtered.length > 100 ? 0 : 3,
+        tension: 0.3,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `${ctx.parsed.y.toFixed(2)} ${unit}` } },
+      },
+      scales: {
+        x: { ticks: { maxTicksLimit: 8, font: { size: 11 } }, grid: { color: '#e7e5e4' } },
+        y: {
+          ticks: { callback: v => `${v} ${unit}`, font: { size: 11 } },
+          grid: { color: '#e7e5e4' },
         },
       },
-    });
-  } catch (e) { console.error(e); }
+    },
+  });
 }
 
-function setRange(h, el) {
-  currentHours = h;
-  document.querySelectorAll('.btn-range').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  loadChart(h);
+// ── Init ─────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.time-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentHours = parseInt(btn.dataset.h);
+    refreshData();
+  });
+});
+
+async function init() {
+  await loadHives();
+  await refreshData();
+  await refreshStatus();
+  setInterval(refreshData, 30000);
+  setInterval(refreshStatus, 60000);
 }
 
-async function refresh() {
-  await loadStatus();
-  await loadLatest();
-}
-
-refresh();
-loadChart(currentHours);
-setInterval(refresh, 30_000);
-setInterval(() => loadChart(currentHours), 5 * 60_000);
+init();
