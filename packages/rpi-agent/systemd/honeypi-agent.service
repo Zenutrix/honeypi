@@ -1,0 +1,16 @@
+[Unit]
+Description=HoneyPi Sensor Agent
+After=network.target
+
+[Service]
+Type=simple
+User=honeypi
+WorkingDirectory=/opt/honeypi
+ExecStart=/opt/honeypi/venv/bin/python -m honeypi_agent
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
