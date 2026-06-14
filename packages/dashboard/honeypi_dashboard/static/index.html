@@ -9,17 +9,42 @@
 </head>
 <body>
   <header>
-    <h1>🍯 HoneyPi</h1>
+    <div class="logo">
+      <span class="logo-icon">🍯</span>
+      <span>HoneyPi</span>
+    </div>
     <nav>
-      <a href="/">Dashboard</a>
+      <a href="/" class="active">Dashboard</a>
       <a href="/config-ui">Einstellungen</a>
     </nav>
+    <div class="status-badge">
+      <div class="dot grey" id="sdot"></div>
+      <span id="stext">…</span>
+    </div>
   </header>
-  <div id="cards" class="cards"></div>
-  <div class="chart-section">
-    <h2>Verlauf (24h)</h2>
-    <canvas id="chart" height="80"></canvas>
-  </div>
+
+  <main>
+    <div class="page-header">
+      <span class="page-title">Live-Werte</span>
+      <span class="last-updated" id="ts"></span>
+    </div>
+
+    <div class="cards-grid" id="cards"></div>
+
+    <div class="chart-card" id="chart-card" style="display:none">
+      <div class="card-header">
+        <span class="card-title">Verlauf</span>
+        <div class="range-btns">
+          <button class="btn-range" onclick="setRange(1,this)">1h</button>
+          <button class="btn-range active" onclick="setRange(6,this)">6h</button>
+          <button class="btn-range" onclick="setRange(24,this)">24h</button>
+          <button class="btn-range" onclick="setRange(168,this)">7d</button>
+        </div>
+      </div>
+      <canvas id="chart"></canvas>
+    </div>
+  </main>
+
   <script src="/static/app.js"></script>
 </body>
 </html>

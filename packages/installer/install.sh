@@ -42,8 +42,20 @@ fi
 echo "==> Creating honeypi user..."
 id -u honeypi &>/dev/null || sudo useradd --system --no-create-home honeypi
 
-# Add honeypi user to i2c and gpio groups for sensor access
-sudo usermod -aG i2c,gpio,dialout honeypi 2>/dev/null || true
+# Add honeypi user to hardware and network groups
+sudo usermod -aG i2c,gpio,dialout,netdev honeypi 2>/dev/null || true
+
+echo "==> Configuring sudoers for honeypi..."
+cat > /tmp/honeypi-sudoers <<'SUDOERS'
+# HoneyPi: allow dashboard to control the agent service and manage 4G connections
+honeypi ALL=(root) NOPASSWD: /usr/bin/systemctl start honeypi-agent
+honeypi ALL=(root) NOPASSWD: /usr/bin/systemctl stop honeypi-agent
+honeypi ALL=(root) NOPASSWD: /usr/bin/systemctl restart honeypi-agent
+honeypi ALL=(root) NOPASSWD: /usr/bin/nmcli
+SUDOERS
+sudo visudo -c -f /tmp/honeypi-sudoers && \
+  sudo cp /tmp/honeypi-sudoers /etc/sudoers.d/honeypi && \
+  sudo chmod 0440 /etc/sudoers.d/honeypi
 
 echo "==> Setting up Python environment..."
 cd "$INSTALL_DIR"
@@ -76,7 +88,7 @@ if [ ! -f "$CFG_DIR/honeypi.json" ]; then
       "type": "bme280",
       "name": "Aussenklima",
       "i2c_port": 1,
-      "i2c_address": "0x76"
+      "i2c_address": 118
     }
   ],
   "exporters": {

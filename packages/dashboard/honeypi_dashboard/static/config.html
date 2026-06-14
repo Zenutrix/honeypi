@@ -8,273 +8,574 @@
 </head>
 <body>
   <header>
-    <h1>🍯 HoneyPi</h1>
+    <div class="logo"><span class="logo-icon">🍯</span><span>HoneyPi</span></div>
     <nav>
       <a href="/">Dashboard</a>
-      <a href="/config-ui">Einstellungen</a>
+      <a href="/config-ui" class="active">Einstellungen</a>
     </nav>
+    <div class="status-badge">
+      <div class="dot grey" id="sdot"></div>
+      <span id="stext">…</span>
+    </div>
   </header>
-  <div class="container">
-    <h2 style="margin-bottom:1rem">Konfiguration</h2>
-    <form id="cfg-form">
 
+  <div class="config-main">
+
+    <!-- ── Sensoren ── -->
+    <div class="section-card">
+      <div class="section-card-title"><span class="icon">🔌</span> Sensoren</div>
+
+      <div class="sensor-list" id="sensor-list"></div>
+
+      <button class="btn-add-sensor" id="add-sensor-btn" onclick="togglePicker()">
+        <span>＋</span> Sensor hinzufügen
+      </button>
+
+      <div class="type-picker" id="type-picker"></div>
+    </div>
+
+    <!-- ── Allgemein ── -->
+    <div class="section-card">
+      <div class="section-card-title"><span class="icon">⚙️</span> Allgemein</div>
       <div class="field">
         <label>Messintervall (Sekunden)</label>
-        <input type="number" id="interval" min="30" max="3600">
+        <input type="number" id="interval" min="30" max="3600" value="300">
       </div>
-
-      <h3 style="margin:1.5rem 0 0.75rem">Sensoren</h3>
-      <p style="color:#666;font-size:0.9rem;margin-bottom:0.75rem">
-        Jeden Sensor den du verwenden möchtest aktivieren und konfigurieren.
-      </p>
-
-      <!-- HX711 Waage -->
-      <details class="sensor-block">
-        <summary><input type="checkbox" id="s-hx711"> <strong>HX711 — Waage (Load Cell)</strong></summary>
-        <div class="sensor-fields">
-          <label>Name</label><input type="text" id="s-hx711-name" value="Waage">
-          <label>Data Pin (GPIO)</label><input type="number" id="s-hx711-data" value="5">
-          <label>Clock Pin (GPIO)</label><input type="number" id="s-hx711-clock" value="6">
-          <label>Referenzeinheit (Kalibrierung)</label><input type="number" id="s-hx711-ref" value="1000">
-        </div>
-      </details>
-
-      <!-- DS18B20 -->
-      <details class="sensor-block">
-        <summary><input type="checkbox" id="s-ds18b20"> <strong>DS18B20 — Temperatur (1-Wire)</strong></summary>
-        <div class="sensor-fields">
-          <label>Name</label><input type="text" id="s-ds18b20-name" value="Temperatur_Innen">
-        </div>
-      </details>
-
-      <!-- BME280 -->
-      <details class="sensor-block">
-        <summary><input type="checkbox" id="s-bme280"> <strong>BME280 — Temp / Feuchte / Luftdruck (I2C)</strong></summary>
-        <div class="sensor-fields">
-          <label>Name</label><input type="text" id="s-bme280-name" value="Aussenklima">
-          <label>I2C-Adresse</label>
-          <select id="s-bme280-addr"><option value="0x76">0x76 (Standard)</option><option value="0x77">0x77</option></select>
-        </div>
-      </details>
-
-      <!-- BME680 -->
-      <details class="sensor-block">
-        <summary><input type="checkbox" id="s-bme680"> <strong>BME680 — Temp / Feuchte / Luftdruck / Gas (I2C)</strong></summary>
-        <div class="sensor-fields">
-          <label>Name</label><input type="text" id="s-bme680-name" value="Luftqualitaet">
-          <label>I2C-Adresse</label>
-          <select id="s-bme680-addr"><option value="0x76">0x76 (Standard)</option><option value="0x77">0x77</option></select>
-        </div>
-      </details>
-
-      <!-- DHT22 -->
-      <details class="sensor-block">
-        <summary><input type="checkbox" id="s-dht22"> <strong>DHT22 / DHT11 — Temp / Feuchte (GPIO)</strong></summary>
-        <div class="sensor-fields">
-          <label>Name</label><input type="text" id="s-dht22-name" value="DHT_Sensor">
-          <label>GPIO Pin</label><input type="number" id="s-dht22-pin" value="4">
-          <label>Sensortyp</label>
-          <select id="s-dht22-type"><option value="22">DHT22</option><option value="11">DHT11</option></select>
-        </div>
-      </details>
-
-      <!-- SHT31 -->
-      <details class="sensor-block">
-        <summary><input type="checkbox" id="s-sht31"> <strong>SHT31 / SHT25 — Temp / Feuchte präzise (I2C)</strong></summary>
-        <div class="sensor-fields">
-          <label>Name</label><input type="text" id="s-sht31-name" value="SHT31_Sensor">
-          <label>I2C-Adresse</label>
-          <select id="s-sht31-addr"><option value="0x44">0x44 (Standard)</option><option value="0x45">0x45</option></select>
-        </div>
-      </details>
-
-      <!-- AHT10 -->
-      <details class="sensor-block">
-        <summary><input type="checkbox" id="s-aht10"> <strong>AHT10 / AHT20 — Temp / Feuchte (I2C)</strong></summary>
-        <div class="sensor-fields">
-          <label>Name</label><input type="text" id="s-aht10-name" value="AHT10_Sensor">
-        </div>
-      </details>
-
-      <!-- BH1750 -->
-      <details class="sensor-block">
-        <summary><input type="checkbox" id="s-bh1750"> <strong>BH1750 — Licht / Beleuchtungsstärke (I2C)</strong></summary>
-        <div class="sensor-fields">
-          <label>Name</label><input type="text" id="s-bh1750-name" value="Licht">
-          <label>I2C-Adresse</label>
-          <select id="s-bh1750-addr"><option value="0x23">0x23 (ADDR=LOW)</option><option value="0x5C">0x5C (ADDR=HIGH)</option></select>
-        </div>
-      </details>
-
-      <!-- ADS1115 Batterie -->
-      <details class="sensor-block">
-        <summary><input type="checkbox" id="s-ads1115"> <strong>ADS1115 — ADC / Batteriespannung (I2C)</strong></summary>
-        <div class="sensor-fields">
-          <label>Name</label><input type="text" id="s-ads1115-name" value="Batterie">
-          <label>Kanal (0–3)</label><input type="number" id="s-ads1115-ch" value="0" min="0" max="3">
-          <label>Gain</label>
-          <select id="s-ads1115-gain">
-            <option value="2/3">2/3 (±6.144V)</option>
-            <option value="1" selected>1 (±4.096V)</option>
-            <option value="2">2 (±2.048V)</option>
-          </select>
-          <label>Spannungsteiler-Faktor</label>
-          <input type="number" id="s-ads1115-div" value="1" step="0.1"
-            title="z.B. 5.7 für 100kΩ/20kΩ Teiler bei 12V Batterie">
-          <small style="color:#888">Spannungsteiler: z.B. 5.7 für 100kΩ/20kΩ Teiler (12V Akku → 3.3V Eingang)</small>
-        </div>
-      </details>
-
-      <h3 style="margin:1.5rem 0 0.75rem">Exporters</h3>
-
-      <div class="field">
-        <label><input type="checkbox" id="ts-enabled"> ThingSpeak aktiviert</label>
-        <input type="text" id="ts-key" placeholder="API Key" style="margin-top:0.5rem">
-      </div>
-      <div class="field">
-        <label><input type="checkbox" id="idb-enabled"> InfluxDB aktiviert</label>
-        <input type="text" id="idb-url" placeholder="URL (z.B. http://server:8086)" style="margin-top:0.5rem">
-        <input type="text" id="idb-token" placeholder="Token" style="margin-top:0.25rem">
-        <input type="text" id="idb-org" placeholder="Organisation" style="margin-top:0.25rem">
-        <input type="text" id="idb-bucket" placeholder="Bucket" style="margin-top:0.25rem">
-      </div>
-      <div class="field">
-        <label><input type="checkbox" id="mqtt-enabled"> MQTT aktiviert</label>
-        <input type="text" id="mqtt-broker" placeholder="Broker IP/Hostname" style="margin-top:0.5rem">
-        <input type="text" id="mqtt-topic" placeholder="Topic (z.B. honeypi)" style="margin-top:0.25rem">
-      </div>
-
-      <button type="submit" style="margin-top:1rem">Speichern & Agent neu starten</button>
-    </form>
-
-    <div style="margin-top:2rem">
-      <h3 style="margin-bottom:0.5rem">Agent-Steuerung</h3>
-      <button onclick="control('start')">Start</button>
-      <button onclick="control('stop')" style="margin-left:0.5rem;background:#888">Stop</button>
-      <button onclick="control('restart')" style="margin-left:0.5rem;background:#e07b00">Neustart</button>
     </div>
-    <p id="status" style="margin-top:1rem;color:#666"></p>
+
+    <!-- ── Datenexport ── -->
+    <div class="section-card">
+      <div class="section-card-title"><span class="icon">📤</span> Datenexport</div>
+
+      <div class="exporter-item" id="exp-ts">
+        <div class="exporter-header" onclick="toggleExp('ts')">
+          <span>📊</span>
+          <span class="exporter-title">ThingSpeak</span>
+          <span class="exporter-badge" id="badge-ts">Aus</span>
+          <span class="sensor-chevron">▾</span>
+        </div>
+        <div class="exporter-body" id="body-ts">
+          <div class="field"><label><input type="checkbox" id="ts-on" onchange="syncBadge('ts')"> Aktiviert</label></div>
+          <div class="field"><label>API Key</label><input type="text" id="ts-key" placeholder="XXXXXXXXXXXX"></div>
+          <div class="field"><label>Channel ID (optional)</label><input type="text" id="ts-channel" placeholder="123456"></div>
+        </div>
+      </div>
+
+      <div class="exporter-item" id="exp-idb">
+        <div class="exporter-header" onclick="toggleExp('idb')">
+          <span>📈</span>
+          <span class="exporter-title">InfluxDB v2</span>
+          <span class="exporter-badge" id="badge-idb">Aus</span>
+          <span class="sensor-chevron">▾</span>
+        </div>
+        <div class="exporter-body" id="body-idb">
+          <div class="field"><label><input type="checkbox" id="idb-on" onchange="syncBadge('idb')"> Aktiviert</label></div>
+          <div class="field-row">
+            <div class="field"><label>URL</label><input type="text" id="idb-url" placeholder="http://server:8086"></div>
+            <div class="field"><label>Bucket</label><input type="text" id="idb-bucket" placeholder="honeypi"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Organisation</label><input type="text" id="idb-org" placeholder="meine-org"></div>
+            <div class="field"><label>Token</label><input type="password" id="idb-token" placeholder="••••••••"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exporter-item" id="exp-mqtt">
+        <div class="exporter-header" onclick="toggleExp('mqtt')">
+          <span>📡</span>
+          <span class="exporter-title">MQTT</span>
+          <span class="exporter-badge" id="badge-mqtt">Aus</span>
+          <span class="sensor-chevron">▾</span>
+        </div>
+        <div class="exporter-body" id="body-mqtt">
+          <div class="field"><label><input type="checkbox" id="mqtt-on" onchange="syncBadge('mqtt')"> Aktiviert</label></div>
+          <div class="field-row">
+            <div class="field"><label>Broker (IP / Hostname)</label><input type="text" id="mqtt-broker" placeholder="192.168.1.100"></div>
+            <div class="field"><label>Port</label><input type="number" id="mqtt-port" placeholder="1883" value="1883"></div>
+          </div>
+          <div class="field"><label>Topic</label><input type="text" id="mqtt-topic" placeholder="honeypi"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 4G / Mobilfunk ── -->
+    <div class="section-card">
+      <div class="section-card-title"><span class="icon">📶</span> 4G / Mobilfunk</div>
+      <div id="net-status-box" class="net-status">
+        <div class="net-dot grey"></div>
+        <span>Prüfe Stick…</span>
+      </div>
+      <div id="net-form" style="display:none">
+        <div class="field-row">
+          <div class="field"><label>APN</label><input type="text" id="net-apn" placeholder="z.B. internet.telekom"></div>
+          <div class="field"><label>Benutzername (optional)</label><input type="text" id="net-user"></div>
+        </div>
+        <div class="field"><label>Passwort (optional)</label><input type="password" id="net-pass"></div>
+        <div class="action-bar" style="margin-top:.75rem">
+          <button class="btn btn-primary" id="net-connect-btn" onclick="netConnect()">Verbinden</button>
+          <button class="btn btn-ghost" id="net-disconnect-btn" onclick="netDisconnect()" style="display:none">Trennen</button>
+        </div>
+      </div>
+      <p id="net-unavail" style="font-size:.875rem;color:var(--muted);display:none">
+        Kein 4G-Stick erkannt. USB-Stick einstecken und Seite neu laden.
+      </p>
+    </div>
+
+    <!-- ── Speichern / Agent ── -->
+    <div class="section-card">
+      <div class="section-card-title"><span class="icon">🔧</span> Agent</div>
+      <div class="action-bar">
+        <button class="btn btn-primary" onclick="saveConfig()">💾 Speichern &amp; Neustart</button>
+        <button class="btn btn-ghost btn-sm" onclick="control('restart')">Neustart</button>
+        <button class="btn btn-ghost btn-sm" onclick="control('stop')">Stop</button>
+        <button class="btn btn-ghost btn-sm" onclick="control('start')">Start</button>
+      </div>
+    </div>
+
   </div>
 
-  <script>
-    async function loadConfig() {
-      const cfg = await fetch('/api/config').then(r => r.json());
-      document.getElementById('interval').value = cfg.interval ?? 300;
+  <div class="toast" id="toast"></div>
 
-      // Load sensor checkboxes from config
-      const sensors = cfg.sensors ?? [];
-      const byType = {};
-      sensors.forEach(s => { byType[s.type] = s; });
+<script>
+'use strict';
 
-      function setSensor(type, id, fields) {
-        const s = byType[type];
-        if (s) {
-          document.getElementById(id).checked = true;
-          fields.forEach(([field, elId]) => {
-            const el = document.getElementById(elId);
-            if (el && s[field] !== undefined) el.value = s[field];
-          });
-        }
+// ── Sensor type definitions ───────────────────────────────────────
+const SENSOR_TYPES = {
+  hx711: {
+    label: 'HX711 — Waage (Load Cell)',
+    icon: '⚖',
+    defaults: { name: 'Waage', data_pin: 5, clock_pin: 6, reference_unit: 1000 },
+    fields: [
+      { key:'name',           label:'Name',                   type:'text',   full:true },
+      { key:'data_pin',       label:'Data Pin (GPIO)',         type:'number' },
+      { key:'clock_pin',      label:'Clock Pin (GPIO)',        type:'number' },
+      { key:'reference_unit', label:'Referenzeinheit (Kalibr.)', type:'number' },
+    ],
+  },
+  ds18b20: {
+    label: 'DS18B20 — Temperatur (1-Wire)',
+    icon: '🌡',
+    defaults: { name: 'Temperatur_Innen' },
+    fields: [
+      { key:'name', label:'Name', type:'text', full:true },
+    ],
+  },
+  bme280: {
+    label: 'BME280 — Temp / Feuchte / Luftdruck',
+    icon: '🌤',
+    defaults: { name: 'Aussenklima', i2c_address: 0x76, i2c_port: 1 },
+    fields: [
+      { key:'name',        label:'Name',         type:'text',    full:true },
+      { key:'i2c_address', label:'I2C-Adresse',  type:'select',  isAddr:true,
+        options:[{v:'0x76',l:'0x76 (Standard)'},{v:'0x77',l:'0x77'}] },
+      { key:'i2c_port',    label:'I2C-Port',     type:'number' },
+    ],
+  },
+  bme680: {
+    label: 'BME680 — Temp / Feuchte / Druck / Gas',
+    icon: '💨',
+    defaults: { name: 'Luftqualitaet', i2c_address: 0x76, i2c_port: 1 },
+    fields: [
+      { key:'name',        label:'Name',         type:'text',    full:true },
+      { key:'i2c_address', label:'I2C-Adresse',  type:'select',  isAddr:true,
+        options:[{v:'0x76',l:'0x76 (Standard)'},{v:'0x77',l:'0x77'}] },
+      { key:'i2c_port',    label:'I2C-Port',     type:'number' },
+    ],
+  },
+  dht22: {
+    label: 'DHT22 / DHT11 — Temp / Feuchte (GPIO)',
+    icon: '💧',
+    defaults: { name: 'DHT_Sensor', pin: 4, sensor_type: 22 },
+    fields: [
+      { key:'name',        label:'Name',    type:'text', full:true },
+      { key:'pin',         label:'GPIO Pin',type:'number' },
+      { key:'sensor_type', label:'Typ',     type:'select',
+        options:[{v:'22',l:'DHT22'},{v:'11',l:'DHT11'}] },
+    ],
+  },
+  sht31: {
+    label: 'SHT31 / SHT25 — Temp / Feuchte (präzise)',
+    icon: '🌡',
+    defaults: { name: 'SHT31', i2c_address: 0x44, i2c_port: 1 },
+    fields: [
+      { key:'name',        label:'Name',        type:'text',   full:true },
+      { key:'i2c_address', label:'I2C-Adresse', type:'select', isAddr:true,
+        options:[{v:'0x44',l:'0x44 (Standard)'},{v:'0x45',l:'0x45'}] },
+      { key:'i2c_port',    label:'I2C-Port',    type:'number' },
+    ],
+  },
+  aht10: {
+    label: 'AHT10 / AHT20 — Temp / Feuchte',
+    icon: '💧',
+    defaults: { name: 'AHT10', i2c_address: 0x38, i2c_port: 1 },
+    fields: [
+      { key:'name',        label:'Name',        type:'text',   full:true },
+      { key:'i2c_address', label:'I2C-Adresse', type:'select', isAddr:true,
+        options:[{v:'0x38',l:'0x38 (Standard)'}] },
+      { key:'i2c_port',    label:'I2C-Port',    type:'number' },
+    ],
+  },
+  bh1750: {
+    label: 'BH1750 — Licht / Beleuchtungsstärke',
+    icon: '☀',
+    defaults: { name: 'Licht', i2c_address: 0x23, i2c_port: 1 },
+    fields: [
+      { key:'name',        label:'Name',        type:'text',   full:true },
+      { key:'i2c_address', label:'I2C-Adresse', type:'select', isAddr:true,
+        options:[{v:'0x23',l:'0x23 (ADDR=LOW)'},{v:'0x5C',l:'0x5C (ADDR=HIGH)'}] },
+      { key:'i2c_port',    label:'I2C-Port',    type:'number' },
+    ],
+  },
+  ads1115: {
+    label: 'ADS1115 — ADC / Batteriespannung',
+    icon: '🔋',
+    defaults: { name: 'Batterie', i2c_address: 0x48, i2c_port: 1, channel: 0, gain: '1', voltage_divider: 1.0 },
+    fields: [
+      { key:'name',             label:'Name',          type:'text',   full:true },
+      { key:'i2c_address',      label:'I2C-Adresse',   type:'select', isAddr:true,
+        options:[{v:'0x48',l:'0x48 (ADDR=GND)'},{v:'0x49',l:'0x49'},{v:'0x4A',l:'0x4A'},{v:'0x4B',l:'0x4B'}] },
+      { key:'channel',          label:'Kanal (0–3)',    type:'number', min:0, max:3 },
+      { key:'gain',             label:'Gain',           type:'select',
+        options:[{v:'2/3',l:'2/3 (±6.1V)'},{v:'1',l:'1 (±4.1V)'},{v:'2',l:'2 (±2.0V)'},{v:'4',l:'4 (±1.0V)'}] },
+      { key:'voltage_divider',  label:'Spannungsteiler',type:'number', step:'0.01',
+        hint:'z.B. 5.7 für 100kΩ/20kΩ Teiler bei 12V-Akku' },
+    ],
+  },
+};
+
+// ── Type picker ──────────────────────────────────────────────────
+const picker = document.getElementById('type-picker');
+
+Object.entries(SENSOR_TYPES).forEach(([type, def]) => {
+  const el = document.createElement('div');
+  el.className = 'type-option';
+  el.innerHTML = `<span class="type-icon">${def.icon}</span><span>${def.label}</span>`;
+  el.onclick = () => { addSensor(type); picker.classList.remove('open'); };
+  picker.appendChild(el);
+});
+
+function togglePicker() {
+  picker.classList.toggle('open');
+}
+
+// ── Sensor list ──────────────────────────────────────────────────
+let sensors = [];
+
+function addSensor(type, data = null) {
+  const def = SENSOR_TYPES[type];
+  const s = data ?? { type, ...def.defaults };
+  if (!s.type) s.type = type;
+  sensors.push(s);
+  renderSensors();
+  // Auto-open the newly added sensor
+  const entries = document.querySelectorAll('.sensor-entry');
+  entries[entries.length - 1]?.classList.add('open');
+}
+
+function removeSensor(idx) {
+  sensors.splice(idx, 1);
+  renderSensors();
+}
+
+function renderSensors() {
+  const list = document.getElementById('sensor-list');
+  list.innerHTML = '';
+
+  if (!sensors.length) {
+    list.innerHTML = '<p style="font-size:.875rem;color:var(--muted);padding:.5rem 0">Noch keine Sensoren — unten einen hinzufügen.</p>';
+    return;
+  }
+
+  sensors.forEach((s, idx) => {
+    const def = SENSOR_TYPES[s.type] ?? { label: s.type, icon: '📟', fields: [] };
+    const name = s.name || def.defaults?.name || s.type;
+    const entry = document.createElement('div');
+    entry.className = 'sensor-entry';
+    entry.dataset.idx = idx;
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'sensor-header';
+    header.innerHTML = `
+      <span class="sensor-icon">${def.icon}</span>
+      <div class="sensor-info">
+        <strong id="sname-${idx}">${name}</strong>
+        <small>${def.label}</small>
+      </div>
+      <span class="sensor-chevron">▾</span>`;
+    header.onclick = () => entry.classList.toggle('open');
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'sensor-body';
+
+    const fieldsDiv = document.createElement('div');
+    fieldsDiv.className = 'sensor-fields';
+
+    def.fields.forEach(f => {
+      const fd = document.createElement('div');
+      fd.className = 'field' + (f.full ? ' full' : '');
+
+      let inputHtml = '';
+      if (f.type === 'select') {
+        const curVal = addrToHex(s[f.key]) ?? String(f.options?.[0]?.v ?? '');
+        inputHtml = `<select data-key="${f.key}" data-addr="${!!f.isAddr}" onchange="onFieldChange(${idx},this)">
+          ${(f.options ?? []).map(o => `<option value="${o.v}"${curVal === o.v ? ' selected' : ''}>${o.l}</option>`).join('')}
+        </select>`;
+      } else {
+        const curVal = s[f.key] ?? '';
+        const extras = f.min !== undefined ? ` min="${f.min}"` : '';
+        const extras2 = f.max !== undefined ? ` max="${f.max}"` : '';
+        const extras3 = f.step !== undefined ? ` step="${f.step}"` : '';
+        inputHtml = `<input type="${f.type}" data-key="${f.key}" value="${curVal}"${extras}${extras2}${extras3}
+          onchange="onFieldChange(${idx},this)"
+          ${f.key === 'name' ? `oninput="document.getElementById('sname-${idx}').textContent=this.value||'Sensor'"` : ''}>`;
       }
 
-      setSensor('hx711',   's-hx711',   [['name','s-hx711-name'],['data_pin','s-hx711-data'],['clock_pin','s-hx711-clock'],['reference_unit','s-hx711-ref']]);
-      setSensor('ds18b20', 's-ds18b20', [['name','s-ds18b20-name']]);
-      setSensor('bme280',  's-bme280',  [['name','s-bme280-name'],['i2c_address','s-bme280-addr']]);
-      setSensor('bme680',  's-bme680',  [['name','s-bme680-name'],['i2c_address','s-bme680-addr']]);
-      setSensor('dht22',   's-dht22',   [['name','s-dht22-name'],['pin','s-dht22-pin'],['sensor_type','s-dht22-type']]);
-      setSensor('sht31',   's-sht31',   [['name','s-sht31-name'],['i2c_address','s-sht31-addr']]);
-      setSensor('aht10',   's-aht10',   [['name','s-aht10-name']]);
-      setSensor('bh1750',  's-bh1750',  [['name','s-bh1750-name'],['i2c_address','s-bh1750-addr']]);
-      setSensor('ads1115', 's-ads1115', [['name','s-ads1115-name'],['channel','s-ads1115-ch'],['gain','s-ads1115-gain'],['voltage_divider','s-ads1115-div']]);
-
-      const exp = cfg.exporters ?? {};
-      document.getElementById('ts-enabled').checked  = exp.thingspeak?.enabled ?? false;
-      document.getElementById('ts-key').value         = exp.thingspeak?.api_key ?? '';
-      document.getElementById('idb-enabled').checked  = exp.influxdb?.enabled ?? false;
-      document.getElementById('idb-url').value         = exp.influxdb?.url ?? '';
-      document.getElementById('idb-token').value       = exp.influxdb?.token ?? '';
-      document.getElementById('idb-org').value         = exp.influxdb?.org ?? '';
-      document.getElementById('idb-bucket').value      = exp.influxdb?.bucket ?? 'honeypi';
-      document.getElementById('mqtt-enabled').checked  = exp.mqtt?.enabled ?? false;
-      document.getElementById('mqtt-broker').value     = exp.mqtt?.broker ?? '';
-      document.getElementById('mqtt-topic').value      = exp.mqtt?.topic ?? 'honeypi';
-    }
-
-    function buildSensors() {
-      const sensors = [];
-      if (document.getElementById('s-hx711').checked) sensors.push({
-        type: 'hx711', name: document.getElementById('s-hx711-name').value,
-        data_pin: +document.getElementById('s-hx711-data').value,
-        clock_pin: +document.getElementById('s-hx711-clock').value,
-        reference_unit: +document.getElementById('s-hx711-ref').value,
-      });
-      if (document.getElementById('s-ds18b20').checked) sensors.push({
-        type: 'ds18b20', name: document.getElementById('s-ds18b20-name').value,
-      });
-      if (document.getElementById('s-bme280').checked) sensors.push({
-        type: 'bme280', name: document.getElementById('s-bme280-name').value,
-        i2c_address: document.getElementById('s-bme280-addr').value,
-      });
-      if (document.getElementById('s-bme680').checked) sensors.push({
-        type: 'bme680', name: document.getElementById('s-bme680-name').value,
-        i2c_address: document.getElementById('s-bme680-addr').value,
-      });
-      if (document.getElementById('s-dht22').checked) sensors.push({
-        type: 'dht22', name: document.getElementById('s-dht22-name').value,
-        pin: +document.getElementById('s-dht22-pin').value,
-        sensor_type: +document.getElementById('s-dht22-type').value,
-      });
-      if (document.getElementById('s-sht31').checked) sensors.push({
-        type: 'sht31', name: document.getElementById('s-sht31-name').value,
-        i2c_address: document.getElementById('s-sht31-addr').value,
-      });
-      if (document.getElementById('s-aht10').checked) sensors.push({
-        type: 'aht10', name: document.getElementById('s-aht10-name').value,
-      });
-      if (document.getElementById('s-bh1750').checked) sensors.push({
-        type: 'bh1750', name: document.getElementById('s-bh1750-name').value,
-        i2c_address: document.getElementById('s-bh1750-addr').value,
-      });
-      if (document.getElementById('s-ads1115').checked) sensors.push({
-        type: 'ads1115', name: document.getElementById('s-ads1115-name').value,
-        channel: +document.getElementById('s-ads1115-ch').value,
-        gain: document.getElementById('s-ads1115-gain').value,
-        voltage_divider: +document.getElementById('s-ads1115-div').value,
-      });
-      return sensors;
-    }
-
-    document.getElementById('cfg-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const cfg = {
-        interval: parseInt(document.getElementById('interval').value),
-        sensors: buildSensors(),
-        exporters: {
-          local: { enabled: true },
-          thingspeak: { enabled: document.getElementById('ts-enabled').checked, api_key: document.getElementById('ts-key').value },
-          influxdb: { enabled: document.getElementById('idb-enabled').checked, url: document.getElementById('idb-url').value, token: document.getElementById('idb-token').value, org: document.getElementById('idb-org').value, bucket: document.getElementById('idb-bucket').value },
-          mqtt: { enabled: document.getElementById('mqtt-enabled').checked, broker: document.getElementById('mqtt-broker').value, topic: document.getElementById('mqtt-topic').value },
-        }
-      };
-      await fetch('/api/config', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(cfg) });
-      document.getElementById('status').textContent = 'Gespeichert und Agent neu gestartet.';
+      fd.innerHTML = `<label>${f.label}${f.hint ? `<br><small style="font-weight:400;text-transform:none;color:var(--faint)">${f.hint}</small>` : ''}</label>${inputHtml}`;
+      fieldsDiv.appendChild(fd);
     });
 
-    async function control(action) {
-      await fetch(`/api/control/${action}`, { method: 'POST' });
-      document.getElementById('status').textContent = `Agent: ${action} ausgeführt.`;
+    // Actions
+    const actions = document.createElement('div');
+    actions.className = 'sensor-actions';
+    actions.innerHTML = `<button class="btn btn-danger btn-sm" onclick="removeSensor(${idx})">× Entfernen</button>`;
+
+    body.appendChild(fieldsDiv);
+    body.appendChild(actions);
+    entry.appendChild(header);
+    entry.appendChild(body);
+    list.appendChild(entry);
+  });
+}
+
+function addrToHex(val) {
+  if (val === undefined || val === null) return undefined;
+  if (typeof val === 'number') return '0x' + val.toString(16);
+  return String(val);
+}
+
+function onFieldChange(idx, el) {
+  const key = el.dataset.key;
+  const isAddr = el.dataset.addr === 'true';
+  let val = el.value;
+  if (isAddr) {
+    sensors[idx][key] = parseInt(val, 16);
+  } else if (el.type === 'number') {
+    sensors[idx][key] = parseFloat(val);
+  } else {
+    sensors[idx][key] = val;
+  }
+}
+
+// ── Exporter toggles ─────────────────────────────────────────────
+function toggleExp(id) {
+  document.getElementById('body-' + id).classList.toggle('open');
+  document.getElementById('exp-' + id).classList.toggle('open');
+}
+
+function syncBadge(id) {
+  const on = document.getElementById(id + '-on').checked;
+  const badge = document.getElementById('badge-' + id);
+  badge.textContent = on ? 'An' : 'Aus';
+  document.getElementById('exp-' + id).classList.toggle('enabled', on);
+}
+
+// ── Build config ─────────────────────────────────────────────────
+function buildConfig() {
+  return {
+    interval: parseInt(document.getElementById('interval').value) || 300,
+    sensors: sensors,
+    exporters: {
+      local: { enabled: true, db_path: '/var/lib/honeypi/data.db' },
+      thingspeak: {
+        enabled: document.getElementById('ts-on').checked,
+        api_key:  document.getElementById('ts-key').value,
+        channel:  document.getElementById('ts-channel').value || null,
+      },
+      influxdb: {
+        enabled: document.getElementById('idb-on').checked,
+        url:     document.getElementById('idb-url').value,
+        token:   document.getElementById('idb-token').value,
+        org:     document.getElementById('idb-org').value,
+        bucket:  document.getElementById('idb-bucket').value || 'honeypi',
+      },
+      mqtt: {
+        enabled: document.getElementById('mqtt-on').checked,
+        broker:  document.getElementById('mqtt-broker').value,
+        port:    parseInt(document.getElementById('mqtt-port').value) || 1883,
+        topic:   document.getElementById('mqtt-topic').value || 'honeypi',
+      },
+    },
+  };
+}
+
+// ── Load config ──────────────────────────────────────────────────
+async function loadConfig() {
+  try {
+    const cfg = await fetch('/api/config').then(r => r.json());
+    document.getElementById('interval').value = cfg.interval ?? 300;
+
+    sensors = [];
+    (cfg.sensors ?? []).forEach(s => {
+      if (SENSOR_TYPES[s.type]) sensors.push({ ...s });
+    });
+    renderSensors();
+
+    const exp = cfg.exporters ?? {};
+
+    const ts = exp.thingspeak ?? {};
+    document.getElementById('ts-on').checked = !!ts.enabled;
+    document.getElementById('ts-key').value = ts.api_key ?? '';
+    document.getElementById('ts-channel').value = ts.channel ?? '';
+    syncBadge('ts');
+
+    const idb = exp.influxdb ?? {};
+    document.getElementById('idb-on').checked = !!idb.enabled;
+    document.getElementById('idb-url').value = idb.url ?? '';
+    document.getElementById('idb-token').value = idb.token ?? '';
+    document.getElementById('idb-org').value = idb.org ?? '';
+    document.getElementById('idb-bucket').value = idb.bucket ?? 'honeypi';
+    syncBadge('idb');
+
+    const mqtt = exp.mqtt ?? {};
+    document.getElementById('mqtt-on').checked = !!mqtt.enabled;
+    document.getElementById('mqtt-broker').value = mqtt.broker ?? '';
+    document.getElementById('mqtt-port').value = mqtt.port ?? 1883;
+    document.getElementById('mqtt-topic').value = mqtt.topic ?? 'honeypi';
+    syncBadge('mqtt');
+  } catch (e) {
+    toast('Konfiguration konnte nicht geladen werden', 'err');
+  }
+}
+
+// ── Save config ──────────────────────────────────────────────────
+async function saveConfig() {
+  if (!sensors.length) {
+    toast('Mindestens einen Sensor hinzufügen', 'err');
+    return;
+  }
+  try {
+    const res = await fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildConfig()),
+    });
+    if (!res.ok) throw new Error();
+    toast('Gespeichert — Agent wird neu gestartet', 'ok');
+  } catch {
+    toast('Speichern fehlgeschlagen', 'err');
+  }
+}
+
+// ── Agent control ────────────────────────────────────────────────
+async function control(action) {
+  await fetch(`/api/control/${action}`, { method: 'POST' });
+  toast(`Agent: ${action}`, 'ok');
+  setTimeout(loadStatus, 2000);
+}
+
+// ── Agent status ─────────────────────────────────────────────────
+async function loadStatus() {
+  try {
+    const s = await fetch('/api/status').then(r => r.json());
+    const dot = document.getElementById('sdot');
+    const txt = document.getElementById('stext');
+    dot.className = 'dot' + (s.active ? ' pulse' : ' red');
+    txt.textContent = s.active ? 'Aktiv' : (s.status || 'Gestoppt');
+  } catch {}
+}
+
+// ── 4G ───────────────────────────────────────────────────────────
+async function loadNetwork() {
+  try {
+    const m = await fetch('/api/network/modem').then(r => r.json());
+    const box = document.getElementById('net-status-box');
+    const form = document.getElementById('net-form');
+    const unavail = document.getElementById('net-unavail');
+
+    if (!m.available) {
+      box.innerHTML = `<div class="net-dot grey"></div><span>${m.reason ?? 'Kein Stick erkannt'}</span>`;
+      form.style.display = 'none';
+      unavail.style.display = 'block';
+      return;
     }
 
-    loadConfig();
-  </script>
+    unavail.style.display = 'none';
+    form.style.display = '';
 
-  <style>
-    .sensor-block { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 0.5rem; padding: 0.5rem 0.75rem; }
-    .sensor-block summary { cursor: pointer; padding: 0.25rem 0; user-select: none; }
-    .sensor-block summary input[type=checkbox] { margin-right: 0.5rem; }
-    .sensor-fields { display: grid; grid-template-columns: 1fr 2fr; gap: 0.4rem 0.75rem; margin-top: 0.75rem; align-items: center; }
-    .sensor-fields label { font-size: 0.9rem; color: #555; }
-    .sensor-fields small { grid-column: 1 / -1; }
-  </style>
+    const dotCls = m.connected ? 'green' : (m.state === 'registered' ? 'amber' : 'grey');
+    const stateLabel = m.connected ? 'Verbunden'
+      : m.state === 'registered' ? 'Eingebucht, nicht verbunden'
+      : m.state === 'searching' ? 'Sucht Netz…'
+      : m.state === 'disabled' ? 'Deaktiviert'
+      : m.state ?? 'Unbekannt';
+
+    const signalHtml = m.signal !== null ? signalBars(m.signal) : '';
+    box.innerHTML = `<div class="net-dot ${dotCls}"></div><span><strong>${m.model}</strong> — ${stateLabel}</span>${signalHtml}`;
+
+    if (m.apn) document.getElementById('net-apn').value = m.apn;
+
+    document.getElementById('net-connect-btn').style.display = m.connected ? 'none' : '';
+    document.getElementById('net-disconnect-btn').style.display = m.connected ? '' : 'none';
+  } catch (e) {
+    document.getElementById('net-status-box').innerHTML =
+      '<div class="net-dot grey"></div><span>ModemManager nicht erreichbar</span>';
+  }
+}
+
+function signalBars(pct) {
+  const level = pct >= 75 ? 4 : pct >= 50 ? 3 : pct >= 25 ? 2 : 1;
+  const heights = [8, 12, 16, 20];
+  return `<div class="signal-bar s${level}">
+    ${heights.map(h => `<span style="height:${h}px"></span>`).join('')}
+  </div>`;
+}
+
+async function netConnect() {
+  const apn = document.getElementById('net-apn').value.trim();
+  if (!apn) { toast('APN eingeben', 'err'); return; }
+  toast('Verbinde…');
+  try {
+    const res = await fetch('/api/network/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        apn,
+        username: document.getElementById('net-user').value,
+        password: document.getElementById('net-pass').value,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail ?? 'Fehler');
+    toast('Verbunden!', 'ok');
+    setTimeout(loadNetwork, 2000);
+  } catch (e) {
+    toast('Fehler: ' + e.message, 'err');
+  }
+}
+
+async function netDisconnect() {
+  await fetch('/api/network/disconnect', { method: 'POST' });
+  toast('Getrennt', 'ok');
+  setTimeout(loadNetwork, 1500);
+}
+
+// ── Toast ─────────────────────────────────────────────────────────
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+loadConfig();
+loadStatus();
+loadNetwork();
+setInterval(loadStatus, 30_000);
+</script>
 </body>
 </html>

@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from .api import data as data_router
 from .api import config as config_router
+from .api import network as network_router
 
 app = FastAPI(title="HoneyPi Dashboard")
 
@@ -12,6 +13,7 @@ _STATIC = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=str(_STATIC)), name="static")
 app.include_router(data_router.router, prefix="/api")
 app.include_router(config_router.router, prefix="/api")
+app.include_router(network_router.router, prefix="/api")
 
 
 @app.get("/", include_in_schema=False)
