@@ -13,12 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> None:
-    cfg = load_config(Path("/etc/honeypi/honeypi.json"))
+    cfg = load_config(Path("/etc/hanipi/hanipi.json"))
     sensors = [create_sensor(s) for s in cfg.sensors]
     exporters = create_exporters(cfg.exporters)
 
     if not sensors:
-        logger.warning("No sensors configured — check /etc/honeypi/honeypi.json")
+        logger.warning("No sensors configured — check /etc/hanipi/hanipi.json")
 
     runner = MeasurementRunner(sensors=sensors, exporters=exporters, interval=cfg.interval)
 
@@ -32,7 +32,7 @@ def main() -> None:
     signal.signal(signal.SIGTERM, _shutdown)
     signal.signal(signal.SIGINT, _shutdown)
 
-    logger.info("HoneyPi Agent started. Interval: %ds, Sensors: %d, Exporters: %d",
+    logger.info("HaniPi Agent started. Interval: %ds, Sensors: %d, Exporters: %d",
                 cfg.interval, len(sensors), len(exporters))
     runner.run()
 

@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS measurements (
 
 class LocalExporter(BaseExporter):
     def __init__(self, config: dict) -> None:
-        db_path = Path(config.get("db_path", "/var/lib/honeypi/data.db"))
+        db_path = Path(config.get("db_path", "/var/lib/hanipi/data.db"))
         db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(str(db_path), check_same_thread=False)
         self._conn.execute(_CREATE_TABLE)

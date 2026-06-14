@@ -1,5 +1,5 @@
 [project]
-name = "honeypi-agent"
+name = "hanipi-agent"
 version = "2.0.0"
 requires-python = ">=3.11"
 dependencies = [
@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.scripts]
-honeypi-agent = "honeypi_agent.main:main"
+hanipi-agent = "hanipi_agent.main:main"
 
 [build-system]
 requires = ["hatchling"]

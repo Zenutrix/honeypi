@@ -7,7 +7,7 @@ from ..sensors.base import Measurement
 
 class MQTTExporter(BaseExporter):
     def __init__(self, config: dict) -> None:
-        self._topic: str = config.get("topic", "honeypi")
+        self._topic: str = config.get("topic", "hanipi")
         self._client = mqtt.Client()
         self._client.connect(config["broker"], config.get("port", 1883))
         self._client.loop_start()

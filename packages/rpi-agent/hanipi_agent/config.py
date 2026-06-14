@@ -4,13 +4,13 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 
-class HoneyPiConfig(BaseModel):
+class HaniPiConfig(BaseModel):
     interval: int = 300
     sensors: list[dict] = Field(default_factory=list)
     exporters: dict[str, dict] = Field(default_factory=dict)
 
 
-def load_config(path: Path = Path("/etc/honeypi/honeypi.json")) -> HoneyPiConfig:
+def load_config(path: Path = Path("/etc/hanipi/hanipi.json")) -> HaniPiConfig:
     if not path.exists():
-        return HoneyPiConfig()
-    return HoneyPiConfig.model_validate(json.loads(path.read_text()))
+        return HaniPiConfig()
+    return HaniPiConfig.model_validate(json.loads(path.read_text()))

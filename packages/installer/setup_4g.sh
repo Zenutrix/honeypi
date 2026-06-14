@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# HoneyPi 4G/Surfstick Setup
+# HaniPi 4G/Surfstick Setup
 # Konfiguriert einen USB-Mobilfunkstick via ModemManager + NetworkManager
 set -euo pipefail
 
-echo "==> HoneyPi 4G/Surfstick Setup"
+echo "==> HaniPi 4G/Surfstick Setup"
 echo ""
 
 # Prüfen ob ModemManager läuft
@@ -39,7 +39,7 @@ read -rp "APN eingeben (z.B. internet.telekom, web.vodafone.de, internet): " APN
 read -rp "Benutzername (leer lassen wenn nicht nötig): " USER
 read -rp "Passwort (leer lassen wenn nicht nötig): " PASS
 
-CON_NAME="honeypi-4g"
+CON_NAME="hanipi-4g"
 
 # Bestehende Verbindung entfernen
 nmcli connection delete "$CON_NAME" 2>/dev/null || true

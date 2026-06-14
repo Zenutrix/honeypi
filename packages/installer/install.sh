@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="https://github.com/Zenutrix/honeypi"
-INSTALL_DIR="/opt/honeypi"
-DATA_DIR="/var/lib/honeypi"
-CFG_DIR="/etc/honeypi"
+REPO="https://github.com/Zenutrix/HaniPi"
+INSTALL_DIR="/opt/hanipi"
+DATA_DIR="/var/lib/hanipi"
+CFG_DIR="/etc/hanipi"
 
-echo "==> HoneyPi Installer"
+echo "==> HaniPi Installer"
 echo "==> Updating system packages..."
 sudo apt-get update -qq
 sudo apt-get install -y -qq \
@@ -39,37 +39,37 @@ else
   sudo git clone "$REPO" "$INSTALL_DIR"
 fi
 
-echo "==> Creating honeypi user..."
-id -u honeypi &>/dev/null || sudo useradd --system --no-create-home honeypi
+echo "==> Creating hanipi user..."
+id -u hanipi &>/dev/null || sudo useradd --system --no-create-home hanipi
 
-# Add honeypi user to hardware and network groups
-sudo usermod -aG i2c,gpio,dialout,netdev honeypi 2>/dev/null || true
+# Add hanipi user to hardware and network groups
+sudo usermod -aG i2c,gpio,dialout,netdev hanipi 2>/dev/null || true
 
-echo "==> Configuring sudoers for honeypi..."
-cat > /tmp/honeypi-sudoers <<'SUDOERS'
-# HoneyPi: allow dashboard to control the agent service and manage 4G connections
-honeypi ALL=(root) NOPASSWD: /usr/bin/systemctl start honeypi-agent
-honeypi ALL=(root) NOPASSWD: /usr/bin/systemctl stop honeypi-agent
-honeypi ALL=(root) NOPASSWD: /usr/bin/systemctl restart honeypi-agent
-honeypi ALL=(root) NOPASSWD: /usr/bin/nmcli
+echo "==> Configuring sudoers for hanipi..."
+cat > /tmp/hanipi-sudoers <<'SUDOERS'
+# HaniPi: allow dashboard to control the agent service and manage 4G connections
+hanipi ALL=(root) NOPASSWD: /usr/bin/systemctl start hanipi-agent
+hanipi ALL=(root) NOPASSWD: /usr/bin/systemctl stop hanipi-agent
+hanipi ALL=(root) NOPASSWD: /usr/bin/systemctl restart hanipi-agent
+hanipi ALL=(root) NOPASSWD: /usr/bin/nmcli
 SUDOERS
-sudo visudo -c -f /tmp/honeypi-sudoers && \
-  sudo cp /tmp/honeypi-sudoers /etc/sudoers.d/honeypi && \
-  sudo chmod 0440 /etc/sudoers.d/honeypi
+sudo visudo -c -f /tmp/hanipi-sudoers && \
+  sudo cp /tmp/hanipi-sudoers /etc/sudoers.d/hanipi && \
+  sudo chmod 0440 /etc/sudoers.d/hanipi
 
 echo "==> Setting up Python environment..."
 cd "$INSTALL_DIR"
-sudo uv venv /opt/honeypi/venv
-sudo uv pip install --python /opt/honeypi/venv/bin/python \
+sudo uv venv /opt/hanipi/venv
+sudo uv pip install --python /opt/hanipi/venv/bin/python \
   packages/rpi-agent packages/dashboard
 
 echo "==> Creating directories..."
 sudo mkdir -p "$DATA_DIR" "$CFG_DIR"
-sudo chown honeypi:honeypi "$DATA_DIR"
+sudo chown hanipi:hanipi "$DATA_DIR"
 
 echo "==> Writing default config..."
-if [ ! -f "$CFG_DIR/honeypi.json" ]; then
-  sudo tee "$CFG_DIR/honeypi.json" > /dev/null <<'HONEYPI_JSON'
+if [ ! -f "$CFG_DIR/hanipi.json" ]; then
+  sudo tee "$CFG_DIR/hanipi.json" > /dev/null <<'HANIPI_JSON'
 {
   "interval": 300,
   "sensors": [
@@ -94,40 +94,41 @@ if [ ! -f "$CFG_DIR/honeypi.json" ]; then
   "exporters": {
     "local": {
       "enabled": true,
-      "db_path": "/var/lib/honeypi/data.db"
+      "db_path": "/var/lib/hanipi/data.db"
     }
   }
 }
-HONEYPI_JSON
+HANIPI_JSON
 fi
 
 echo "==> Installing systemd services..."
-sudo cp "$INSTALL_DIR/packages/rpi-agent/systemd/honeypi-agent.service" /etc/systemd/system/
-sudo cp "$INSTALL_DIR/packages/dashboard/systemd/honeypi-dashboard.service" /etc/systemd/system/
+sudo cp "$INSTALL_DIR/packages/rpi-agent/systemd/hanipi-agent.service" /etc/systemd/system/
+sudo cp "$INSTALL_DIR/packages/dashboard/systemd/hanipi-dashboard.service" /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now honeypi-agent honeypi-dashboard
+sudo systemctl enable --now hanipi-agent hanipi-dashboard
 
 # Enable ModemManager for 4G sticks
 sudo systemctl enable ModemManager
 sudo systemctl start ModemManager || true
 
+# Set avahi hostname for easy LAN access
+if command -v hostnamectl &>/dev/null; then
+  sudo hostnamectl set-hostname hanipi
+fi
+
 echo ""
 echo "=========================================="
-echo "  HoneyPi installed successfully!"
+echo "  HaniPi installed successfully!"
 echo "=========================================="
-echo "  Dashboard: http://honeypi.local"
-echo "  Config:    $CFG_DIR/honeypi.json"
-echo "  Logs:      journalctl -u honeypi-agent -f"
+echo "  Dashboard: http://hanipi.local"
+echo "  Config:    $CFG_DIR/hanipi.json"
+echo "  Logs:      journalctl -u hanipi-agent -f"
 echo ""
 echo "  Supported sensors:"
 echo "    hx711   - Waage (HX711 Load Cell)"
 echo "    ds18b20 - Temperatur (1-Wire)"
 echo "    bme280  - Temp/Feuchte/Druck (I2C)"
 echo "    bme680  - Temp/Feuchte/Druck/Gas (I2C)"
-echo "    dht22   - Temp/Feuchte (GPIO)"
-echo "    dht11   - Temp/Feuchte (GPIO)"
-echo "    sht31   - Temp/Feuchte präzise (I2C)"
-echo "    aht10   - Temp/Feuchte (I2C)"
 echo "    bh1750  - Licht/Beleuchtung (I2C)"
 echo "    ads1115 - ADC / Batteriespannung (I2C)"
 echo ""

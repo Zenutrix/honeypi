@@ -3,7 +3,7 @@ import sqlite3
 import time
 from pathlib import Path
 
-DB_PATH = Path("/var/lib/honeypi/data.db")
+DB_PATH = Path("/var/lib/hanipi/data.db")
 
 
 def _conn() -> sqlite3.Connection:

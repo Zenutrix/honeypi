@@ -35,10 +35,10 @@ def modem_status() -> dict:
     model_m = re.search(r"model:\s+'?(.+?)'?\n", detail)
 
     _, nm_out, _ = _run(["nmcli", "-t", "-f", "NAME,TYPE,STATE", "connection", "show", "--active"])
-    connected = any("honeypi-4g" in line and "activated" in line for line in nm_out.splitlines())
+    connected = any("hanipi-4g" in line and "activated" in line for line in nm_out.splitlines())
 
     # Current APN if connection exists
-    _, apn_out, _ = _run(["nmcli", "-t", "-f", "gsm.apn", "connection", "show", "honeypi-4g"])
+    _, apn_out, _ = _run(["nmcli", "-t", "-f", "gsm.apn", "connection", "show", "hanipi-4g"])
     apn = ""
     apn_m = re.search(r"gsm\.apn:(.+)", apn_out)
     if apn_m:
@@ -66,7 +66,7 @@ def connect(req: ConnectRequest) -> dict:
     if not req.apn:
         raise HTTPException(status_code=400, detail="APN fehlt")
 
-    CON = "honeypi-4g"
+    CON = "hanipi-4g"
     _run(["sudo", "nmcli", "connection", "delete", CON])
 
     cmd = ["sudo", "nmcli", "connection", "add",
@@ -90,5 +90,5 @@ def connect(req: ConnectRequest) -> dict:
 
 @router.post("/network/disconnect")
 def disconnect() -> dict:
-    _run(["sudo", "nmcli", "connection", "down", "honeypi-4g"])
+    _run(["sudo", "nmcli", "connection", "down", "hanipi-4g"])
     return {"status": "disconnected"}

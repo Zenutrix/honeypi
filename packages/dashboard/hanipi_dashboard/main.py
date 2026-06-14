@@ -7,7 +7,7 @@ from .api import data as data_router
 from .api import config as config_router
 from .api import network as network_router
 
-app = FastAPI(title="HoneyPi Dashboard")
+app = FastAPI(title="HaniPi Dashboard")
 
 _STATIC = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=str(_STATIC)), name="static")
@@ -28,4 +28,4 @@ def config_page() -> FileResponse:
 
 def main() -> None:
     import uvicorn
-    uvicorn.run("honeypi_dashboard.main:app", host="0.0.0.0", port=80, reload=False)
+    uvicorn.run("hanipi_dashboard.main:app", host="0.0.0.0", port=80, reload=False)

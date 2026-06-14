@@ -31,9 +31,9 @@ def db_path(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def client(db_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    import honeypi_dashboard.db as db_module
+    import hanipi_dashboard.db as db_module
     monkeypatch.setattr(db_module, "DB_PATH", db_path)
-    from honeypi_dashboard.main import app
+    from hanipi_dashboard.main import app
     return TestClient(app)
 
 
@@ -53,8 +53,8 @@ def test_get_history_returns_rows(client: TestClient) -> None:
 
 
 def test_get_config_returns_json(client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    import honeypi_dashboard.api.config as cfg_module
-    cfg_file = tmp_path / "honeypi.json"
+    import hanipi_dashboard.api.config as cfg_module
+    cfg_file = tmp_path / "hanipi.json"
     cfg_file.write_text(json.dumps({"interval": 300, "sensors": [], "exporters": {}}))
     monkeypatch.setattr(cfg_module, "CONFIG_PATH", cfg_file)
     resp = client.get("/api/config")
@@ -63,8 +63,8 @@ def test_get_config_returns_json(client: TestClient, tmp_path: Path, monkeypatch
 
 
 def test_post_config_writes_file(client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    import honeypi_dashboard.api.config as cfg_module
-    cfg_file = tmp_path / "honeypi.json"
+    import hanipi_dashboard.api.config as cfg_module
+    cfg_file = tmp_path / "hanipi.json"
     cfg_file.write_text("{}")
     monkeypatch.setattr(cfg_module, "CONFIG_PATH", cfg_file)
     monkeypatch.setattr(cfg_module, "_restart_agent", lambda: None)

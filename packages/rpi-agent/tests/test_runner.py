@@ -1,9 +1,9 @@
 import time
 from unittest.mock import MagicMock
-from honeypi_agent.runner import MeasurementRunner
-from honeypi_agent.sensors.base import Measurement
-from honeypi_agent.sensors.dummy import DummySensor
-from honeypi_agent.exporters.base import BaseExporter
+from hanipi_agent.runner import MeasurementRunner
+from hanipi_agent.sensors.base import Measurement
+from hanipi_agent.sensors.dummy import DummySensor
+from hanipi_agent.exporters.base import BaseExporter
 
 
 class CapturingExporter(BaseExporter):

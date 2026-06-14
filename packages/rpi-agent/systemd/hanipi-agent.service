@@ -1,12 +1,12 @@
 [Unit]
-Description=HoneyPi Sensor Agent
+Description=HaniPi Sensor Agent
 After=network.target
 
 [Service]
 Type=simple
-User=honeypi
-WorkingDirectory=/opt/honeypi
-ExecStart=/opt/honeypi/venv/bin/honeypi-agent
+User=hanipi
+WorkingDirectory=/opt/hanipi
+ExecStart=/opt/hanipi/venv/bin/hanipi-agent
 Restart=always
 RestartSec=30
 StandardOutput=journal

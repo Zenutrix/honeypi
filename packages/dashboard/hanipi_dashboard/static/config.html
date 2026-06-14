@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HoneyPi Einstellungen</title>
+  <title>HaniPi Einstellungen</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <header>
-    <div class="logo"><span class="logo-icon">🍯</span><span>HoneyPi</span></div>
+    <div class="logo"><span class="logo-icon">🍯</span><span>HaniPi</span></div>
     <nav>
       <a href="/">Dashboard</a>
       <a href="/config-ui" class="active">Einstellungen</a>
@@ -67,7 +67,7 @@
           <div class="field"><label><input type="checkbox" id="idb-on" onchange="syncBadge('idb')"> Aktiviert</label></div>
           <div class="field-row">
             <div class="field"><label>URL</label><input type="text" id="idb-url" placeholder="http://server:8086"></div>
-            <div class="field"><label>Bucket</label><input type="text" id="idb-bucket" placeholder="honeypi"></div>
+            <div class="field"><label>Bucket</label><input type="text" id="idb-bucket" placeholder="hanipi"></div>
           </div>
           <div class="field-row">
             <div class="field"><label>Organisation</label><input type="text" id="idb-org" placeholder="meine-org"></div>
@@ -87,7 +87,7 @@
             <div class="field"><label>Broker</label><input type="text" id="mqtt-broker" placeholder="192.168.1.100"></div>
             <div class="field"><label>Port</label><input type="number" id="mqtt-port" value="1883"></div>
           </div>
-          <div class="field"><label>Topic</label><input type="text" id="mqtt-topic" placeholder="honeypi"></div>
+          <div class="field"><label>Topic</label><input type="text" id="mqtt-topic" placeholder="hanipi"></div>
         </div>
       </div>
     </div>
@@ -524,10 +524,10 @@ function buildConfig() {
       return clean;
     }),
     exporters: {
-      local:      { enabled: true, db_path: '/var/lib/honeypi/data.db' },
+      local:      { enabled: true, db_path: '/var/lib/hanipi/data.db' },
       thingspeak: { enabled: document.getElementById('ts-on').checked, api_key: document.getElementById('ts-key').value, channel: document.getElementById('ts-channel').value || null },
-      influxdb:   { enabled: document.getElementById('idb-on').checked, url: document.getElementById('idb-url').value, token: document.getElementById('idb-token').value, org: document.getElementById('idb-org').value, bucket: document.getElementById('idb-bucket').value || 'honeypi' },
-      mqtt:       { enabled: document.getElementById('mqtt-on').checked, broker: document.getElementById('mqtt-broker').value, port: parseInt(document.getElementById('mqtt-port').value) || 1883, topic: document.getElementById('mqtt-topic').value || 'honeypi' },
+      influxdb:   { enabled: document.getElementById('idb-on').checked, url: document.getElementById('idb-url').value, token: document.getElementById('idb-token').value, org: document.getElementById('idb-org').value, bucket: document.getElementById('idb-bucket').value || 'hanipi' },
+      mqtt:       { enabled: document.getElementById('mqtt-on').checked, broker: document.getElementById('mqtt-broker').value, port: parseInt(document.getElementById('mqtt-port').value) || 1883, topic: document.getElementById('mqtt-topic').value || 'hanipi' },
     },
   };
 }

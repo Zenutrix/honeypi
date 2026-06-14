@@ -5,17 +5,17 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 
 router = APIRouter()
-CONFIG_PATH = Path("/etc/honeypi/honeypi.json")
+CONFIG_PATH = Path("/etc/hanipi/hanipi.json")
 
 
 def _systemctl(action: str) -> None:
-    subprocess.run(["sudo", "systemctl", action, "honeypi-agent"],
+    subprocess.run(["sudo", "systemctl", action, "hanipi-agent"],
                    capture_output=True, timeout=10)
 
 
 @router.get("/status")
 def agent_status() -> dict:
-    r = subprocess.run(["systemctl", "is-active", "honeypi-agent"],
+    r = subprocess.run(["systemctl", "is-active", "hanipi-agent"],
                        capture_output=True, text=True)
     active = r.stdout.strip() == "active"
     return {"active": active, "status": r.stdout.strip()}

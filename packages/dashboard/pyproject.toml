@@ -1,5 +1,5 @@
 [project]
-name = "honeypi-dashboard"
+name = "hanipi-dashboard"
 version = "2.0.0"
 requires-python = ">=3.11"
 dependencies = [
@@ -8,7 +8,7 @@ dependencies = [
 ]
 
 [project.scripts]
-honeypi-dashboard = "honeypi_dashboard.main:main"
+hanipi-dashboard = "hanipi_dashboard.main:main"
 
 [build-system]
 requires = ["hatchling"]

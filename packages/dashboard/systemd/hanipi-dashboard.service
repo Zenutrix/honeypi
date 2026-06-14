@@ -1,12 +1,12 @@
 [Unit]
-Description=HoneyPi Dashboard
+Description=HaniPi Dashboard
 After=network.target
 
 [Service]
 Type=simple
-User=honeypi
+User=hanipi
 AmbientCapabilities=CAP_NET_BIND_SERVICE
-ExecStart=/opt/honeypi/venv/bin/uvicorn honeypi_dashboard.main:app --host 0.0.0.0 --port 80
+ExecStart=/opt/hanipi/venv/bin/uvicorn hanipi_dashboard.main:app --host 0.0.0.0 --port 80
 Restart=always
 RestartSec=5
 StandardOutput=journal
