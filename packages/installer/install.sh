@@ -13,7 +13,6 @@ sudo apt-get install -y -qq \
   git python3 python3-pip python3-dev \
   avahi-daemon \
   i2c-tools \
-  libgpiod2 python3-libgpiod \
   modemmanager usb-modeswitch usb-modeswitch-data \
   build-essential
 
