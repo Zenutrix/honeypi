@@ -8,7 +8,7 @@ from .api import config as config_router
 
 app = FastAPI(title="HoneyPi Dashboard")
 
-_STATIC = Path(__file__).parent.parent / "static"
+_STATIC = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=str(_STATIC)), name="static")
 app.include_router(data_router.router, prefix="/api")
 app.include_router(config_router.router, prefix="/api")
