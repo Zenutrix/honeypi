@@ -77,3 +77,16 @@ def test_bme280_reads_all_values(mocker: MagicMock) -> None:
     assert "humidity_pct" in m.values
     assert "pressure_hpa" in m.values
     assert m.values["temperature_c"] == pytest.approx(22.3)
+
+
+def test_sensor_factory_creates_dummy() -> None:
+    from honeypi_agent.sensors import create_sensor
+    s = create_sensor({"type": "dummy", "name": "Test"})
+    from honeypi_agent.sensors.dummy import DummySensor
+    assert isinstance(s, DummySensor)
+
+
+def test_sensor_factory_raises_on_unknown() -> None:
+    from honeypi_agent.sensors import create_sensor
+    with pytest.raises(ValueError, match="Unknown sensor type"):
+        create_sensor({"type": "nonexistent", "name": "X"})

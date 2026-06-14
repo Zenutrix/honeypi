@@ -102,3 +102,20 @@ def test_mqtt_publishes_json(mocker: MagicMock) -> None:
     data = json.loads(payload)
     assert data["weight_kg"] == pytest.approx(45.2)
     assert data["sensor"] == "Hive1"
+
+
+def test_exporter_factory_creates_local(tmp_path: Path) -> None:
+    from honeypi_agent.exporters import create_exporters
+    cfg = {"local": {"enabled": True, "db_path": str(tmp_path / "db.sqlite")}}
+    exporters = create_exporters(cfg)
+    from honeypi_agent.exporters.local import LocalExporter
+    assert len(exporters) == 1
+    assert isinstance(exporters[0], LocalExporter)
+    exporters[0].close()
+
+
+def test_exporter_factory_skips_disabled() -> None:
+    from honeypi_agent.exporters import create_exporters
+    cfg = {"thingspeak": {"enabled": False, "api_key": ""}}
+    exporters = create_exporters(cfg)
+    assert exporters == []
