@@ -81,3 +81,24 @@ def test_influxdb_writes_point(mocker: MagicMock) -> None:
     mock_write_api.write.assert_called_once()
     call_kwargs = mock_write_api.write.call_args.kwargs
     assert call_kwargs["bucket"] == "honeypi"
+
+
+from honeypi_agent.exporters.mqtt import MQTTExporter
+
+
+def test_mqtt_publishes_json(mocker: MagicMock) -> None:
+    import json
+    mock_mqtt = mocker.patch("honeypi_agent.exporters.mqtt.mqtt")
+    mock_client = mock_mqtt.Client.return_value
+
+    cfg = {"enabled": True, "broker": "localhost", "port": 1883, "topic": "honeypi"}
+    exp = MQTTExporter(cfg)
+    m = Measurement(name="Hive1", values={"weight_kg": 45.2}, timestamp=1234567890.0)
+    exp.export(m)
+
+    mock_client.publish.assert_called_once()
+    topic, payload = mock_client.publish.call_args.args
+    assert topic == "honeypi/Hive1"
+    data = json.loads(payload)
+    assert data["weight_kg"] == pytest.approx(45.2)
+    assert data["sensor"] == "Hive1"
