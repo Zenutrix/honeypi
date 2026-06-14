@@ -65,7 +65,7 @@ sudo uv pip install --python /opt/hanipi/venv/bin/python \
 
 echo "==> Creating directories..."
 sudo mkdir -p "$DATA_DIR" "$CFG_DIR"
-sudo chown hanipi:hanipi "$DATA_DIR"
+sudo chown hanipi:hanipi "$DATA_DIR" "$CFG_DIR"
 
 echo "==> Writing default config..."
 if [ ! -f "$CFG_DIR/hanipi.json" ]; then
