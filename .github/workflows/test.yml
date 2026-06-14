@@ -1,0 +1,26 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: Run rpi-agent tests
+        working-directory: packages/rpi-agent
+        run: |
+          uv sync
+          uv run pytest tests/ -v
+
+  test-dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: Run dashboard tests
+        working-directory: packages/dashboard
+        run: |
+          uv sync
+          uv run pytest tests/ -v
