@@ -5,6 +5,7 @@ from .thingspeak import ThingSpeakExporter
 from .influxdb import InfluxDBExporter
 from .mqtt import MQTTExporter
 from .telegram import TelegramExporter
+from .datacake import DatacakeExporter
 
 _REGISTRY: dict[str, type[BaseExporter]] = {
     "local":      LocalExporter,
@@ -12,6 +13,7 @@ _REGISTRY: dict[str, type[BaseExporter]] = {
     "influxdb":   InfluxDBExporter,
     "mqtt":       MQTTExporter,
     "telegram":   TelegramExporter,
+    "datacake":   DatacakeExporter,
 }
 
 

@@ -171,6 +171,30 @@
               <div class="field"><label>Topic</label><input type="text" id="mqtt-topic" placeholder="hanipi"></div>
             </div>
           </div>
+
+          <div class="exporter-item" id="exp-dc">
+            <div class="exporter-header" onclick="toggleExp('dc')">
+              <span class="exporter-title">Datacake</span>
+              <span class="exporter-badge" id="badge-dc">Aus</span>
+              <span style="color:var(--text-faint);font-size:11px">▾</span>
+            </div>
+            <div class="exporter-body" id="body-dc">
+              <div class="field"><label class="check-label"><input type="checkbox" id="dc-on" onchange="syncBadge('dc')"> Aktiviert</label></div>
+              <div class="field">
+                <label>API Token</label>
+                <input type="password" id="dc-token" placeholder="••••••••">
+                <div class="field-hint">Workspace-Token aus Datacake → Account → Integrations.</div>
+              </div>
+              <div class="field">
+                <label>Serial Number</label>
+                <input type="text" id="dc-serial" placeholder="z.B. HANIPI-001">
+                <div class="field-hint">Serial des Geräts in Datacake (Device → Settings).</div>
+              </div>
+              <div class="field-hint" style="margin-bottom:8px">Sensor-Wert → Datacake-Feld zuordnen (Feldname in GROSSBUCHSTABEN)</div>
+              <div id="dc-mapping-rows"></div>
+              <button class="btn btn-secondary btn-sm mt-8" onclick="loadDcMappingRows()">Felder aktualisieren</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -708,6 +732,7 @@ function syncBadge(id) {
   badge.textContent = cb.checked ? 'An' : 'Aus';
   badge.classList.toggle('on', cb.checked);
   if (id === 'ts' && cb.checked) loadTsKeys();
+  if (id === 'dc' && cb.checked) loadDcMappingRows();
   markDirty();
 }
 
@@ -717,6 +742,7 @@ function toggleTftField() {
 }
 
 let tsMapping = {};
+let dcMapping = {};
 
 async function loadTsKeys() {
   let keys = [];
@@ -736,6 +762,29 @@ async function loadTsKeys() {
       <select onchange="tsMapping['${k}']=this.value;markDirty()">${sel}</select>
     </div>`;
   }).join('');
+}
+
+function loadDcMappingRows() {
+  const rows = document.getElementById('dc-mapping-rows');
+  if (!rows) return;
+  const keys = sensors.flatMap(s =>
+    Object.keys(s).filter(k => !['name','type','hive_id','calibrated'].includes(k))
+      .map(k => `${s.name}.${k}`)
+  );
+  const sensorKeys = sensors.flatMap(s => {
+    const typeDefaults = { hx711: ['weight_kg'], bme280: ['temperature_c','humidity_pct','pressure_hpa'], bme680: ['temperature_c','humidity_pct','pressure_hpa','gas_resistance_ohm'], ds18b20: ['temperature_c'], bh1750: ['lux'], ads1115: ['voltage_v'], hx711: ['weight_kg'] };
+    return (typeDefaults[s.type] || []).map(k => `${s.name}.${k}`);
+  });
+  const displayKeys = sensorKeys.length ? sensorKeys : keys;
+  rows.innerHTML = displayKeys.map(k => {
+    const cur = dcMapping[k] || '';
+    return `<div class="ts-mapping-row">
+      <span style="font-size:13px;color:var(--text-muted)">${k}</span>
+      <span class="ts-arrow">→</span>
+      <input type="text" style="width:140px;text-transform:uppercase" placeholder="FIELD_NAME" value="${cur}"
+        oninput="dcMapping['${k}']=this.value.toUpperCase();markDirty()">
+    </div>`;
+  }).join('') || '<div class="field-hint">Noch keine Sensoren konfiguriert.</div>';
 }
 
 async function loadModemStatus() {
@@ -819,6 +868,13 @@ async function loadConfig() {
   document.getElementById('mqtt-port').value     = mqtt.port   || 1883;
   document.getElementById('mqtt-topic').value    = mqtt.topic  || 'hanipi';
 
+  const dc = exp.datacake || {};
+  document.getElementById('dc-on').checked    = !!dc.enabled;  syncBadge('dc');
+  document.getElementById('dc-token').value   = dc.token         || '';
+  document.getElementById('dc-serial').value  = dc.serial_number || '';
+  dcMapping = dc.field_mapping || {};
+  if (dc.enabled) loadDcMappingRows();
+
   const disp = cfg.display || {};
   document.getElementById('disp-on').checked           = !!disp.enabled;
   document.getElementById('disp-type').value           = disp.type        || 'none';
@@ -854,6 +910,7 @@ async function saveConfig() {
       thingspeak: { enabled: document.getElementById('ts-on').checked,   api_key: document.getElementById('ts-key').value, field_mapping: tsMapping },
       influxdb:   { enabled: document.getElementById('idb-on').checked,  url: document.getElementById('idb-url').value, bucket: document.getElementById('idb-bucket').value || 'hanipi', org: document.getElementById('idb-org').value, token: document.getElementById('idb-token').value },
       mqtt:       { enabled: document.getElementById('mqtt-on').checked, broker: document.getElementById('mqtt-broker').value, port: parseInt(document.getElementById('mqtt-port').value) || 1883, topic: document.getElementById('mqtt-topic').value || 'hanipi' },
+      datacake:   { enabled: document.getElementById('dc-on').checked, token: document.getElementById('dc-token').value, serial_number: document.getElementById('dc-serial').value, field_mapping: dcMapping },
     },
     display: {
       enabled:       document.getElementById('disp-on').checked,
