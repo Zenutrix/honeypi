@@ -191,6 +191,10 @@ main { padding: 16px 16px 90px; max-width: 1200px; margin: 0 auto; }
   color: var(--text); font-size: 13px; font-family: var(--font);
 }
 .date-input:focus { outline: none; border-color: var(--amber); }
+
+input[type=number][readonly]::-webkit-inner-spin-button,
+input[type=number][readonly]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number][readonly] { -moz-appearance: textfield; }
 .time-btn {
   padding: 5px 14px; border-radius: 20px;
   border: 1px solid var(--border);
