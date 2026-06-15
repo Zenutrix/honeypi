@@ -10,7 +10,10 @@ echo "==> Code aktualisieren..."
 git -C "$INSTALL_DIR" pull
 
 echo "==> Python-Pakete aktualisieren..."
-"$INSTALL_DIR/venv/bin/pip" install -q \
+PYTHON="$INSTALL_DIR/venv/bin/python3"
+if [ ! -f "$PYTHON" ]; then PYTHON="$INSTALL_DIR/venv/bin/python"; fi
+"$PYTHON" -m ensurepip -q 2>/dev/null || true
+"$PYTHON" -m pip install -q \
   "$INSTALL_DIR/packages/dashboard" \
   "$INSTALL_DIR/packages/rpi-agent"
 
