@@ -270,6 +270,9 @@ def wifi_forget(req: ForgetRequest) -> dict:
     return {"status": "deleted"}
 
 
+_PROTECTED = {"HaniPi-Wartung", "HaniPi-Setup"}
+
+
 @router.post("/network/wifi/reset")
 def wifi_reset() -> dict:
     _, out, _ = _run(["nmcli", "-t", "-f", "NAME,TYPE", "connection", "show"])
@@ -277,6 +280,9 @@ def wifi_reset() -> dict:
     for line in out.splitlines():
         parts = line.split(":")
         if len(parts) >= 2 and parts[1] in ("802-11-wireless", "wifi"):
-            _run(["sudo", "nmcli", "connection", "delete", parts[0]], timeout=10)
-            deleted.append(parts[0])
+            name = parts[0]
+            if name in _PROTECTED:
+                continue
+            _run(["sudo", "nmcli", "connection", "delete", name], timeout=10)
+            deleted.append(name)
     return {"status": "reset", "deleted": deleted}

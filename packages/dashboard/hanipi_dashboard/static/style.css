@@ -512,6 +512,21 @@ input[type=number][readonly] { -moz-appearance: textfield; }
 .sidebar-nav-link svg { width: 18px; height: 18px; stroke-width: 1.8; flex-shrink: 0; }
 .sidebar-nav-link:hover  { background: var(--surface-2); color: var(--text); }
 .sidebar-nav-link.active { background: var(--amber-glow); color: var(--amber); }
+.sidebar-nav-label {
+  font-size: 9px; font-weight: 700; color: var(--text-faint);
+  text-transform: uppercase; letter-spacing: .1em;
+  padding: 12px 12px 2px;
+}
+.sidebar-nav-sub {
+  display: flex; align-items: center;
+  padding: 5px 12px 5px 22px;
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  text-decoration: none; border-radius: var(--radius-sm); margin: 0;
+  transition: background .15s, color .15s;
+}
+.sidebar-nav-sub:hover  { background: var(--surface-2); color: var(--text); }
+.sidebar-nav-sub.active { background: var(--amber-glow); color: var(--amber); font-weight: 600; }
+
 .sidebar-footer {
   padding-top: 12px;
   border-top: 1px solid var(--border);
