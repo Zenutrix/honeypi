@@ -23,6 +23,7 @@ class HX711Sensor(BaseSensor):
         self._ref_unit: float = float(config.get("reference_unit", 1.0))
         self._samples: int = int(config.get("samples", 5))
         self._offset: float = 0.0
+        self.calibrated: bool = bool(config.get("calibrated", False))
 
         # Temperature compensation
         tc = config.get("temp_compensation", {})

@@ -41,6 +41,11 @@ class MeasurementRunner:
                 continue
             measurement.hive_id = sensor.hive_id
             latest_values[sensor.name] = measurement
+            if hasattr(sensor, "calibrated") and not sensor.calibrated:
+                logger.warning(
+                    "HX711 '%s' nicht kalibriert — Export übersprungen", sensor.name
+                )
+                continue
             for exporter in self._exporters:
                 if exporter.realtime or do_export:
                     try:
