@@ -509,6 +509,77 @@ main { padding: 16px 16px 90px; max-width: 1200px; margin: 0 auto; }
 .cal-ok    { background: rgba(48,209,88,.1); color: var(--success); }
 .cal-error { background: rgba(255,69,58,.1);  color: var(--danger); }
 
+/* ── UNCALIBRATED BADGE ── */
+.uncal-badge {
+  font-size: 9px; font-weight: 800; letter-spacing: .07em;
+  padding: 2px 7px; border-radius: 20px;
+  background: rgba(255,69,58,.18); color: var(--danger);
+  border: 1px solid rgba(255,69,58,.35);
+  white-space: nowrap;
+}
+.uncal-banner {
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(255,69,58,.1); border: 1px solid rgba(255,69,58,.3);
+  border-radius: var(--radius-sm); padding: 8px 12px;
+  color: var(--danger); font-size: 12px; font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* ── CALIBRATION WIZARD MODAL ── */
+.cal-modal { max-width: 480px; width: 100%; }
+.cal-wizard-body { padding: 20px 24px 24px; }
+
+.cal-wizard-steps {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0; margin-bottom: 28px;
+}
+.cwiz-step { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.cwiz-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface-2); color: var(--text-faint);
+  font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.cwiz-dot.active { border-color: var(--amber); background: var(--amber-glow); color: var(--amber); }
+.cwiz-dot.done   { border-color: var(--success); background: rgba(48,209,88,.15); color: var(--success); }
+.cwiz-label { font-size: 10px; color: var(--text-faint); font-weight: 600; white-space: nowrap; }
+.cwiz-line {
+  flex: 1; height: 2px; background: var(--border);
+  min-width: 32px; margin: 0 4px; margin-bottom: 18px;
+  transition: background .2s;
+}
+.cwiz-line.done { background: var(--success); }
+
+.cwiz-panel { min-height: 180px; }
+.cwiz-panel-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+.cwiz-instruction {
+  font-size: 13px; color: var(--text-muted); line-height: 1.6;
+  background: var(--surface-2); border-radius: var(--radius-sm);
+  padding: 12px 14px; margin-bottom: 16px;
+}
+.cwiz-instruction strong { color: var(--text); }
+.cwiz-warning {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.35);
+  border-radius: var(--radius-sm); padding: 8px 12px;
+  color: var(--amber); font-size: 12px; font-weight: 600;
+  margin-top: 10px;
+}
+.cwiz-status { font-size: 12px; margin-top: 10px; min-height: 18px; }
+.cwiz-ok  { color: var(--success); }
+.cwiz-err { color: var(--danger); }
+
+.cwiz-result-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.cwiz-rrow {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--surface-2); border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+.cwiz-rrow span { font-size: 13px; color: var(--text-muted); }
+.cwiz-rrow strong { font-size: 14px; color: var(--text); }
+
 /* ── TEMP COMPENSATION ── */
 .cal-tc-header {
   display: flex; align-items: center; justify-content: space-between;

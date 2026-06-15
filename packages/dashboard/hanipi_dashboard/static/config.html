@@ -313,6 +313,76 @@
   </a>
 </nav>
 
+<!-- CALIBRATION WIZARD MODAL -->
+<div class="modal-overlay" id="calModal" onclick="closeCalModal(event)">
+  <div class="modal cal-modal">
+    <div class="modal-header">
+      <span class="modal-title" id="calModalTitle">Waage kalibrieren</span>
+      <button class="modal-close" onclick="closeCalModal()">✕</button>
+    </div>
+    <div class="cal-wizard-body">
+
+      <!-- Step indicator -->
+      <div class="cal-wizard-steps">
+        <div class="cwiz-step" id="cwiz-dot-1">
+          <div class="cwiz-dot active">1</div>
+          <div class="cwiz-label">Nullpunkt</div>
+        </div>
+        <div class="cwiz-line" id="cwiz-line-1"></div>
+        <div class="cwiz-step" id="cwiz-dot-2">
+          <div class="cwiz-dot">2</div>
+          <div class="cwiz-label">Gewicht</div>
+        </div>
+        <div class="cwiz-line" id="cwiz-line-2"></div>
+        <div class="cwiz-step" id="cwiz-dot-3">
+          <div class="cwiz-dot">✓</div>
+          <div class="cwiz-label">Fertig</div>
+        </div>
+      </div>
+
+      <!-- Step 1: Tare -->
+      <div class="cwiz-panel" id="cwiz-panel-1">
+        <div class="cwiz-panel-title">Schritt 1 — Nullpunkt setzen</div>
+        <div class="cwiz-instruction">
+          Stelle die <strong>leere Waage ohne Bienenvolk</strong> auf die Messplatte.<br>
+          Wenn alles ruhig ist, drücke den Button.
+        </div>
+        <button class="btn btn-primary" id="cwiz-tare-btn" onclick="cwizDoTare()">Tare setzen</button>
+        <div class="cwiz-status" id="cwiz-status-1"></div>
+      </div>
+
+      <!-- Step 2: Reference weight -->
+      <div class="cwiz-panel hidden" id="cwiz-panel-2">
+        <div class="cwiz-panel-title">Schritt 2 — Referenzgewicht</div>
+        <div class="cwiz-instruction">
+          Lege ein <strong>bekanntes Gewicht</strong> auf die Waage (z.B. 1000 g Wasserflasche).<br>
+          Gib das genaue Gewicht ein und drücke Kalibrieren.
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:10px;margin-top:12px">
+          <div class="field" style="max-width:160px;margin:0">
+            <label>Referenzgewicht (g)</label>
+            <input type="number" id="cwiz-weight-input" value="1000" min="100" max="50000" step="100">
+          </div>
+          <button class="btn btn-primary" id="cwiz-measure-btn" onclick="cwizDoMeasure()">Kalibrieren</button>
+        </div>
+        <div class="cwiz-warning hidden" id="cwiz-warning-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Waage nicht berühren — Messung läuft…
+        </div>
+        <div class="cwiz-status" id="cwiz-status-2"></div>
+      </div>
+
+      <!-- Step 3: Done -->
+      <div class="cwiz-panel hidden" id="cwiz-panel-3">
+        <div class="cwiz-panel-title" style="color:var(--success)">Kalibrierung abgeschlossen ✓</div>
+        <div class="cwiz-result-grid" id="cwiz-result-grid"></div>
+        <button class="btn btn-primary" style="margin-top:20px;width:100%" onclick="closeCalModal()">Fertig</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <!-- PIN INFO MODAL -->
 <div class="modal-overlay" id="pinModal" onclick="closePinModal(event)">
   <div class="modal">
@@ -502,6 +572,7 @@ function renderSensors() {
       </div>`;
     }).join('');
 
+    const isCalibrated = s.calibrated === true || (s.reference_unit && s.reference_unit !== 1 && s.reference_unit !== 1.0);
     const tc = s.temp_compensation || {};
     const tcEnabled = !!tc.enabled;
     const tcSensor  = tc.sensor || '';
@@ -515,45 +586,18 @@ function renderSensors() {
 
     const calHtml = s.type === 'hx711' ? `
       <div style="height:1px;background:var(--border);margin:14px 0"></div>
-      <div class="field-hint" style="font-size:11px;margin-bottom:10px;color:var(--text-muted)">
-        Kalibrierung — Agent muss laufen · je Schritt ~3 Sek. (20 Messungen)
+      ${!isCalibrated ? `<div class="uncal-banner">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Nicht kalibriert — Gewichtswerte nicht verlässlich!
+      </div>` : ''}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="openCalModal('${s.name}',${i})">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="18" y2="20"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="10" y1="8" x2="14" y2="8"/></svg>
+          Waage kalibrieren
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="calRead('${s.name}',${i})">Gewicht ablesen</button>
       </div>
-
-      <div class="cal-step">
-        <div class="cal-step-num">1</div>
-        <div style="flex:1">
-          <div class="cal-step-title">Nullpunkt (Tare)</div>
-          <div class="field-hint">Leere Waage ohne Bienen aufstellen, dann Tare drücken.</div>
-          <button class="btn btn-secondary btn-sm mt-8" onclick="calTare('${s.name}',${i})">Tare setzen</button>
-          <div class="cal-result" id="cal-tare-${i}"></div>
-        </div>
-      </div>
-
-      <div class="cal-step" style="margin-top:12px">
-        <div class="cal-step-num">2</div>
-        <div style="flex:1">
-          <div class="cal-step-title">Referenzgewicht</div>
-          <div class="field-hint">Bekanntes Gewicht auflegen (z.B. 1000 g Wasserflasche), Wert eingeben, kalibrieren.</div>
-          <div class="field-row mt-8" style="align-items:flex-end;gap:8px">
-            <div class="field" style="max-width:150px">
-              <label>Gewicht (g)</label>
-              <input type="number" id="cal-weight-${i}" value="1000" min="100" max="50000" step="100">
-            </div>
-            <button class="btn btn-primary btn-sm" style="margin-bottom:1px" onclick="calMeasure('${s.name}',${i})">Kalibrieren</button>
-          </div>
-          <div class="cal-result" id="cal-measure-${i}"></div>
-        </div>
-      </div>
-
-      <div class="cal-step" style="margin-top:12px">
-        <div class="cal-step-num">✓</div>
-        <div style="flex:1">
-          <div class="cal-step-title">Test-Messung</div>
-          <div class="field-hint">Einmalig aktuelles Gewicht abrufen um die Kalibrierung zu prüfen.</div>
-          <button class="btn btn-secondary btn-sm mt-8" onclick="calRead('${s.name}',${i})">Gewicht ablesen</button>
-          <div class="cal-result" id="cal-read-${i}"></div>
-        </div>
-      </div>
+      <div class="cal-result" id="cal-read-${i}"></div>
 
       <div style="height:1px;background:var(--border);margin:14px 0"></div>
       <div class="cal-tc-header" onclick="calToggleTcPanel(${i})">
@@ -561,7 +605,7 @@ function renderSensors() {
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
           <span style="font-size:13px;font-weight:600">Temperaturkompensation</span>
           <span class="cal-tc-badge ${tcEnabled?'cal-tc-on':'cal-tc-off'}" id="cal-tc-badge-${i}">${tcEnabled?'Aktiv':'Aus'}</span>
-          ${tcEnabled ? `<span style="font-size:11px;color:var(--text-faint)">Ref. ${tcRefC}°C · zuletzt ${tcUpdated}</span>` : ''}
+          ${tcEnabled && tcRefC !== '' ? `<span style="font-size:11px;color:var(--text-faint)">Ref. ${tcRefC} °C · ${tcUpdated}</span>` : ''}
         </div>
         <span class="cal-tc-chevron" id="cal-tc-chev-${i}">▾</span>
       </div>
@@ -569,7 +613,7 @@ function renderSensors() {
         <div class="field mt-8">
           <label class="check-label">
             <input type="checkbox" id="cal-tc-on-${i}" ${tcEnabled?'checked':''} onchange="updateSensorTc(${i},'enabled',this.checked)">
-            Temperaturkompensation aktivieren
+            Aktivieren
           </label>
         </div>
         <div class="field-row mt-8">
@@ -579,21 +623,17 @@ function renderSensors() {
               <option value="">— keinen —</option>
               ${tempSensorOpts}
             </select>
-            <div class="field-hint">Sensor der die Umgebungstemperatur liefert.</div>
           </div>
           <div class="field">
             <label>Koeffizient (kg / °C)</label>
             <input type="number" id="cal-tc-coeff-${i}" value="${tcCoeff}" step="0.001" oninput="updateSensorTc(${i},'coeff_kg_per_c',parseFloat(this.value)||0)">
-            <div class="field-hint">Typisch 0.01–0.05. Negativ wenn Waage bei Wärme leichter anzeigt.</div>
+            <div class="field-hint">Typisch 0.01–0.05.</div>
           </div>
         </div>
         <div class="field-hint mt-8" id="cal-tc-ref-info-${i}">
-          Referenztemperatur: <strong>${tcRefC !== '' ? tcRefC + ' °C' : '—'}</strong>
-          · Zuletzt gesetzt: <strong>${tcUpdated}</strong>
+          Referenztemperatur: <strong>${tcRefC !== '' ? tcRefC + ' °C' : '—'}</strong> · Zuletzt: <strong>${tcUpdated}</strong>
         </div>
-        <button class="btn btn-secondary btn-sm mt-8" onclick="calSetTempRef('${s.name}',${i})">
-          Referenztemperatur jetzt setzen
-        </button>
+        <button class="btn btn-secondary btn-sm mt-8" onclick="calSetTempRef('${s.name}',${i})">Referenztemperatur jetzt setzen</button>
         <div class="cal-result" id="cal-tc-result-${i}"></div>
       </div>` : '';
 
@@ -603,6 +643,7 @@ function renderSensors() {
       <div class="sensor-header" onclick="toggleSensorBody(this)">
         <span class="sensor-type-badge">${s.type}</span>
         <span class="sensor-name">${s.name}</span>
+        ${s.type === 'hx711' && !isCalibrated ? '<span class="uncal-badge">NICHT KALIBRIERT</span>' : ''}
         <button class="sensor-info-btn" onclick="event.stopPropagation();showPinInfo('${s.type}')" title="Pinbelegung">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         </button>
@@ -883,7 +924,110 @@ window.addEventListener('resize', () => {
 
 if (window.innerWidth >= 1024) showSection('sensors');
 
-// ── HX711 Calibration (per sensor) ───────────────────────────────────────────
+// ── HX711 Calibration Wizard ────────────────────────────────────────────────────────────
+let calWizSensor = null;
+let calWizOffset = null;
+let calWizPoll   = null;
+
+function openCalModal(sensorName, idx) {
+  calWizSensor = { name: sensorName, idx };
+  calWizOffset = null;
+  document.getElementById('calModalTitle').textContent = 'Kalibrieren — ' + sensorName;
+  cwizGoToStep(1);
+  cwizSetStatus(1, '');
+  cwizSetStatus(2, '');
+  document.getElementById('cwiz-warning-2').classList.add('hidden');
+  document.getElementById('cwiz-tare-btn').disabled = false;
+  document.getElementById('cwiz-measure-btn').disabled = false;
+  document.getElementById('calModal').classList.add('open');
+}
+
+function closeCalModal(e) {
+  if (e && e.target !== document.getElementById('calModal')) return;
+  if (calWizPoll) { clearInterval(calWizPoll); calWizPoll = null; }
+  document.getElementById('calModal').classList.remove('open');
+}
+
+function cwizGoToStep(step) {
+  [1,2,3].forEach(n => {
+    document.getElementById('cwiz-panel-' + n)?.classList.toggle('hidden', n !== step);
+    const dot = document.getElementById('cwiz-dot-' + n)?.querySelector('.cwiz-dot');
+    if (dot) { dot.classList.toggle('active', n === step); dot.classList.toggle('done', n < step); }
+    if (n < 3) document.getElementById('cwiz-line-' + n)?.classList.toggle('done', n < step);
+  });
+}
+
+function cwizSetStatus(step, msg, isError) {
+  const el = document.getElementById('cwiz-status-' + step);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'cwiz-status' + (msg ? (isError ? ' cwiz-err' : ' cwiz-ok') : '');
+}
+
+function cwizPoll(onSuccess, onError) {
+  if (calWizPoll) clearInterval(calWizPoll);
+  let tries = 0;
+  calWizPoll = setInterval(async () => {
+    tries++;
+    if (tries > 30) { clearInterval(calWizPoll); onError('Timeout — Agent hat nicht geantwortet.'); return; }
+    try {
+      const r = await fetch('/api/calibrate/result');
+      const d = await r.json();
+      if (d.status === 'pending' || d.status === 'idle') return;
+      clearInterval(calWizPoll);
+      if (d.status === 'error') onError(d.error); else onSuccess(d);
+    } catch {}
+  }, 2000);
+}
+
+async function cwizDoTare() {
+  if (!calWizSensor) return;
+  document.getElementById('cwiz-tare-btn').disabled = true;
+  cwizSetStatus(1, 'Messung läuft… bitte warten (ca. 3 Sek.)');
+  await fetch('/api/calibrate/result', { method: 'DELETE' });
+  await fetch('/api/calibrate/tare?sensor_name=' + encodeURIComponent(calWizSensor.name), { method: 'POST' });
+  cwizPoll(
+    d => {
+      calWizOffset = d.offset;
+      cwizSetStatus(1, 'Nullpunkt gesetzt ✓  Rohwert: ' + Math.round(d.offset));
+      setTimeout(() => cwizGoToStep(2), 800);
+    },
+    err => { cwizSetStatus(1, 'Fehler: ' + err, true); document.getElementById('cwiz-tare-btn').disabled = false; }
+  );
+}
+
+async function cwizDoMeasure() {
+  if (!calWizSensor) return;
+  const g = parseFloat(document.getElementById('cwiz-weight-input').value);
+  if (!g || g <= 0) { cwizSetStatus(2, 'Bitte gültiges Gewicht eingeben.', true); return; }
+  document.getElementById('cwiz-measure-btn').disabled = true;
+  document.getElementById('cwiz-warning-2').classList.remove('hidden');
+  cwizSetStatus(2, 'Messung läuft… WAAGE NICHT BERÜHREN! (ca. 3 Sek.)');
+  await fetch('/api/calibrate/result', { method: 'DELETE' });
+  await fetch('/api/calibrate/measure?weight_g=' + g + '&sensor_name=' + encodeURIComponent(calWizSensor.name), { method: 'POST' });
+  cwizPoll(
+    d => {
+      document.getElementById('cwiz-warning-2').classList.add('hidden');
+      const s = sensors[calWizSensor.idx];
+      if (s) { s.reference_unit = d.ref_unit; s.calibrated = true; }
+      document.getElementById('cwiz-result-grid').innerHTML =
+        '<div class="cwiz-rrow"><span>Nullpunkt (Offset)</span><strong>' + Math.round(calWizOffset ?? 0) + '</strong></div>' +
+        '<div class="cwiz-rrow"><span>Referenzeinheit</span><strong>' + d.ref_unit + '</strong></div>' +
+        '<div class="cwiz-rrow"><span>Referenzgewicht</span><strong>' + g + ' g</strong></div>' +
+        (d.ref_temp_c != null ? '<div class="cwiz-rrow"><span>Temperatur</span><strong>' + d.ref_temp_c.toFixed(1) + ' °C</strong></div>' : '');
+      cwizGoToStep(3);
+      markDirty();
+      renderSensors();
+    },
+    err => {
+      document.getElementById('cwiz-warning-2').classList.add('hidden');
+      cwizSetStatus(2, 'Fehler: ' + err, true);
+      document.getElementById('cwiz-measure-btn').disabled = false;
+    }
+  );
+}
+
+// ── Inline helpers ────────────────────────────────────────────────────────────────────────────
 const calPolling = {};
 
 function calShowResult(elId, msg, isError) {
@@ -899,53 +1043,23 @@ function calStartPolling(elId, sensorName, onSuccess) {
   calShowResult(elId, 'Warte auf Antwort vom Agenten…', false);
   calPolling[sensorName] = setInterval(async () => {
     attempts++;
-    if (attempts > 30) {
-      clearInterval(calPolling[sensorName]);
-      calShowResult(elId, 'Timeout — Agent hat nicht geantwortet. Läuft er?', true);
-      return;
-    }
+    if (attempts > 30) { clearInterval(calPolling[sensorName]); calShowResult(elId, 'Timeout — Agent hat nicht geantwortet.', true); return; }
     try {
       const r = await fetch('/api/calibrate/result');
       const d = await r.json();
       if (d.status === 'pending' || d.status === 'idle') return;
       clearInterval(calPolling[sensorName]);
-      if (d.status === 'error') {
-        calShowResult(elId, 'Fehler: ' + d.error, true);
-      } else {
-        onSuccess(d);
-      }
+      if (d.status === 'error') calShowResult(elId, 'Fehler: ' + d.error, true); else onSuccess(d);
     } catch {}
   }, 2000);
-}
-
-async function calTare(sensorName, idx) {
-  await fetch('/api/calibrate/result', { method: 'DELETE' });
-  await fetch('/api/calibrate/tare?sensor_name=' + encodeURIComponent(sensorName), { method: 'POST' });
-  calStartPolling('cal-tare-' + idx, sensorName, d => {
-    calShowResult('cal-tare-' + idx, `Nullpunkt gesetzt. Rohwert: ${Math.round(d.offset)}`, false);
-  });
-}
-
-async function calMeasure(sensorName, idx) {
-  const g = parseFloat(document.getElementById('cal-weight-' + idx)?.value);
-  if (!g || g <= 0) { calShowResult('cal-measure-' + idx, 'Bitte gültiges Gewicht eingeben.', true); return; }
-  await fetch('/api/calibrate/result', { method: 'DELETE' });
-  await fetch(`/api/calibrate/measure?weight_g=${g}&sensor_name=${encodeURIComponent(sensorName)}`, { method: 'POST' });
-  calStartPolling('cal-measure-' + idx, sensorName, d => {
-    calShowResult('cal-measure-' + idx, `Kalibriert! reference_unit = ${d.ref_unit} · In Konfiguration gespeichert.`, false);
-    sensors.forEach(s => {
-      if (s.type === 'hx711' && s.name === sensorName) s.reference_unit = d.ref_unit;
-    });
-    renderSensors();
-  });
 }
 
 async function calRead(sensorName, idx) {
   await fetch('/api/calibrate/result', { method: 'DELETE' });
   await fetch('/api/calibrate/read?sensor_name=' + encodeURIComponent(sensorName), { method: 'POST' });
   calStartPolling('cal-read-' + idx, sensorName, d => {
-    const tempStr = d.current_temp_c != null ? ` (Temp: ${d.current_temp_c.toFixed(1)} °C)` : '';
-    calShowResult('cal-read-' + idx, `Aktuelles Gewicht: ${d.weight_kg.toFixed(3)} kg${tempStr}`, false);
+    const t = d.current_temp_c != null ? '  ·  Temp: ' + d.current_temp_c.toFixed(1) + ' °C' : '';
+    calShowResult('cal-read-' + idx, 'Aktuelles Gewicht: ' + d.weight_kg.toFixed(3) + ' kg' + t, false);
   });
 }
 
@@ -954,17 +1068,11 @@ async function calSetTempRef(sensorName, idx) {
   await fetch('/api/calibrate/set-temp-ref?sensor_name=' + encodeURIComponent(sensorName), { method: 'POST' });
   calStartPolling('cal-tc-result-' + idx, sensorName, d => {
     const ts = new Date().toLocaleString('de-AT');
-    calShowResult('cal-tc-result-' + idx, `Referenztemperatur gesetzt: ${d.ref_temp_c.toFixed(2)} °C`, false);
-    // Update displayed info live
+    calShowResult('cal-tc-result-' + idx, 'Referenztemperatur gesetzt: ' + d.ref_temp_c.toFixed(2) + ' °C', false);
     const info = document.getElementById('cal-tc-ref-info-' + idx);
-    if (info) info.innerHTML = `Referenztemperatur: <strong>${d.ref_temp_c.toFixed(2)} °C</strong> · Zuletzt gesetzt: <strong>${ts}</strong>`;
-    // Persist in local sensors array
+    if (info) info.innerHTML = 'Referenztemperatur: <strong>' + d.ref_temp_c.toFixed(2) + ' °C</strong> · Zuletzt: <strong>' + ts + '</strong>';
     const s = sensors[idx];
-    if (s) {
-      s.temp_compensation = s.temp_compensation || {};
-      s.temp_compensation.ref_c = d.ref_temp_c;
-      s.temp_compensation.updated_at = new Date().toISOString();
-    }
+    if (s) { s.temp_compensation = s.temp_compensation || {}; s.temp_compensation.ref_c = d.ref_temp_c; s.temp_compensation.updated_at = new Date().toISOString(); }
   });
 }
 
@@ -981,12 +1089,8 @@ function updateSensorTc(idx, key, val) {
   if (!s) return;
   s.temp_compensation = s.temp_compensation || {};
   s.temp_compensation[key] = val;
-  // Update badge live
   const badge = document.getElementById('cal-tc-badge-' + idx);
-  if (badge && key === 'enabled') {
-    badge.textContent = val ? 'Aktiv' : 'Aus';
-    badge.className = 'cal-tc-badge ' + (val ? 'cal-tc-on' : 'cal-tc-off');
-  }
+  if (badge && key === 'enabled') { badge.textContent = val ? 'Aktiv' : 'Aus'; badge.className = 'cal-tc-badge ' + (val ? 'cal-tc-on' : 'cal-tc-off'); }
   markDirty();
 }
 
