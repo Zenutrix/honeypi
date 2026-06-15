@@ -8,7 +8,7 @@
 </head>
 <body>
 <header>
-  <a href="/" class="logo"><span class="logo-icon">🍯</span><span>HaniPi</span></a>
+  <a href="/" class="logo">Hani<span class="logo-accent">Pi</span></a>
   <nav>
     <a href="/" class="nav-tab">Dashboard</a>
     <a href="/config-ui" class="nav-tab active">Einstellungen</a>
@@ -20,20 +20,34 @@
 <main>
   <div class="config-layout">
     <aside class="config-sidebar">
-      <a class="sidebar-link active" href="#sensors">🔌 Sensoren</a>
-      <a class="sidebar-link" href="#general">⚙️ Allgemein</a>
-      <a class="sidebar-link" href="#exporters">📤 Export</a>
-      <a class="sidebar-link" href="#network">📡 Netzwerk</a>
-      <a class="sidebar-link" href="#display">🖥️ Display</a>
-      <a class="sidebar-link" href="#maintenance-cfg">🔧 Wartungsschalter</a>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Messen</div>
+        <a class="sidebar-link active" href="#sensors">Sensoren</a>
+        <a class="sidebar-link" href="#timing">Intervalle</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Cloud &amp; Export</div>
+        <a class="sidebar-link" href="#exporters">Exporter</a>
+        <a class="sidebar-link" href="#network">Netzwerk / 4G</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Gerät</div>
+        <a class="sidebar-link" href="#display">Display</a>
+        <a class="sidebar-link" href="#system">System</a>
+      </div>
     </aside>
 
     <div class="config-content">
 
-      <!-- SENSOREN -->
+      <!-- ── MESSEN ───────────────────────────────────────────── -->
+      <div class="config-group-label">Messen</div>
+
       <div class="config-section" id="sensors">
         <div class="config-section-header open" onclick="toggleSection(this)">
-          <span>🔌</span><span>Sensoren</span>
+          <div class="section-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
+          </div>
+          Sensoren
           <span class="section-chevron">▾</span>
         </div>
         <div class="config-section-body open">
@@ -43,66 +57,65 @@
         </div>
       </div>
 
-      <!-- ALLGEMEIN -->
-      <div class="config-section" id="general">
+      <div class="config-section" id="timing">
         <div class="config-section-header" onclick="toggleSection(this)">
-          <span>⚙️</span><span>Allgemein</span>
+          <div class="section-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          Intervalle
           <span class="section-chevron">▾</span>
         </div>
         <div class="config-section-body">
           <div class="field-row">
             <div class="field">
-              <label for="measureInterval">Messintervall (Sekunden)</label>
+              <label for="measureInterval">Messintervall (Sek.)</label>
               <input type="number" id="measureInterval" min="10" max="3600" value="60">
-              <div class="field-hint">Wie oft Sensoren auslesen.</div>
+              <div class="field-hint">Wie oft Sensoren ausgelesen werden.</div>
             </div>
             <div class="field">
-              <label for="exportInterval">Sendeintervall (Sekunden)</label>
+              <label for="exportInterval">Sendeintervall (Sek.)</label>
               <input type="number" id="exportInterval" min="60" max="86400" value="300">
-              <div class="field-hint">Wie oft an Cloud-Dienste senden. Sollte ein Vielfaches des Messintervalls sein.</div>
-            </div>
-          </div>
-          <div class="field-row">
-            <div class="field">
-              <label for="dbMaxSizeMb">Max. DB-Größe (MB, 0 = kein Limit)</label>
-              <input type="number" id="dbMaxSizeMb" min="0" value="500">
-            </div>
-            <div class="field">
-              <label for="dbRetentionDays">Datenhaltung (Tage, 0 = unbegrenzt)</label>
-              <input type="number" id="dbRetentionDays" min="0" value="90">
+              <div class="field-hint">Vielfaches des Messintervalls empfohlen.</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- EXPORT -->
+      <!-- ── CLOUD & EXPORT ────────────────────────────────────── -->
+      <div class="config-group-label">Cloud &amp; Export</div>
+
       <div class="config-section" id="exporters">
         <div class="config-section-header" onclick="toggleSection(this)">
-          <span>📤</span><span>Export</span>
+          <div class="section-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          Exporter
           <span class="section-chevron">▾</span>
         </div>
         <div class="config-section-body">
-          <!-- ThingSpeak -->
+
           <div class="exporter-item" id="exp-ts">
             <div class="exporter-header" onclick="toggleExp('ts')">
-              <span>📊</span><span class="exporter-title">ThingSpeak</span>
-              <span class="exporter-badge" id="badge-ts">Aus</span><span>▾</span>
+              <span class="exporter-title">ThingSpeak</span>
+              <span class="exporter-badge" id="badge-ts">Aus</span>
+              <span style="color:var(--text-faint);font-size:11px">▾</span>
             </div>
             <div class="exporter-body" id="body-ts">
               <div class="field"><label class="check-label"><input type="checkbox" id="ts-on" onchange="syncBadge('ts')"> Aktiviert</label></div>
               <div class="field"><label>API Key</label><input type="text" id="ts-key" placeholder="XXXXXXXXXXXXXXXX"></div>
               <div id="ts-mapping-section" class="hidden">
-                <div class="field-hint" style="margin-bottom:8px">Welcher Messwert soll in welches ThingSpeak-Feld?</div>
+                <div class="field-hint" style="margin-bottom:8px">Sensor-Wert → ThingSpeak-Feld zuordnen</div>
                 <div id="ts-mapping-rows"></div>
               </div>
-              <button class="btn btn-secondary btn-sm mt-12" onclick="loadTsKeys()">🔄 Felder aktualisieren</button>
+              <button class="btn btn-secondary btn-sm mt-8" onclick="loadTsKeys()">Felder aktualisieren</button>
             </div>
           </div>
-          <!-- InfluxDB -->
+
           <div class="exporter-item" id="exp-idb">
             <div class="exporter-header" onclick="toggleExp('idb')">
-              <span>🗄️</span><span class="exporter-title">InfluxDB v2</span>
-              <span class="exporter-badge" id="badge-idb">Aus</span><span>▾</span>
+              <span class="exporter-title">InfluxDB v2</span>
+              <span class="exporter-badge" id="badge-idb">Aus</span>
+              <span style="color:var(--text-faint);font-size:11px">▾</span>
             </div>
             <div class="exporter-body" id="body-idb">
               <div class="field"><label class="check-label"><input type="checkbox" id="idb-on" onchange="syncBadge('idb')"> Aktiviert</label></div>
@@ -116,11 +129,12 @@
               </div>
             </div>
           </div>
-          <!-- MQTT -->
+
           <div class="exporter-item" id="exp-mqtt">
             <div class="exporter-header" onclick="toggleExp('mqtt')">
-              <span>📡</span><span class="exporter-title">MQTT</span>
-              <span class="exporter-badge" id="badge-mqtt">Aus</span><span>▾</span>
+              <span class="exporter-title">MQTT</span>
+              <span class="exporter-badge" id="badge-mqtt">Aus</span>
+              <span style="color:var(--text-faint);font-size:11px">▾</span>
             </div>
             <div class="exporter-body" id="body-mqtt">
               <div class="field"><label class="check-label"><input type="checkbox" id="mqtt-on" onchange="syncBadge('mqtt')"> Aktiviert</label></div>
@@ -134,16 +148,18 @@
         </div>
       </div>
 
-      <!-- NETZWERK -->
       <div class="config-section" id="network">
         <div class="config-section-header" onclick="toggleSection(this)">
-          <span>📡</span><span>Netzwerk / 4G</span>
+          <div class="section-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          Netzwerk / 4G
           <span class="section-chevron">▾</span>
         </div>
         <div class="config-section-body">
           <div id="modemStatus" class="field-hint">Lade Modem-Status…</div>
           <div id="modemForm" class="hidden">
-            <div class="field"><label>APN</label><input type="text" id="4g-apn" placeholder="internet.telekom"></div>
+            <div class="field mt-12"><label>APN</label><input type="text" id="4g-apn" placeholder="internet.telekom"></div>
             <div class="field-row">
               <div class="field"><label>Benutzername (optional)</label><input type="text" id="4g-user"></div>
               <div class="field"><label>Passwort (optional)</label><input type="password" id="4g-pass"></div>
@@ -156,10 +172,15 @@
         </div>
       </div>
 
-      <!-- DISPLAY -->
+      <!-- ── GERÄT ──────────────────────────────────────────────── -->
+      <div class="config-group-label">Gerät</div>
+
       <div class="config-section" id="display">
         <div class="config-section-header" onclick="toggleSection(this)">
-          <span>🖥️</span><span>Display</span>
+          <div class="section-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          Display
           <span class="section-chevron">▾</span>
         </div>
         <div class="config-section-body">
@@ -168,7 +189,7 @@
             <label>Typ</label>
             <select id="disp-type" onchange="toggleTftField()">
               <option value="none">Kein Display</option>
-              <option value="hdmi">HDMI</option>
+              <option value="hdmi">HDMI (Framebuffer)</option>
               <option value="tft">TFT (SPI / Framebuffer)</option>
             </select>
           </div>
@@ -187,57 +208,83 @@
               </select>
             </div>
             <div class="field">
-              <label>Helligkeit (%)</label>
-              <input type="number" id="disp-brightness" min="10" max="100" value="80">
+              <label>Seitenwechsel (Sek.)</label>
+              <input type="number" id="disp-page-interval" min="3" max="60" value="8">
             </div>
-          </div>
-          <div class="field">
-            <label>Anzeigedauer je Folie (Sekunden)</label>
-            <input type="number" id="disp-page-interval" min="3" max="60" value="8">
           </div>
         </div>
       </div>
 
-      <!-- WARTUNGSSCHALTER -->
-      <div class="config-section" id="maintenance-cfg">
+      <div class="config-section" id="system">
         <div class="config-section-header" onclick="toggleSection(this)">
-          <span>🔧</span><span>Wartungsschalter</span>
+          <div class="section-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </div>
+          System
           <span class="section-chevron">▾</span>
         </div>
         <div class="config-section-body">
-          <div class="field"><label class="check-label"><input type="checkbox" id="maint-on"> Aktiviert</label></div>
+
+          <div class="field-hint" style="margin-bottom:12px;font-size:12px;color:var(--text-muted)">Wartungsschalter</div>
+          <div class="field"><label class="check-label"><input type="checkbox" id="maint-on"> GPIO-Wartungsschalter aktiviert</label></div>
           <div class="field-row">
             <div class="field">
               <label>GPIO-Pin (BCM)</label>
               <input type="number" id="maint-pin" min="1" max="40" value="17">
-              <div class="field-hint">Pin-Belegung: ℹ️ Schalter zwischen GPIO und GND, interner Pull-Up aktiv</div>
+              <div class="field-hint">Schalter zwischen GPIO und GND, interner Pull-Up aktiv.</div>
             </div>
             <div class="field">
               <label>Hotspot-Passwort</label>
               <input type="text" id="maint-pass" placeholder="hanipi123">
             </div>
           </div>
-          <div class="field-hint">Bei aktiviertem Schalter (Pin → GND) werden HX711-Sensoren pausiert und der Hotspot <strong>HaniPi-Setup</strong> aktiviert.</div>
+          <div class="field-hint">Bei aktiviertem Schalter werden HX711-Sensoren pausiert und der Hotspot <strong>HaniPi-Setup</strong> gestartet.</div>
+
+          <div style="height:1px;background:var(--border);margin:16px 0"></div>
+
+          <div class="field-hint" style="margin-bottom:12px;font-size:12px;color:var(--text-muted)">Datenbank</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Max. Größe (MB, 0 = kein Limit)</label>
+              <input type="number" id="dbMaxSizeMb" min="0" value="500">
+            </div>
+            <div class="field">
+              <label>Datenhaltung (Tage, 0 = unbegrenzt)</label>
+              <input type="number" id="dbRetentionDays" min="0" value="90">
+            </div>
+          </div>
         </div>
       </div>
 
-    </div><!-- /config-content -->
-  </div><!-- /config-layout -->
+    </div>
+  </div>
 </main>
 
 <div class="save-bar">
   <span class="save-status" id="saveStatus">Nicht gespeichert</span>
   <div style="display:flex;gap:8px">
-    <button class="btn btn-secondary btn-sm" onclick="loadConfig()">↺ Zurücksetzen</button>
-    <button class="btn btn-primary" onclick="saveConfig()">💾 Speichern</button>
+    <button class="btn btn-secondary btn-sm" onclick="loadConfig()">Zurücksetzen</button>
+    <button class="btn btn-primary" onclick="saveConfig()">Speichern</button>
   </div>
 </div>
 
 <nav class="bottom-nav">
-  <a href="/"><span class="bn-icon">📊</span>Dashboard</a>
-  <a href="/config-ui" class="active"><span class="bn-icon">⚙️</span>Einstellungen</a>
-  <a href="/hives"><span class="bn-icon">🐝</span>Stöcke</a>
-  <a href="/maintenance"><span class="bn-icon">🔧</span>Wartung</a>
+  <a href="/">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </a>
+  <a href="/config-ui" class="active">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Einstellungen
+  </a>
+  <a href="/hives">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
+    Stöcke
+  </a>
+  <a href="/maintenance">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    Wartung
+  </a>
 </nav>
 
 <!-- PIN INFO MODAL -->
@@ -254,25 +301,24 @@
 <script>
 'use strict';
 
-// ── PIN INFO REGISTRY ────────────────────────────────────────────────────────
 const PIN_INFO = {
   hx711: {
     title: "HX711 – Wägezelle",
     wiring: [
-      { signal:"VCC",  pin:"Pin 2 (5V)",              gpio:"—",       note:"5V für bessere Stabilität empfohlen" },
-      { signal:"GND",  pin:"Pin 6 (GND)",              gpio:"—",       note:"" },
-      { signal:"DT",   pin:"Pin 29",                   gpio:"GPIO 5",  note:"Konfigurierbar (data_pin)" },
-      { signal:"SCK",  pin:"Pin 31",                   gpio:"GPIO 6",  note:"Konfigurierbar (clock_pin)" },
+      { signal:"VCC",  pin:"Pin 2 (5V)",             gpio:"—",      note:"5V für bessere Stabilität empfohlen" },
+      { signal:"GND",  pin:"Pin 6 (GND)",             gpio:"—",      note:"" },
+      { signal:"DT",   pin:"Pin 29",                  gpio:"GPIO 5", note:"Konfigurierbar (data_pin)" },
+      { signal:"SCK",  pin:"Pin 31",                  gpio:"GPIO 6", note:"Konfigurierbar (clock_pin)" },
     ],
     notes:"DT und SCK können auf jeden freien GPIO gelegt werden. Standard: GPIO5/GPIO6."
   },
   ds18b20: {
     title:"DS18B20 – 1-Wire Temperatursensor",
     wiring:[
-      { signal:"VCC",     pin:"Pin 1 (3.3V)",          gpio:"—",       note:"Oder Pin 2 (5V)" },
-      { signal:"GND",     pin:"Pin 6 (GND)",            gpio:"—",       note:"" },
-      { signal:"DATA",    pin:"Pin 7",                  gpio:"GPIO 4",  note:"1-Wire, fest GPIO4" },
-      { signal:"Pull-Up", pin:"zwischen VCC und DATA",  gpio:"—",       note:"4,7 kΩ Widerstand erforderlich" },
+      { signal:"VCC",     pin:"Pin 1 (3.3V)",         gpio:"—",      note:"Oder Pin 2 (5V)" },
+      { signal:"GND",     pin:"Pin 6 (GND)",           gpio:"—",      note:"" },
+      { signal:"DATA",    pin:"Pin 7",                 gpio:"GPIO 4", note:"1-Wire, fest GPIO4" },
+      { signal:"Pull-Up", pin:"zwischen VCC und DATA", gpio:"—",      note:"4,7 kΩ Widerstand erforderlich" },
     ],
     notes:"1-Wire muss in /boot/config.txt aktiviert sein (dtoverlay=w1-gpio). Mehrere DS18B20 können parallel an GPIO4 betrieben werden."
   },
@@ -316,14 +362,14 @@ const PIN_INFO = {
       { signal:"SCL",  pin:"Pin 5",        gpio:"GPIO 3", note:"I²C Takt (fest)" },
       { signal:"A0",   pin:"—",            gpio:"—",      note:"Analogeingang (z.B. Spannungsteiler Akku)" },
     ],
-    notes:"Adresse: 0x48 (ADDR→GND), 0x49 (ADDR→VCC), 0x4A (ADDR→SDA), 0x4B (ADDR→SCL). Für Akkumessung: Spannungsteiler vor A0."
+    notes:"Adresse: 0x48 (ADDR→GND), 0x49 (ADDR→VCC), 0x4A (ADDR→SDA), 0x4B (ADDR→SCL)."
   },
 };
 
 function pinClass(pin) {
   if (pin.includes('3.3V')) return 'wt-3v3';
-  if (pin.includes('5V')) return 'wt-5v';
-  if (pin.includes('GND')) return 'wt-gnd';
+  if (pin.includes('5V'))   return 'wt-5v';
+  if (pin.includes('GND'))  return 'wt-gnd';
   if (pin.includes('GPIO')) return 'wt-gpio';
   return '';
 }
@@ -351,45 +397,43 @@ function showPinInfo(type) {
 }
 
 function closePinModal(e) {
-  if (!e || e.target === document.getElementById('pinModal')) {
+  if (!e || e.target === document.getElementById('pinModal'))
     document.getElementById('pinModal').classList.remove('open');
-  }
 }
 
-// ── SENSOR TYPES ─────────────────────────────────────────────────────────────
 const SENSOR_TYPES = {
   hx711:  { label:'HX711',   fields:[
-    { key:'data_pin',       label:'Data Pin (GPIO)',     type:'number', default:5 },
-    { key:'clock_pin',      label:'Clock Pin (GPIO)',    type:'number', default:6 },
-    { key:'reference_unit', label:'Referenzeinheit',     type:'number', default:1000 },
+    { key:'data_pin',       label:'Data Pin (GPIO)',       type:'number', default:5 },
+    { key:'clock_pin',      label:'Clock Pin (GPIO)',      type:'number', default:6 },
+    { key:'reference_unit', label:'Referenzeinheit',       type:'number', default:1000 },
   ]},
   ds18b20:{ label:'DS18B20', fields:[
-    { key:'sensor_index',   label:'Index (bei mehreren)',type:'number', default:0 },
-    { key:'sensor_id',      label:'Sensor-ID (optional)',type:'text',   default:'' },
+    { key:'sensor_index',   label:'Index (bei mehreren)', type:'number', default:0 },
+    { key:'sensor_id',      label:'Sensor-ID (optional)', type:'text',   default:'' },
   ]},
   bme280: { label:'BME280',  fields:[
-    { key:'i2c_port',       label:'I²C-Bus',            type:'number', default:1 },
-    { key:'i2c_address',    label:'I²C-Adresse (hex)',  type:'text',   default:'0x76' },
+    { key:'i2c_port',       label:'I²C-Bus',              type:'number', default:1 },
+    { key:'i2c_address',    label:'I²C-Adresse (hex)',    type:'text',   default:'0x76' },
   ]},
   bme680: { label:'BME680',  fields:[
-    { key:'i2c_port',       label:'I²C-Bus',            type:'number', default:1 },
-    { key:'i2c_address',    label:'I²C-Adresse (hex)',  type:'text',   default:'0x76' },
+    { key:'i2c_port',       label:'I²C-Bus',              type:'number', default:1 },
+    { key:'i2c_address',    label:'I²C-Adresse (hex)',    type:'text',   default:'0x76' },
   ]},
   bh1750: { label:'BH1750',  fields:[
-    { key:'i2c_port',       label:'I²C-Bus',            type:'number', default:1 },
-    { key:'i2c_address',    label:'I²C-Adresse (hex)',  type:'text',   default:'0x23' },
+    { key:'i2c_port',       label:'I²C-Bus',              type:'number', default:1 },
+    { key:'i2c_address',    label:'I²C-Adresse (hex)',    type:'text',   default:'0x23' },
   ]},
   ads1115:{ label:'ADS1115', fields:[
-    { key:'i2c_port',       label:'I²C-Bus',            type:'number', default:1 },
-    { key:'i2c_address',    label:'I²C-Adresse (hex)',  type:'text',   default:'0x48' },
-    { key:'channel',        label:'Kanal (0-3)',        type:'number', default:0 },
-    { key:'gain',           label:'Gain (2/3,1,2,4,8,16)', type:'number', default:1 },
-    { key:'voltage_divider',label:'Spannungsteiler',    type:'number', default:1.0 },
+    { key:'i2c_port',        label:'I²C-Bus',             type:'number', default:1 },
+    { key:'i2c_address',     label:'I²C-Adresse (hex)',   type:'text',   default:'0x48' },
+    { key:'channel',         label:'Kanal (0–3)',          type:'number', default:0 },
+    { key:'gain',            label:'Gain (2/3,1,2,4,8,16)',type:'number', default:1 },
+    { key:'voltage_divider', label:'Spannungsteiler',      type:'number', default:1.0 },
   ]},
 };
 
 let sensors = [];
-let hives = [];
+let hives   = [];
 let selectedType = 'hx711';
 
 function renderTypePicker() {
@@ -399,10 +443,7 @@ function renderTypePicker() {
   ).join('');
 }
 
-function selectType(t) {
-  selectedType = t;
-  renderTypePicker();
-}
+function selectType(t) { selectedType = t; renderTypePicker(); }
 
 function addSensor() {
   const def = { type: selectedType, name: SENSOR_TYPES[selectedType].label + '_' + (sensors.length+1) };
@@ -412,16 +453,11 @@ function addSensor() {
   markDirty();
 }
 
-function removeSensor(i) {
-  sensors.splice(i, 1);
-  renderSensors();
-  markDirty();
-}
+function removeSensor(i) { sensors.splice(i, 1); renderSensors(); markDirty(); }
 
 function hiveOptions(currentId) {
-  const opts = `<option value="">Keinem Stock zugewiesen</option>` +
+  return `<option value="">Keinem Stock zugewiesen</option>` +
     hives.map(h => `<option value="${h.id}"${currentId===h.id?' selected':''}>${h.name}</option>`).join('');
-  return opts;
 }
 
 function renderSensors() {
@@ -432,8 +468,7 @@ function renderSensors() {
     const fields = SENSOR_TYPES[s.type]?.fields || [];
     const fieldHtml = fields.map(f => {
       const val = s[f.key] !== undefined ? s[f.key] : f.default;
-      const hexVal = (f.key === 'i2c_address' && typeof val === 'number')
-        ? '0x' + val.toString(16) : val;
+      const hexVal = (f.key === 'i2c_address' && typeof val === 'number') ? '0x' + val.toString(16) : val;
       return `<div class="field">
         <label>${f.label}</label>
         <input type="${f.type}" value="${hexVal}"
@@ -447,8 +482,12 @@ function renderSensors() {
       <div class="sensor-header" onclick="toggleSensorBody(this)">
         <span class="sensor-type-badge">${s.type}</span>
         <span class="sensor-name">${s.name}</span>
-        <button class="sensor-info-btn" onclick="event.stopPropagation();showPinInfo('${s.type}')" title="Pinbelegung">ℹ️</button>
-        <button class="sensor-remove" onclick="event.stopPropagation();removeSensor(${i})" title="Entfernen">✕</button>
+        <button class="sensor-info-btn" onclick="event.stopPropagation();showPinInfo('${s.type}')" title="Pinbelegung">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </button>
+        <button class="sensor-remove" onclick="event.stopPropagation();removeSensor(${i})" title="Entfernen">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
         <span class="sensor-chevron">▾</span>
       </div>
       <div class="sensor-body">
@@ -459,9 +498,7 @@ function renderSensors() {
           </div>
           <div class="field">
             <label>Stock (Hive)</label>
-            <select onchange="updateSensor(${i},'hive_id',this.value)">
-              ${hiveOptions(s.hive_id)}
-            </select>
+            <select onchange="updateSensor(${i},'hive_id',this.value)">${hiveOptions(s.hive_id)}</select>
           </div>
         </div>
         ${fieldHtml}
@@ -486,19 +523,17 @@ function updateSensor(i, key, val, isHex) {
   markDirty();
 }
 
-// ── SECTION TOGGLE ───────────────────────────────────────────────────────────
 function toggleSection(header) {
   header.classList.toggle('open');
   header.nextElementSibling.classList.toggle('open');
 }
 
 function toggleExp(id) {
-  const body = document.getElementById('body-' + id);
-  body.classList.toggle('open');
+  document.getElementById('body-' + id).classList.toggle('open');
 }
 
 function syncBadge(id) {
-  const cb = document.getElementById(id + '-on');
+  const cb    = document.getElementById(id + '-on');
   const badge = document.getElementById('badge-' + id);
   badge.textContent = cb.checked ? 'An' : 'Aus';
   badge.classList.toggle('on', cb.checked);
@@ -511,17 +546,13 @@ function toggleTftField() {
   document.getElementById('disp-tft-field').style.display = type === 'tft' ? 'block' : 'none';
 }
 
-// ── THINGSPEAK MAPPING ───────────────────────────────────────────────────────
 let tsMapping = {};
 
 async function loadTsKeys() {
   let keys = [];
-  try {
-    const r = await fetch('/api/thingspeak/keys');
-    keys = await r.json();
-  } catch {}
+  try { const r = await fetch('/api/thingspeak/keys'); keys = await r.json(); } catch {}
   const section = document.getElementById('ts-mapping-section');
-  const rows = document.getElementById('ts-mapping-rows');
+  const rows    = document.getElementById('ts-mapping-rows');
   if (!section || !rows) return;
   section.classList.toggle('hidden', keys.length === 0);
   const fieldOpts = '<option value="">Nicht übertragen</option>' +
@@ -530,26 +561,24 @@ async function loadTsKeys() {
     const cur = tsMapping[k] || '';
     const sel = fieldOpts.replace(`value="${cur}"`, `value="${cur}" selected`);
     return `<div class="ts-mapping-row">
-      <span style="font-size:13px">${k}</span>
+      <span style="font-size:13px;color:var(--text-muted)">${k}</span>
       <span class="ts-arrow">→</span>
       <select onchange="tsMapping['${k}']=this.value;markDirty()">${sel}</select>
     </div>`;
   }).join('');
 }
 
-// ── 4G ───────────────────────────────────────────────────────────────────────
 async function loadModemStatus() {
   const statusEl = document.getElementById('modemStatus');
-  const form = document.getElementById('modemForm');
+  const form     = document.getElementById('modemForm');
   try {
     const r = await fetch('/api/network/modem');
     const d = await r.json();
     if (!d.available) {
       statusEl.textContent = 'Kein 4G-Stick erkannt.';
-      form.classList.add('hidden');
-      return;
+      form.classList.add('hidden'); return;
     }
-    statusEl.textContent = `${d.model} · ${d.state} · Signal: ${d.signal ?? '?'}%${d.connected ? ' · ✅ Verbunden' : ''}`;
+    statusEl.textContent = `${d.model} · ${d.state} · Signal: ${d.signal ?? '?'}%${d.connected ? ' · Verbunden' : ''}`;
     form.classList.remove('hidden');
     if (d.apn) document.getElementById('4g-apn').value = d.apn;
   } catch {
@@ -559,8 +588,7 @@ async function loadModemStatus() {
 
 async function connect4g() {
   await fetch('/api/network/connect', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
+    method: 'POST', headers: {'Content-Type':'application/json'},
     body: JSON.stringify({
       apn: document.getElementById('4g-apn').value,
       username: document.getElementById('4g-user').value,
@@ -575,7 +603,6 @@ async function disconnect4g() {
   await loadModemStatus();
 }
 
-// ── CONFIG LOAD / SAVE ───────────────────────────────────────────────────────
 let dirty = false;
 function markDirty() {
   dirty = true;
@@ -585,54 +612,50 @@ function markDirty() {
 
 async function loadConfig() {
   let cfg = {};
-  try {
-    const r = await fetch('/api/config');
-    if (r.ok) cfg = await r.json();
-  } catch {}
-
-  try { const r = await fetch('/api/hives'); hives = await r.json(); } catch { hives = []; }
+  try { const r = await fetch('/api/config'); if (r.ok) cfg = await r.json(); } catch {}
+  try { const r = await fetch('/api/hives');  hives = await r.json(); } catch { hives = []; }
 
   sensors = cfg.sensors || [];
 
-  document.getElementById('measureInterval').value = cfg.measure_interval || cfg.interval || 60;
-  document.getElementById('exportInterval').value = cfg.export_interval || cfg.interval || 300;
-  document.getElementById('dbMaxSizeMb').value = cfg.db_max_size_mb ?? 500;
-  document.getElementById('dbRetentionDays').value = cfg.db_retention_days ?? 90;
+  document.getElementById('measureInterval').value  = cfg.measure_interval || cfg.interval || 60;
+  document.getElementById('exportInterval').value   = cfg.export_interval  || cfg.interval || 300;
+  document.getElementById('dbMaxSizeMb').value      = cfg.db_max_size_mb   ?? 500;
+  document.getElementById('dbRetentionDays').value  = cfg.db_retention_days ?? 90;
 
-  const exp = cfg.exporters || {};
-  const ts = exp.thingspeak || {};
-  const idb = exp.influxdb || {};
-  const mqtt = exp.mqtt || {};
+  const exp  = cfg.exporters || {};
+  const ts   = exp.thingspeak || {};
+  const idb  = exp.influxdb   || {};
+  const mqtt = exp.mqtt       || {};
 
-  document.getElementById('ts-on').checked = !!ts.enabled; syncBadge('ts');
-  document.getElementById('ts-key').value = ts.api_key || '';
+  document.getElementById('ts-on').checked  = !!ts.enabled;  syncBadge('ts');
+  document.getElementById('ts-key').value   = ts.api_key || '';
   tsMapping = ts.field_mapping || {};
   if (ts.enabled) loadTsKeys();
 
-  document.getElementById('idb-on').checked = !!idb.enabled; syncBadge('idb');
-  document.getElementById('idb-url').value = idb.url || '';
-  document.getElementById('idb-bucket').value = idb.bucket || 'hanipi';
-  document.getElementById('idb-org').value = idb.org || '';
-  document.getElementById('idb-token').value = idb.token || '';
+  document.getElementById('idb-on').checked    = !!idb.enabled;  syncBadge('idb');
+  document.getElementById('idb-url').value     = idb.url    || '';
+  document.getElementById('idb-bucket').value  = idb.bucket || 'hanipi';
+  document.getElementById('idb-org').value     = idb.org    || '';
+  document.getElementById('idb-token').value   = idb.token  || '';
 
-  document.getElementById('mqtt-on').checked = !!mqtt.enabled; syncBadge('mqtt');
-  document.getElementById('mqtt-broker').value = mqtt.broker || '';
-  document.getElementById('mqtt-port').value = mqtt.port || 1883;
-  document.getElementById('mqtt-topic').value = mqtt.topic || 'hanipi';
+  document.getElementById('mqtt-on').checked     = !!mqtt.enabled;  syncBadge('mqtt');
+  document.getElementById('mqtt-broker').value   = mqtt.broker || '';
+  document.getElementById('mqtt-port').value     = mqtt.port   || 1883;
+  document.getElementById('mqtt-topic').value    = mqtt.topic  || 'hanipi';
 
   const disp = cfg.display || {};
-  document.getElementById('disp-on').checked = !!disp.enabled;
-  document.getElementById('disp-type').value = disp.type || 'none';
-  document.getElementById('disp-tft-dev').value = disp.tft_device || '/dev/fb1';
-  document.getElementById('disp-brightness').value = disp.brightness ?? 80;
-  document.getElementById('disp-rotation').value = disp.rotation ?? 0;
-  document.getElementById('disp-page-interval').value = disp.page_interval ?? 8;
+  document.getElementById('disp-on').checked           = !!disp.enabled;
+  document.getElementById('disp-type').value           = disp.type        || 'none';
+  document.getElementById('disp-tft-dev').value        = disp.tft_device  || '/dev/fb1';
+  document.getElementById('disp-page-interval').value  = disp.page_interval ?? 8;
+  const dispRot = document.getElementById('disp-rotation');
+  if (dispRot) dispRot.value = disp.rotation ?? 0;
   toggleTftField();
 
   const maint = cfg.maintenance_switch || {};
-  document.getElementById('maint-on').checked = !!maint.enabled;
-  document.getElementById('maint-pin').value = maint.gpio_pin ?? 17;
-  document.getElementById('maint-pass').value = maint.hotspot_password || 'hanipi123';
+  document.getElementById('maint-on').checked   = !!maint.enabled;
+  document.getElementById('maint-pin').value    = maint.gpio_pin          ?? 17;
+  document.getElementById('maint-pass').value   = maint.hotspot_password  || 'hanipi123';
 
   renderTypePicker();
   renderSensors();
@@ -643,61 +666,44 @@ async function loadConfig() {
 
 async function saveConfig() {
   const cfg = {
-    measure_interval: parseInt(document.getElementById('measureInterval').value) || 60,
-    export_interval: parseInt(document.getElementById('exportInterval').value) || 300,
-    interval: parseInt(document.getElementById('measureInterval').value) || 60,
-    db_max_size_mb: parseInt(document.getElementById('dbMaxSizeMb').value) || 0,
+    measure_interval:  parseInt(document.getElementById('measureInterval').value) || 60,
+    export_interval:   parseInt(document.getElementById('exportInterval').value)  || 300,
+    interval:          parseInt(document.getElementById('measureInterval').value) || 60,
+    db_max_size_mb:    parseInt(document.getElementById('dbMaxSizeMb').value)     || 0,
     db_retention_days: parseInt(document.getElementById('dbRetentionDays').value) || 0,
     sensors,
     exporters: {
-      local: { enabled: true, db_path: '/var/lib/hanipi/data.db' },
-      thingspeak: {
-        enabled: document.getElementById('ts-on').checked,
-        api_key: document.getElementById('ts-key').value,
-        field_mapping: tsMapping,
-      },
-      influxdb: {
-        enabled: document.getElementById('idb-on').checked,
-        url: document.getElementById('idb-url').value,
-        bucket: document.getElementById('idb-bucket').value || 'hanipi',
-        org: document.getElementById('idb-org').value,
-        token: document.getElementById('idb-token').value,
-      },
-      mqtt: {
-        enabled: document.getElementById('mqtt-on').checked,
-        broker: document.getElementById('mqtt-broker').value,
-        port: parseInt(document.getElementById('mqtt-port').value) || 1883,
-        topic: document.getElementById('mqtt-topic').value || 'hanipi',
-      },
+      local:      { enabled: true, db_path: '/var/lib/hanipi/data.db' },
+      thingspeak: { enabled: document.getElementById('ts-on').checked,   api_key: document.getElementById('ts-key').value, field_mapping: tsMapping },
+      influxdb:   { enabled: document.getElementById('idb-on').checked,  url: document.getElementById('idb-url').value, bucket: document.getElementById('idb-bucket').value || 'hanipi', org: document.getElementById('idb-org').value, token: document.getElementById('idb-token').value },
+      mqtt:       { enabled: document.getElementById('mqtt-on').checked, broker: document.getElementById('mqtt-broker').value, port: parseInt(document.getElementById('mqtt-port').value) || 1883, topic: document.getElementById('mqtt-topic').value || 'hanipi' },
     },
     display: {
-      enabled: document.getElementById('disp-on').checked,
-      type: document.getElementById('disp-type').value,
-      tft_device: document.getElementById('disp-tft-dev').value,
-      brightness: parseInt(document.getElementById('disp-brightness').value) || 80,
-      rotation: parseInt(document.getElementById('disp-rotation').value) || 0,
+      enabled:       document.getElementById('disp-on').checked,
+      type:          document.getElementById('disp-type').value,
+      tft_device:    document.getElementById('disp-tft-dev').value,
+      brightness:    80,
+      rotation:      parseInt(document.getElementById('disp-rotation')?.value || 0),
       page_interval: parseInt(document.getElementById('disp-page-interval').value) || 8,
     },
     maintenance_switch: {
-      enabled: document.getElementById('maint-on').checked,
-      gpio_pin: parseInt(document.getElementById('maint-pin').value) || 17,
-      hotspot_password: document.getElementById('maint-pass').value || 'hanipi123',
+      enabled:          document.getElementById('maint-on').checked,
+      gpio_pin:         parseInt(document.getElementById('maint-pin').value)  || 17,
+      hotspot_password: document.getElementById('maint-pass').value           || 'hanipi123',
     },
   };
 
   const statusEl = document.getElementById('saveStatus');
   try {
     const r = await fetch('/api/config', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(cfg),
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(cfg),
     });
     if (!r.ok) throw new Error(r.statusText);
-    statusEl.textContent = '✓ Gespeichert';
+    statusEl.textContent = 'Gespeichert';
     statusEl.className = 'save-status saved';
     dirty = false;
   } catch (e) {
-    statusEl.textContent = '✗ Fehler: ' + e.message;
+    statusEl.textContent = 'Fehler: ' + e.message;
     statusEl.className = 'save-status error';
   }
 }

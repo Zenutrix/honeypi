@@ -5,10 +5,10 @@ const UNITS = {
   weight_kg: 'kg', voltage_v: 'V', illuminance_lux: 'lx',
   gas_resistance_ohm: 'Ω',
 };
-const ICONS = {
-  weight_kg: '⚖️', temperature_c: '🌡️', humidity_pct: '💧',
-  pressure_hpa: '🌀', illuminance_lux: '🔆', gas_resistance_ohm: '💨',
-  voltage_v: '🔋',
+const LABELS = {
+  weight_kg: 'Gewicht', temperature_c: 'Temperatur', humidity_pct: 'Feuchte',
+  pressure_hpa: 'Luftdruck', illuminance_lux: 'Licht', gas_resistance_ohm: 'Gas',
+  voltage_v: 'Spannung',
 };
 const HIVE_COLORS = ['#f59e0b','#10b981','#3b82f6','#8b5cf6','#ef4444','#06b6d4','#f97316'];
 
@@ -98,7 +98,7 @@ async function refreshData() {
 
   if (rows.length === 0) {
     grid.innerHTML = `<div class="empty-state">
-      <div class="es-icon">📡</div>
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
       <p>Noch keine Messdaten vorhanden.</p>
       <p>Sensoren in den <a href="/config-ui">Einstellungen</a> konfigurieren.</p>
     </div>`;
@@ -108,17 +108,18 @@ async function refreshData() {
 
   grid.innerHTML = '';
   rows.forEach(row => {
-    const unit = UNITS[row.key] || '';
-    const icon = ICONS[row.key] || '📈';
+    const unit  = UNITS[row.key] || '';
+    const label = LABELS[row.key] || row.key.replace(/_/g, ' ');
     const color = hiveColorFor(row.hive_id);
+    const val   = parseFloat(row.value);
+    const displayVal = Number.isInteger(val) ? val : val.toFixed(1);
     const card = document.createElement('div');
     card.className = 'sensor-card';
-    card.style.borderLeftColor = color;
+    card.style.setProperty('--card-accent', color);
     card.innerHTML = `
-      <div class="card-icon">${icon}</div>
-      <div class="card-value">${parseFloat(row.value).toFixed(1)}<span class="card-unit">${unit}</span></div>
-      <div class="card-label">${row.sensor_name} · ${row.key}</div>
-      <div class="card-time">${fmtTime(row.timestamp)}</div>`;
+      <div class="card-label">${label}</div>
+      <div class="card-value">${displayVal}<span class="card-unit">${unit}</span></div>
+      <div class="card-meta">${row.sensor_name} · ${fmtTime(row.timestamp)}</div>`;
     card.onclick = () => loadChart(row.sensor_name, row.key);
     grid.appendChild(card);
   });
@@ -164,9 +165,10 @@ async function loadChart(sensor, key) {
         label: `${sensor} · ${key}`,
         data,
         borderColor: '#f59e0b',
-        backgroundColor: 'rgba(245,158,11,.1)',
+        backgroundColor: 'rgba(245,158,11,.08)',
         borderWidth: 2,
         pointRadius: filtered.length > 100 ? 0 : 3,
+        pointBackgroundColor: '#f59e0b',
         tension: 0.3,
         fill: true,
       }]
@@ -175,13 +177,25 @@ async function loadChart(sensor, key) {
       responsive: true,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: ctx => `${ctx.parsed.y.toFixed(2)} ${unit}` } },
+        tooltip: {
+          backgroundColor: '#2c2c2e',
+          borderColor: '#48484a',
+          borderWidth: 1,
+          titleColor: '#ffffff',
+          bodyColor: '#8e8e93',
+          callbacks: { label: ctx => `${ctx.parsed.y.toFixed(2)} ${unit}` },
+        },
       },
       scales: {
-        x: { ticks: { maxTicksLimit: 8, font: { size: 11 } }, grid: { color: '#e7e5e4' } },
+        x: {
+          ticks: { maxTicksLimit: 8, font: { size: 11 }, color: '#48484a' },
+          grid: { color: '#3a3a3c' },
+          border: { color: '#48484a' },
+        },
         y: {
-          ticks: { callback: v => `${v} ${unit}`, font: { size: 11 } },
-          grid: { color: '#e7e5e4' },
+          ticks: { callback: v => `${v} ${unit}`, font: { size: 11 }, color: '#48484a' },
+          grid: { color: '#3a3a3c' },
+          border: { color: '#48484a' },
         },
       },
     },

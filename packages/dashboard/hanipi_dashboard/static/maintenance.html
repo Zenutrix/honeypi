@@ -8,7 +8,7 @@
 </head>
 <body>
 <header>
-  <a href="/" class="logo"><span class="logo-icon">🍯</span><span>HaniPi</span></a>
+  <a href="/" class="logo">Hani<span class="logo-accent">Pi</span></a>
   <nav>
     <a href="/" class="nav-tab">Dashboard</a>
     <a href="/config-ui" class="nav-tab">Einstellungen</a>
@@ -18,12 +18,15 @@
 </header>
 
 <main>
-  <div class="page-title" style="margin-bottom:16px">🔧 Wartung</div>
+  <div class="page-header">
+    <span class="page-title">Wartung</span>
+  </div>
 
   <!-- Maintenance Status -->
   <div class="status-card">
+    <div class="status-card-title">Systemstatus</div>
     <div class="big-status">
-      <span class="big-status-icon" id="maintIcon">🟢</span>
+      <div class="status-dot" id="maintDot" style="width:14px;height:14px"></div>
       <div class="big-status-text">
         <h2 id="maintTitle">Normalbetrieb</h2>
         <p id="maintDesc">Alle Sensoren aktiv.</p>
@@ -31,8 +34,14 @@
       <span class="tag tag-inactive" id="maintTag">Inaktiv</span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-secondary btn-sm" onclick="hotspot('up')">📶 Hotspot an</button>
-      <button class="btn btn-secondary btn-sm" onclick="hotspot('down')">📴 Hotspot aus</button>
+      <button class="btn btn-secondary btn-sm" onclick="hotspot('up')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+        Hotspot an
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="hotspot('down')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        Hotspot aus
+      </button>
     </div>
     <div class="field-hint mt-12" id="hotspotResult"></div>
   </div>
@@ -40,8 +49,11 @@
   <!-- WLAN Scanner -->
   <div class="status-card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <strong>📶 WLAN-Verbindung</strong>
-      <button class="btn btn-secondary btn-sm" onclick="scanWifi()">🔍 Scannen</button>
+      <strong>WLAN-Verbindung</strong>
+      <button class="btn btn-secondary btn-sm" onclick="scanWifi()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Scannen
+      </button>
     </div>
     <div class="wifi-list" id="wifiList">
       <div class="text-muted" style="font-size:13px">Auf „Scannen" klicken um Netzwerke zu suchen.</div>
@@ -61,7 +73,7 @@
 
   <!-- DB Stats -->
   <div class="status-card">
-    <strong style="display:block;margin-bottom:12px">🗄️ Datenbank</strong>
+    <div class="status-card-title">Datenbank</div>
     <div class="stats-grid" id="dbStats">
       <div class="stat-cell"><div class="stat-value" id="dbSize">…</div><div class="stat-label">Größe (MB)</div></div>
       <div class="stat-cell"><div class="stat-value" id="dbRows">…</div><div class="stat-label">Einträge</div></div>
@@ -72,10 +84,22 @@
 </main>
 
 <nav class="bottom-nav">
-  <a href="/"><span class="bn-icon">📊</span>Dashboard</a>
-  <a href="/config-ui"><span class="bn-icon">⚙️</span>Einstellungen</a>
-  <a href="/hives"><span class="bn-icon">🐝</span>Stöcke</a>
-  <a href="/maintenance" class="active"><span class="bn-icon">🔧</span>Wartung</a>
+  <a href="/">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </a>
+  <a href="/config-ui">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Einstellungen
+  </a>
+  <a href="/hives">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
+    Stöcke
+  </a>
+  <a href="/maintenance" class="active">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    Wartung
+  </a>
 </nav>
 
 <script>
@@ -91,13 +115,15 @@ async function loadMaintenanceStatus() {
     const r = await fetch('/api/maintenance/status');
     const d = await r.json();
     const active = !!d.active;
-    document.getElementById('maintIcon').textContent = active ? '🟠' : '🟢';
+    const dot = document.getElementById('maintDot');
+    dot.className = 'status-dot ' + (active ? 'offline' : 'online');
+    dot.style.width = '14px'; dot.style.height = '14px';
     document.getElementById('maintTitle').textContent = active ? 'Wartungsmodus aktiv' : 'Normalbetrieb';
-    document.getElementById('maintDesc').textContent = active
+    document.getElementById('maintDesc').textContent  = active
       ? 'Waage(n) pausiert · Hotspot HaniPi-Setup aktiv'
       : 'Alle Sensoren aktiv.';
-    document.getElementById('maintTag').textContent = active ? 'Aktiv' : 'Inaktiv';
-    document.getElementById('maintTag').className = 'tag ' + (active ? 'tag-active' : 'tag-inactive');
+    document.getElementById('maintTag').textContent  = active ? 'Aktiv' : 'Inaktiv';
+    document.getElementById('maintTag').className    = 'tag ' + (active ? 'tag-active' : 'tag-inactive');
   } catch {}
 }
 
@@ -105,15 +131,16 @@ async function hotspot(action) {
   const res = document.getElementById('hotspotResult');
   res.textContent = 'Wird ausgeführt…';
   try {
-    const r = await fetch('/api/maintenance/hotspot', {
+    await fetch('/api/maintenance/hotspot', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ action }),
     });
-    const d = await r.json();
-    res.textContent = action === 'up' ? '✅ Hotspot aktiviert (SSID: HaniPi-Setup)' : '✅ Hotspot deaktiviert';
+    res.textContent = action === 'up'
+      ? 'Hotspot aktiviert (SSID: HaniPi-Setup)'
+      : 'Hotspot deaktiviert';
   } catch (e) {
-    res.textContent = '✗ Fehler: ' + e.message;
+    res.textContent = 'Fehler: ' + e.message;
   }
 }
 
@@ -125,13 +152,16 @@ async function scanWifi() {
   try {
     const r = await fetch('/api/network/wifi/scan');
     const nets = await r.json();
-    if (nets.length === 0) { list.innerHTML = '<div class="text-muted" style="font-size:13px">Keine Netzwerke gefunden.</div>'; return; }
+    if (nets.length === 0) {
+      list.innerHTML = '<div class="text-muted" style="font-size:13px">Keine Netzwerke gefunden.</div>';
+      return;
+    }
     list.innerHTML = nets.map(n => `
       <div class="wifi-item" onclick="selectWifi('${n.ssid.replace(/'/g,"\\'")}')">
         <span class="wifi-ssid">${n.ssid}</span>
         <span class="wifi-signal">${n.signal}% ${n.security || ''}</span>
       </div>`).join('');
-  } catch (e) {
+  } catch {
     list.innerHTML = '<div class="text-muted" style="font-size:13px">Fehler beim Scan.</div>';
   }
 }
@@ -160,10 +190,10 @@ async function connectWifi() {
       }),
     });
     if (!r.ok) { const d = await r.json(); throw new Error(d.detail); }
-    res.textContent = `✅ Verbunden mit ${selectedSsid}`;
+    res.textContent = `Verbunden mit ${selectedSsid}`;
     document.getElementById('wifiConnectForm').classList.add('hidden');
   } catch (e) {
-    res.textContent = '✗ ' + e.message;
+    res.textContent = 'Fehler: ' + e.message;
   }
 }
 
@@ -171,8 +201,8 @@ async function loadDbStats() {
   try {
     const r = await fetch('/api/db/stats');
     const d = await r.json();
-    document.getElementById('dbSize').textContent = d.size_mb;
-    document.getElementById('dbRows').textContent = (d.row_count || 0).toLocaleString('de-AT');
+    document.getElementById('dbSize').textContent   = d.size_mb;
+    document.getElementById('dbRows').textContent   = (d.row_count || 0).toLocaleString('de-AT');
     document.getElementById('dbOldest').textContent = fmtDate(d.oldest_entry);
     document.getElementById('dbNewest').textContent = fmtDate(d.newest_entry);
   } catch {}
