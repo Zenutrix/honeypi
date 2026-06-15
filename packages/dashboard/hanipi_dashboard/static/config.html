@@ -34,7 +34,6 @@
         <div class="sidebar-label">Gerät</div>
         <a class="sidebar-link" href="#display">Display</a>
         <a class="sidebar-link" href="#system">System</a>
-        <a class="sidebar-link" href="#calibration">Kalibrierung</a>
       </div>
     </aside>
 
@@ -283,57 +282,6 @@
         </div>
       </div>
 
-      <!-- ── KALIBRIERUNG ─────────────────────────────────────── -->
-      <div class="config-section" id="calibration">
-        <div class="config-section-header" onclick="toggleSection(this)">
-          <div class="section-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="18" y2="20"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="10" y1="8" x2="14" y2="8"/></svg>
-          </div>
-          Waage kalibrieren (HX711)
-          <span class="section-chevron">▾</span>
-        </div>
-        <div class="config-section-body">
-          <div class="field-hint" style="margin-bottom:16px">
-            Kalibriere die Waage in zwei Schritten. Der Agent muss laufen.
-            Jeder Schritt dauert ca. 3–5 Sekunden (20 Messungen werden gemittelt).
-          </div>
-
-          <div class="cal-step">
-            <div class="cal-step-num">1</div>
-            <div>
-              <div class="cal-step-title">Nullpunkt setzen</div>
-              <div class="field-hint">Stelle die leere Waage (ohne Bienenvolk) auf die Messplatte. Drücke dann „Tare".</div>
-              <button class="btn btn-secondary btn-sm mt-8" onclick="calTare()">Tare (Nullpunkt)</button>
-              <div class="cal-result" id="calTareResult"></div>
-            </div>
-          </div>
-
-          <div class="cal-step" style="margin-top:16px">
-            <div class="cal-step-num">2</div>
-            <div>
-              <div class="cal-step-title">Referenzgewicht messen</div>
-              <div class="field-hint">Lege ein bekanntes Gewicht auf die Waage (z.B. ein voller 1-Liter-Wasserbehälter = 1000 g). Gib das genaue Gewicht ein und klicke „Kalibrieren".</div>
-              <div class="field-row mt-8" style="align-items:flex-end">
-                <div class="field" style="max-width:160px">
-                  <label>Referenzgewicht (g)</label>
-                  <input type="number" id="calWeightG" value="1000" min="100" max="50000" step="100">
-                </div>
-                <button class="btn btn-primary btn-sm" style="margin-bottom:1px" onclick="calMeasure()">Kalibrieren</button>
-              </div>
-              <div class="cal-result" id="calMeasureResult"></div>
-            </div>
-          </div>
-
-          <div style="height:1px;background:var(--border);margin:20px 0"></div>
-          <div class="field-hint" style="font-size:11px">
-            <strong>Hinweis zur Temperaturkompensation:</strong>
-            HX711-Wägezellen driften leicht mit der Temperatur (typisch ±0,05 % / °C).
-            Für höchste Genauigkeit: morgens bei gleichbleibender Temperatur kalibrieren.
-            Die berechnete <code>reference_unit</code> wird automatisch in der Konfigurationsdatei gespeichert.
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 </main>
@@ -554,6 +502,45 @@ function renderSensors() {
       </div>`;
     }).join('');
 
+    const calHtml = s.type === 'hx711' ? `
+      <div style="height:1px;background:var(--border);margin:14px 0"></div>
+      <div class="field-hint" style="font-size:11px;margin-bottom:10px;color:var(--text-muted)">
+        Kalibrierung — Agent muss laufen · je Schritt ~3 Sek. (20 Messungen)
+      </div>
+      <div class="cal-step">
+        <div class="cal-step-num">1</div>
+        <div style="flex:1">
+          <div class="cal-step-title">Nullpunkt (Tare)</div>
+          <div class="field-hint">Leere Waage ohne Bienen aufstellen, dann Tare drücken.</div>
+          <button class="btn btn-secondary btn-sm mt-8" onclick="calTare('${s.name}',${i})">Tare setzen</button>
+          <div class="cal-result" id="cal-tare-${i}"></div>
+        </div>
+      </div>
+      <div class="cal-step" style="margin-top:12px">
+        <div class="cal-step-num">2</div>
+        <div style="flex:1">
+          <div class="cal-step-title">Referenzgewicht</div>
+          <div class="field-hint">Bekanntes Gewicht auflegen (z.B. 1000 g Wasserflasche), Wert eingeben, kalibrieren.</div>
+          <div class="field-row mt-8" style="align-items:flex-end;gap:8px">
+            <div class="field" style="max-width:150px">
+              <label>Gewicht (g)</label>
+              <input type="number" id="cal-weight-${i}" value="1000" min="100" max="50000" step="100">
+            </div>
+            <button class="btn btn-primary btn-sm" style="margin-bottom:1px" onclick="calMeasure('${s.name}',${i})">Kalibrieren</button>
+          </div>
+          <div class="cal-result" id="cal-measure-${i}"></div>
+        </div>
+      </div>
+      <div class="cal-step" style="margin-top:12px">
+        <div class="cal-step-num">✓</div>
+        <div style="flex:1">
+          <div class="cal-step-title">Test-Messung</div>
+          <div class="field-hint">Einmalig aktuelles Gewicht abrufen um die Kalibrierung zu prüfen.</div>
+          <button class="btn btn-secondary btn-sm mt-8" onclick="calRead('${s.name}',${i})">Gewicht ablesen</button>
+          <div class="cal-result" id="cal-read-${i}"></div>
+        </div>
+      </div>` : '';
+
     const item = document.createElement('div');
     item.className = 'sensor-item';
     item.innerHTML = `
@@ -580,6 +567,7 @@ function renderSensors() {
           </div>
         </div>
         ${fieldHtml}
+        ${calHtml}
       </div>`;
     list.appendChild(item);
   });
@@ -839,8 +827,8 @@ window.addEventListener('resize', () => {
 
 if (window.innerWidth >= 1024) showSection('sensors');
 
-// ── HX711 Calibration ────────────────────────────────────────────────────────
-let calPolling = null;
+// ── HX711 Calibration (per sensor) ───────────────────────────────────────────
+const calPolling = {};
 
 function calShowResult(elId, msg, isError) {
   const el = document.getElementById(elId);
@@ -849,14 +837,14 @@ function calShowResult(elId, msg, isError) {
   el.className = 'cal-result ' + (isError ? 'cal-error' : 'cal-ok');
 }
 
-function calStartPolling(elId, onSuccess) {
-  if (calPolling) clearInterval(calPolling);
+function calStartPolling(elId, sensorName, onSuccess) {
+  if (calPolling[sensorName]) clearInterval(calPolling[sensorName]);
   let attempts = 0;
   calShowResult(elId, 'Warte auf Antwort vom Agenten…', false);
-  calPolling = setInterval(async () => {
+  calPolling[sensorName] = setInterval(async () => {
     attempts++;
     if (attempts > 30) {
-      clearInterval(calPolling);
+      clearInterval(calPolling[sensorName]);
       calShowResult(elId, 'Timeout — Agent hat nicht geantwortet. Läuft er?', true);
       return;
     }
@@ -864,7 +852,7 @@ function calStartPolling(elId, onSuccess) {
       const r = await fetch('/api/calibrate/result');
       const d = await r.json();
       if (d.status === 'pending' || d.status === 'idle') return;
-      clearInterval(calPolling);
+      clearInterval(calPolling[sensorName]);
       if (d.status === 'error') {
         calShowResult(elId, 'Fehler: ' + d.error, true);
       } else {
@@ -874,32 +862,33 @@ function calStartPolling(elId, onSuccess) {
   }, 2000);
 }
 
-async function calTare() {
+async function calTare(sensorName, idx) {
   await fetch('/api/calibrate/result', { method: 'DELETE' });
-  await fetch('/api/calibrate/tare', { method: 'POST' });
-  calStartPolling('calTareResult', d => {
-    calShowResult('calTareResult', `Nullpunkt gesetzt. Rohwert: ${Math.round(d.offset)}`, false);
+  await fetch('/api/calibrate/tare?sensor_name=' + encodeURIComponent(sensorName), { method: 'POST' });
+  calStartPolling('cal-tare-' + idx, sensorName, d => {
+    calShowResult('cal-tare-' + idx, `Nullpunkt gesetzt. Rohwert: ${Math.round(d.offset)}`, false);
   });
 }
 
-async function calMeasure() {
-  const g = parseFloat(document.getElementById('calWeightG').value);
-  if (!g || g <= 0) { calShowResult('calMeasureResult', 'Bitte gültiges Gewicht eingeben.', true); return; }
+async function calMeasure(sensorName, idx) {
+  const g = parseFloat(document.getElementById('cal-weight-' + idx)?.value);
+  if (!g || g <= 0) { calShowResult('cal-measure-' + idx, 'Bitte gültiges Gewicht eingeben.', true); return; }
   await fetch('/api/calibrate/result', { method: 'DELETE' });
-  await fetch(`/api/calibrate/measure?weight_g=${g}`, { method: 'POST' });
-  calStartPolling('calMeasureResult', d => {
-    calShowResult(
-      'calMeasureResult',
-      `Kalibriert! reference_unit = ${d.ref_unit} · Gespeichert in Konfiguration.`,
-      false,
-    );
-    // also update reference_unit in any matching sensor in the open form
-    sensors.forEach((s, i) => {
-      if (s.type === 'hx711' && (!d.sensor || s.name === d.sensor)) {
-        s.reference_unit = d.ref_unit;
-      }
+  await fetch(`/api/calibrate/measure?weight_g=${g}&sensor_name=${encodeURIComponent(sensorName)}`, { method: 'POST' });
+  calStartPolling('cal-measure-' + idx, sensorName, d => {
+    calShowResult('cal-measure-' + idx, `Kalibriert! reference_unit = ${d.ref_unit} · In Konfiguration gespeichert.`, false);
+    sensors.forEach(s => {
+      if (s.type === 'hx711' && s.name === sensorName) s.reference_unit = d.ref_unit;
     });
     renderSensors();
+  });
+}
+
+async function calRead(sensorName, idx) {
+  await fetch('/api/calibrate/result', { method: 'DELETE' });
+  await fetch('/api/calibrate/read?sensor_name=' + encodeURIComponent(sensorName), { method: 'POST' });
+  calStartPolling('cal-read-' + idx, sensorName, d => {
+    calShowResult('cal-read-' + idx, `Aktuelles Gewicht: ${d.weight_kg.toFixed(3)} kg`, false);
   });
 }
 

@@ -41,6 +41,16 @@ def calibrate_result() -> dict:
     return {"status": "idle"}
 
 
+@router.post("/calibrate/read")
+def calibrate_read(sensor_name: str | None = Query(default=None)) -> dict:
+    cmd: dict = {"action": "read"}
+    if sensor_name:
+        cmd["sensor_name"] = sensor_name
+    RESULT_FILE.unlink(missing_ok=True)
+    CMD_FILE.write_text(json.dumps(cmd))
+    return {"status": "pending"}
+
+
 @router.delete("/calibrate/result")
 def calibrate_clear() -> dict:
     RESULT_FILE.unlink(missing_ok=True)

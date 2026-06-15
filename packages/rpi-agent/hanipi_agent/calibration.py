@@ -84,6 +84,16 @@ class CalibrationServer:
                 "sensor": sensor.name,
             }
 
+        if action == "read":
+            raw = sensor._read_raw_mean(sensor._samples)
+            weight_kg = round((raw - sensor._offset) / sensor._ref_unit / 1000, 3)
+            return {
+                "status": "ok",
+                "action": "read",
+                "weight_kg": weight_kg,
+                "sensor": sensor.name,
+            }
+
         return {"status": "error", "error": f"Unbekannte Aktion: {action}"}
 
     def _find_hx711(self, sensor_name: str | None):
