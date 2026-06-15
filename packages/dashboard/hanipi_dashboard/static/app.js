@@ -14,8 +14,12 @@ const HIVE_COLORS = ['#f59e0b','#10b981','#3b82f6','#8b5cf6','#ef4444','#06b6d4'
 
 let chart = null;
 let currentHours = 1;
-let currentHiveId = null;  // null = all
+let currentHiveId = null;
+let customFromTs = null;
+let customToTs   = null;
 let hives = [];
+let dayStatsCache = [];
+let weightTrendCache = {};   // keyed by hive_id (or '' for all)
 
 function fmtTime(ts) {
   if (!ts) return '';
@@ -26,7 +30,7 @@ function fmtDate(ts) {
   return new Date(ts * 1000).toLocaleString('de-AT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
 }
 
-// ── Status ──────────────────────────────────────────────────────────────────
+// ── Status ───────────────────────────────────────────────────────────────────
 async function refreshStatus() {
   try {
     const r = await fetch('/api/status');
@@ -45,7 +49,7 @@ async function refreshStatus() {
   } catch {}
 }
 
-// ── Hive Tabs ───────────────────────────────────────────────────────────────
+// ── Hive Tabs ────────────────────────────────────────────────────────────────
 async function loadHives() {
   try {
     const r = await fetch('/api/hives');
@@ -77,6 +81,37 @@ function renderHiveTabs() {
   });
 }
 
+// ── Day stats & weight trend (background fetches) ─────────────────────────────
+async function fetchDayStats() {
+  try {
+    const p = new URLSearchParams();
+    if (currentHiveId) p.set('hive_id', currentHiveId);
+    const r = await fetch('/api/data/day-stats?' + p);
+    dayStatsCache = await r.json();
+  } catch { dayStatsCache = []; }
+}
+
+async function fetchWeightTrend() {
+  // Always fetch per-hive so mixed-hive views stay meaningful
+  const targets = currentHiveId
+    ? [currentHiveId]
+    : hives.map(h => h.id);
+  await Promise.all(targets.map(async id => {
+    try {
+      const r = await fetch('/api/data/weight-trend?hive_id=' + encodeURIComponent(id));
+      weightTrendCache[id] = await r.json();
+    } catch {}
+  }));
+}
+
+function getDayStats(sensorName, key) {
+  return dayStatsCache.find(r => r.sensor_name === sensorName && r.key === key) || null;
+}
+
+function getWeightTrend(hiveId) {
+  return weightTrendCache[hiveId || ''] || null;
+}
+
 // ── Cards ────────────────────────────────────────────────────────────────────
 function hiveColorFor(hiveId) {
   if (!hiveId) return '#f59e0b';
@@ -85,6 +120,8 @@ function hiveColorFor(hiveId) {
 }
 
 async function refreshData() {
+  await Promise.all([fetchDayStats(), fetchWeightTrend()]);
+
   const params = new URLSearchParams();
   if (currentHiveId) params.set('hive_id', currentHiveId);
   let rows = [];
@@ -113,12 +150,45 @@ async function refreshData() {
     const color = hiveColorFor(row.hive_id);
     const val   = parseFloat(row.value);
     const displayVal = Number.isInteger(val) ? val : val.toFixed(1);
+
+    // Min/max today
+    const stats = getDayStats(row.sensor_name, row.key);
+    let statsHtml = '';
+    if (stats) {
+      const mn = parseFloat(stats.min_val).toFixed(1);
+      const mx = parseFloat(stats.max_val).toFixed(1);
+      statsHtml = `<div class="card-minmax">Min ${mn}${unit} · Max ${mx}${unit}</div>`;
+    }
+
+    // Weight trend (only for weight_kg cards)
+    let trendHtml = '';
+    if (row.key === 'weight_kg') {
+      const trend = getWeightTrend(row.hive_id);
+      if (trend) {
+        const parts = [];
+        if (trend.delta_1d !== null) {
+          const sign = trend.delta_1d >= 0 ? '+' : '';
+          const arrow = trend.delta_1d >= 0 ? '↑' : '↓';
+          const cls = trend.delta_1d >= 0 ? 'trend-up' : 'trend-down';
+          parts.push(`<span class="${cls}">${arrow} ${sign}${trend.delta_1d.toFixed(2)} kg heute</span>`);
+        }
+        if (trend.honey_7d !== null && trend.honey_7d > 0) {
+          parts.push(`<span class="trend-honey">+${trend.honey_7d.toFixed(2)} kg Honig (7T)</span>`);
+        }
+        if (parts.length) {
+          trendHtml = `<div class="card-trend">${parts.join('<span class="trend-sep">·</span>')}</div>`;
+        }
+      }
+    }
+
     const card = document.createElement('div');
     card.className = 'sensor-card';
     card.style.setProperty('--card-accent', color);
     card.innerHTML = `
       <div class="card-label">${label}</div>
       <div class="card-value">${displayVal}<span class="card-unit">${unit}</span></div>
+      ${statsHtml}
+      ${trendHtml}
       <div class="card-meta">${row.sensor_name} · ${fmtTime(row.timestamp)}</div>`;
     card.onclick = () => loadChart(row.sensor_name, row.key);
     grid.appendChild(card);
@@ -127,20 +197,62 @@ async function refreshData() {
   const ts = document.getElementById('lastUpdated');
   if (ts) ts.textContent = 'Aktualisiert: ' + new Date().toLocaleTimeString('de-AT');
 
+  updateCsvLink();
   loadChartAuto(rows);
 }
 
+// ── CSV export ────────────────────────────────────────────────────────────────
+function updateCsvLink() {
+  const link = document.getElementById('csvLink');
+  if (!link) return;
+  const p = new URLSearchParams();
+  if (currentHiveId) p.set('hive_id', currentHiveId);
+  if (customFromTs && customToTs) {
+    p.set('from_ts', customFromTs);
+    p.set('to_ts', customToTs);
+  } else {
+    p.set('hours', currentHours || 24);
+  }
+  link.href = '/api/data/export.csv?' + p;
+  link.download = '';
+}
+
+// ── Date range ────────────────────────────────────────────────────────────────
+function applyDateRange() {
+  const from = document.getElementById('fromDate').value;
+  const to   = document.getElementById('toDate').value;
+  if (!from || !to) return;
+  customFromTs = new Date(from).getTime() / 1000;
+  customToTs   = new Date(to).getTime()   / 1000;
+  document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('customRangeToggle')?.classList.add('active');
+  refreshData();
+  loadChartCustom(null, null);  // will be called inside refreshData via loadChartAuto
+}
+
+function clearCustomRange() {
+  customFromTs = null;
+  customToTs   = null;
+}
+
+// ── Chart ─────────────────────────────────────────────────────────────────────
 async function loadChartAuto(rows) {
   if (rows.length === 0) return;
   await loadChart(rows[0].sensor_name, rows[0].key);
 }
 
 async function loadChart(sensor, key) {
-  const params = new URLSearchParams({ sensor, hours: currentHours });
-  if (currentHiveId) params.set('hive_id', currentHiveId);
   let history = [];
   try {
-    const r = await fetch('/api/data/history?' + params);
+    const p = new URLSearchParams({ sensor });
+    if (currentHiveId) p.set('hive_id', currentHiveId);
+    if (customFromTs && customToTs) {
+      p.set('from_ts', customFromTs);
+      p.set('to_ts', customToTs);
+    } else {
+      p.set('hours', currentHours);
+    }
+    const r = await fetch('/api/data/history?' + p);
     history = await r.json();
   } catch {}
 
@@ -153,8 +265,8 @@ async function loadChart(sensor, key) {
 
   card.classList.remove('hidden');
   const labels = filtered.map(r => fmtDate(r.timestamp));
-  const data = filtered.map(r => r.value);
-  const unit = UNITS[key] || '';
+  const data   = filtered.map(r => r.value);
+  const unit   = UNITS[key] || '';
 
   if (chart) chart.destroy();
   chart = new Chart(canvas, {
@@ -171,7 +283,7 @@ async function loadChart(sensor, key) {
         pointBackgroundColor: '#f59e0b',
         tension: 0.3,
         fill: true,
-      }]
+      }],
     },
     options: {
       responsive: true,
@@ -202,12 +314,19 @@ async function loadChart(sensor, key) {
   });
 }
 
-// ── Init ─────────────────────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────────────────
 document.querySelectorAll('.time-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    if (btn.id === 'customRangeToggle') {
+      const row = document.getElementById('dateRangeRow');
+      row?.classList.toggle('hidden');
+      return;
+    }
     document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentHours = parseInt(btn.dataset.h);
+    clearCustomRange();
+    document.getElementById('dateRangeRow')?.classList.add('hidden');
     refreshData();
   });
 });

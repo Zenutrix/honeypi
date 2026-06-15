@@ -2,6 +2,10 @@ from __future__ import annotations
 import time
 from .base import BaseSensor, Measurement
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 try:
     import RPi.GPIO as GPIO  # type: ignore[import-untyped]
     _GPIO_AVAILABLE = True
@@ -30,6 +34,7 @@ class HX711Sensor(BaseSensor):
         # Kurze Wartezeit nach Init, dann taren
         time.sleep(0.5)
         self._offset = self._read_raw_mean(10)
+        logger.info("HX711 '%s' tare offset: %.0f  (ref_unit=%.4f)", self.name, self._offset, self._ref_unit)
 
     def _read_raw(self) -> int:
         # Warten bis DOUT LOW (Daten bereit), max. 500ms

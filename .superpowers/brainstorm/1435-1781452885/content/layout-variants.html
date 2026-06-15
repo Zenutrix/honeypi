@@ -1,0 +1,170 @@
+<h2>Datenseite — Layout-Varianten (Clean Dark)</h2>
+<p class="subtitle">Wie sollen die Sensor-Kacheln angeordnet sein?</p>
+
+<div class="cards" style="grid-template-columns: repeat(3,1fr); gap: 1.5rem; margin-top: 1.5rem;">
+
+  <!-- Layout A: 3-spaltig, Header-Bar oben -->
+  <div class="card" data-choice="three-col" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:8px;">
+      <div style="background:#080808;width:100%;aspect-ratio:1024/600;position:relative;overflow:hidden;font-family:system-ui,sans-serif;">
+        <!-- Amber top stripe -->
+        <div style="height:3px;background:#f59e0b;width:100%"></div>
+        <!-- Header -->
+        <div style="background:#111;height:13%;display:flex;align-items:center;padding:0 4%;border-bottom:1px solid #1a1a1a">
+          <span style="color:#fff;font-weight:800;font-size:1.5vw;letter-spacing:-0.02em">Bienenstock 1</span>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+            <div style="width:5px;height:5px;border-radius:50%;background:#22c55e"></div>
+            <span style="color:#333;font-size:1vw">14:32</span>
+          </div>
+        </div>
+        <!-- 3 Tiles -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2%;padding:3%;height:73%;box-sizing:border-box">
+          <div style="background:#111;border-radius:8px;display:flex;flex-direction:column;justify-content:center;padding:5% 6%">
+            <div style="color:#333;font-size:0.65vw;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6%">Gewicht</div>
+            <div style="color:#fff;font-size:2.8vw;font-weight:900;line-height:1">24.7</div>
+            <div style="color:#f59e0b;font-size:0.9vw;margin-top:3%">kg</div>
+          </div>
+          <div style="background:#111;border-radius:8px;display:flex;flex-direction:column;justify-content:center;padding:5% 6%">
+            <div style="color:#333;font-size:0.65vw;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6%">Temperatur</div>
+            <div style="color:#fff;font-size:2.8vw;font-weight:900;line-height:1">32.1</div>
+            <div style="color:#f59e0b;font-size:0.9vw;margin-top:3%">°C</div>
+          </div>
+          <div style="background:#111;border-radius:8px;display:flex;flex-direction:column;justify-content:center;padding:5% 6%">
+            <div style="color:#333;font-size:0.65vw;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6%">Feuchte</div>
+            <div style="color:#fff;font-size:2.8vw;font-weight:900;line-height:1">68</div>
+            <div style="color:#f59e0b;font-size:0.9vw;margin-top:3%">%</div>
+          </div>
+        </div>
+        <!-- Footer -->
+        <div style="background:#0a0a0a;height:11%;display:flex;align-items:center;padding:0 4%;border-top:1px solid #161616">
+          <span style="color:#222;font-size:0.75vw">WLAN  192.168.1.42</span>
+          <span style="margin-left:auto;color:#222;font-size:0.75vw">14.06.2026</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — 3 Spalten</h3>
+      <p>Gleichmäßige Kacheln. Passt bis 6 Werte (2 Zeilen). Sehr symmetrisch.</p>
+    </div>
+  </div>
+
+  <!-- Layout B: Gewicht groß + 2x2 Grid rechts -->
+  <div class="card" data-choice="hero-grid" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:8px;">
+      <div style="background:#080808;width:100%;aspect-ratio:1024/600;position:relative;overflow:hidden;font-family:system-ui,sans-serif;">
+        <div style="height:3px;background:#f59e0b;width:100%"></div>
+        <!-- Header -->
+        <div style="background:#111;height:13%;display:flex;align-items:center;padding:0 4%;border-bottom:1px solid #1a1a1a">
+          <span style="color:#fff;font-weight:800;font-size:1.5vw;letter-spacing:-0.02em">Bienenstock 1</span>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+            <div style="width:5px;height:5px;border-radius:50%;background:#22c55e"></div>
+            <span style="color:#333;font-size:1vw">14:32</span>
+          </div>
+        </div>
+        <!-- Hero + Grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2%;padding:3%;height:76%;box-sizing:border-box">
+          <!-- Hero: Gewicht -->
+          <div style="background:#111;border-radius:8px;display:flex;flex-direction:column;justify-content:center;padding:8%">
+            <div style="color:#333;font-size:0.7vw;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8%">Stockgewicht</div>
+            <div style="color:#fff;font-size:4.5vw;font-weight:900;line-height:1">24.7</div>
+            <div style="color:#f59e0b;font-size:1.3vw;margin-top:5%">kg</div>
+          </div>
+          <!-- Right 2x2 grid -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3%">
+            <div style="background:#111;border-radius:6px;display:flex;flex-direction:column;justify-content:center;padding:4% 6%">
+              <div style="color:#333;font-size:0.55vw;text-transform:uppercase;letter-spacing:0.1em">Temp</div>
+              <div style="color:#fff;font-size:1.8vw;font-weight:900;line-height:1.1">32.1</div>
+              <div style="color:#f59e0b;font-size:0.75vw">°C</div>
+            </div>
+            <div style="background:#111;border-radius:6px;display:flex;flex-direction:column;justify-content:center;padding:4% 6%">
+              <div style="color:#333;font-size:0.55vw;text-transform:uppercase;letter-spacing:0.1em">Feuchte</div>
+              <div style="color:#fff;font-size:1.8vw;font-weight:900;line-height:1.1">68</div>
+              <div style="color:#f59e0b;font-size:0.75vw">%</div>
+            </div>
+            <div style="background:#111;border-radius:6px;display:flex;flex-direction:column;justify-content:center;padding:4% 6%">
+              <div style="color:#333;font-size:0.55vw;text-transform:uppercase;letter-spacing:0.1em">Druck</div>
+              <div style="color:#fff;font-size:1.8vw;font-weight:900;line-height:1.1">1013</div>
+              <div style="color:#f59e0b;font-size:0.75vw">hPa</div>
+            </div>
+            <div style="background:#111;border-radius:6px;display:flex;flex-direction:column;justify-content:center;padding:4% 6%">
+              <div style="color:#333;font-size:0.55vw;text-transform:uppercase;letter-spacing:0.1em">Licht</div>
+              <div style="color:#fff;font-size:1.8vw;font-weight:900;line-height:1.1">8420</div>
+              <div style="color:#f59e0b;font-size:0.75vw">lx</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Gewicht groß + Raster</h3>
+      <p>Der wichtigste Wert (Gewicht) dominiert links. Rechts 2×2 für weitere Sensoren. Schnell erfassbar.</p>
+    </div>
+  </div>
+
+  <!-- Layout C: 4-spaltig, kein Footer -->
+  <div class="card" data-choice="four-col" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:8px;">
+      <div style="background:#080808;width:100%;aspect-ratio:1024/600;position:relative;overflow:hidden;font-family:system-ui,sans-serif;">
+        <div style="height:3px;background:#f59e0b;width:100%"></div>
+        <!-- Header -->
+        <div style="background:#111;height:13%;display:flex;align-items:center;padding:0 4%;border-bottom:1px solid #1a1a1a">
+          <span style="color:#fff;font-weight:800;font-size:1.5vw">Bienenstock 1</span>
+          <span style="color:#f59e0b;font-size:1vw;margin-left:1%;font-weight:400">· 24.7 kg</span>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+            <div style="width:5px;height:5px;border-radius:50%;background:#22c55e"></div>
+            <span style="color:#333;font-size:1vw">14:32</span>
+          </div>
+        </div>
+        <!-- 4 tiles row 1 -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.5%;padding:2.5% 3% 1.5%;box-sizing:border-box">
+          <div style="background:#111;border-radius:7px;padding:4% 5%">
+            <div style="color:#333;font-size:0.6vw;text-transform:uppercase;letter-spacing:0.1em">Gewicht</div>
+            <div style="color:#fff;font-size:2.3vw;font-weight:900">24.7<span style="color:#f59e0b;font-size:0.7vw;margin-left:2px">kg</span></div>
+          </div>
+          <div style="background:#111;border-radius:7px;padding:4% 5%">
+            <div style="color:#333;font-size:0.6vw;text-transform:uppercase;letter-spacing:0.1em">Temperatur</div>
+            <div style="color:#fff;font-size:2.3vw;font-weight:900">32.1<span style="color:#f59e0b;font-size:0.7vw;margin-left:2px">°C</span></div>
+          </div>
+          <div style="background:#111;border-radius:7px;padding:4% 5%">
+            <div style="color:#333;font-size:0.6vw;text-transform:uppercase;letter-spacing:0.1em">Feuchte</div>
+            <div style="color:#fff;font-size:2.3vw;font-weight:900">68<span style="color:#f59e0b;font-size:0.7vw;margin-left:2px">%</span></div>
+          </div>
+          <div style="background:#111;border-radius:7px;padding:4% 5%">
+            <div style="color:#333;font-size:0.6vw;text-transform:uppercase;letter-spacing:0.1em">Druck</div>
+            <div style="color:#fff;font-size:2.3vw;font-weight:900">1013<span style="color:#f59e0b;font-size:0.7vw;margin-left:2px">hPa</span></div>
+          </div>
+        </div>
+        <!-- 4 tiles row 2 -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.5%;padding:0 3% 2.5%;box-sizing:border-box">
+          <div style="background:#111;border-radius:7px;padding:4% 5%">
+            <div style="color:#333;font-size:0.6vw;text-transform:uppercase;letter-spacing:0.1em">Licht</div>
+            <div style="color:#fff;font-size:2.3vw;font-weight:900">8420<span style="color:#f59e0b;font-size:0.7vw;margin-left:2px">lx</span></div>
+          </div>
+          <div style="background:#111;border-radius:7px;padding:4% 5%">
+            <div style="color:#333;font-size:0.6vw;text-transform:uppercase;letter-spacing:0.1em">Spannung</div>
+            <div style="color:#fff;font-size:2.3vw;font-weight:900">3.8<span style="color:#f59e0b;font-size:0.7vw;margin-left:2px">V</span></div>
+          </div>
+          <div style="background:#111;border-radius:7px;padding:4% 5%;opacity:0.25">
+            <div style="color:#333;font-size:0.6vw;text-transform:uppercase;letter-spacing:0.1em">—</div>
+            <div style="color:#fff;font-size:2.3vw;font-weight:900">—</div>
+          </div>
+          <div style="background:#111;border-radius:7px;padding:4% 5%;opacity:0.25">
+            <div style="color:#333;font-size:0.6vw;text-transform:uppercase;letter-spacing:0.1em">—</div>
+            <div style="color:#fff;font-size:2.3vw;font-weight:900">—</div>
+          </div>
+        </div>
+        <!-- Footer -->
+        <div style="position:absolute;bottom:0;left:0;right:0;background:#0a0a0a;height:11%;display:flex;align-items:center;padding:0 4%;border-top:1px solid #161616">
+          <span style="color:#222;font-size:0.75vw">WLAN  192.168.1.42  ·  14.06.2026 14:32</span>
+          <span style="margin-left:auto;color:#222;font-size:0.75vw">Akku 3.8 V</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — 4 Spalten, 2 Zeilen</h3>
+      <p>Platz für bis zu 8 Sensoren. Kompakter aber noch lesbar. Mehr Daten auf einen Blick.</p>
+    </div>
+  </div>
+
+</div>
+<p style="color:var(--text-muted);font-size:0.85rem;margin-top:1rem;text-align:center">Alle zeigen den Clean-Dark-Stil. Welches Layout gefällt dir?</p>

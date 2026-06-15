@@ -1,0 +1,77 @@
+<h2>Boot-Splash — Varianten</h2>
+<p class="subtitle">Kurz sichtbar beim Starten des Agents</p>
+
+<div class="cards" style="grid-template-columns: repeat(3,1fr); gap: 1.5rem; margin-top: 1.5rem;">
+
+  <!-- A: Minimal centered -->
+  <div class="card" data-choice="minimal" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:8px;">
+      <div style="background:#080808;width:100%;aspect-ratio:1024/600;position:relative;overflow:hidden;font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <!-- Amber top bar -->
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#f59e0b"></div>
+        <!-- Name -->
+        <div style="color:#fff;font-size:6vw;font-weight:900;letter-spacing:-0.05em;line-height:1">HaniPi</div>
+        <div style="color:#1e1e1e;font-size:0.9vw;margin-top:3%;letter-spacing:0.14em;text-transform:uppercase">Bienenstock-Monitoring</div>
+        <!-- Loading dots -->
+        <div style="display:flex;gap:6px;margin-top:10%">
+          <div style="width:5px;height:5px;border-radius:50%;background:#f59e0b"></div>
+          <div style="width:5px;height:5px;border-radius:50%;background:#222"></div>
+          <div style="width:5px;height:5px;border-radius:50%;background:#222"></div>
+        </div>
+        <!-- Bottom amber line -->
+        <div style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#f59e0b"></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Minimal</h3>
+      <p>Nur "HaniPi" und 3 Punkte als Ladeindikator. Sehr ruhig, kein Ablenkung.</p>
+    </div>
+  </div>
+
+  <!-- B: Amber inverted -->
+  <div class="card" data-choice="amber-inverted" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:8px;">
+      <div style="background:#f59e0b;width:100%;aspect-ratio:1024/600;position:relative;overflow:hidden;font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <div style="color:#000;font-size:6vw;font-weight:900;letter-spacing:-0.05em;line-height:1">HaniPi</div>
+        <div style="color:#7a4f00;font-size:0.9vw;margin-top:3%;letter-spacing:0.14em;text-transform:uppercase">Bienenstock-Monitoring</div>
+        <div style="color:#7a4f00;font-size:0.75vw;margin-top:6%;letter-spacing:0.08em">by Thomas Schöpf</div>
+        <!-- Bottom dark bar -->
+        <div style="position:absolute;bottom:0;left:0;right:0;height:8%;background:#00000015;display:flex;align-items:center;justify-content:center">
+          <span style="color:#7a4f0088;font-size:0.7vw;letter-spacing:0.1em">Startet …</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Amber invertiert</h3>
+      <p>Goldener Hintergrund, dunkler Text. Auffällig, zeigt klare Markenfarbe. Hoher Kontrast.</p>
+    </div>
+  </div>
+
+  <!-- C: Dark with amber glow name -->
+  <div class="card" data-choice="glow-name" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;border-radius:8px;">
+      <div style="background:#080808;width:100%;aspect-ratio:1024/600;position:relative;overflow:hidden;font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <!-- Amber left accent -->
+        <div style="position:absolute;left:0;top:20%;bottom:20%;width:3px;background:linear-gradient(transparent,#f59e0b,transparent)"></div>
+        <!-- Version label -->
+        <div style="color:#1a1a1a;font-size:0.65vw;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:5%">BIENENSTOCK-MONITORING</div>
+        <!-- Name in amber -->
+        <div style="color:#f59e0b;font-size:7vw;font-weight:900;letter-spacing:-0.05em;line-height:1;text-shadow:0 0 40px #f59e0b44">HaniPi</div>
+        <!-- Divider -->
+        <div style="width:8%;height:1px;background:#1e1e1e;margin:4% 0"></div>
+        <!-- Author -->
+        <div style="color:#222;font-size:0.75vw;letter-spacing:0.08em">by Thomas Schöpf</div>
+        <!-- Bottom bar -->
+        <div style="position:absolute;bottom:0;left:0;right:0;height:10%;background:#060606;display:flex;align-items:center;justify-content:center;border-top:1px solid #111">
+          <span style="color:#1c1c1c;font-size:0.7vw;letter-spacing:0.12em">hanipi.local</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Amber Name + Glow</h3>
+      <p>"HaniPi" groß in Amber auf schwarzem Hintergrund. Dezenter Glow-Effekt. Passt zum Clean-Dark-Stil.</p>
+    </div>
+  </div>
+
+</div>
+<p style="color:var(--text-muted);font-size:0.85rem;margin-top:1rem;text-align:center">Welcher Boot-Splash passt?</p>

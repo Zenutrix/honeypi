@@ -1,0 +1,156 @@
+<h2>Design-Richtung für das HDMI-Framebuffer-Display</h2>
+<p class="subtitle">Welcher Look passt am besten zu HaniPi? (1024×600 auf dem Pi)</p>
+
+<div class="cards" style="grid-template-columns: repeat(3,1fr); gap: 1.5rem; margin-top: 1.5rem;">
+
+  <!-- Concept A: Amber Hive -->
+  <div class="card" data-choice="amber-hive" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 0; overflow: hidden; border-radius: 8px;">
+      <div style="
+        background: #08090f;
+        width: 100%; aspect-ratio: 1024/600;
+        position: relative; overflow: hidden; font-family: monospace;
+      ">
+        <!-- Hex grid bg -->
+        <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.08" xmlns="http://www.w3.org/2000/svg">
+          <defs><pattern id="hexA" x="0" y="0" width="40" height="34.6" patternUnits="userSpaceOnUse">
+            <polygon points="20,2 38,11 38,29 20,38 2,29 2,11" fill="none" stroke="#f59e0b" stroke-width="0.8"/>
+          </pattern></defs>
+          <rect width="100%" height="100%" fill="url(#hexA)"/>
+        </svg>
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#f59e0b,#b45309);height:13%;display:flex;align-items:center;padding:0 3%;position:relative;z-index:1">
+          <span style="color:#000;font-weight:bold;font-size:1.8vw">🍯 Bienenstock 1</span>
+          <span style="margin-left:auto;color:#000;font-size:1.2vw;opacity:0.7">14:32</span>
+        </div>
+        <!-- Tiles -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2%;padding:3%;height:72%;box-sizing:border-box;position:relative;z-index:1">
+          <div style="background:#0e1420;border:1px solid #1e2d3d;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4%">
+            <div style="color:#6b8499;font-size:0.8vw;text-transform:uppercase;letter-spacing:0.1em">Gewicht</div>
+            <div style="color:#f59e0b;font-size:2.5vw;font-weight:900;text-shadow:0 0 12px #f59e0b55">24.7<span style="font-size:1vw;color:#aaa">kg</span></div>
+          </div>
+          <div style="background:#0e1420;border:1px solid #1e2d3d;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4%">
+            <div style="color:#6b8499;font-size:0.8vw;text-transform:uppercase;letter-spacing:0.1em">Temperatur</div>
+            <div style="color:#f59e0b;font-size:2.5vw;font-weight:900;text-shadow:0 0 12px #f59e0b55">32.1<span style="font-size:1vw;color:#aaa">°C</span></div>
+          </div>
+          <div style="background:#0e1420;border:1px solid #1e2d3d;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4%">
+            <div style="color:#6b8499;font-size:0.8vw;text-transform:uppercase;letter-spacing:0.1em">Feuchte</div>
+            <div style="color:#f59e0b;font-size:2.5vw;font-weight:900;text-shadow:0 0 12px #f59e0b55">68<span style="font-size:1vw;color:#aaa">%</span></div>
+          </div>
+        </div>
+        <!-- Footer -->
+        <div style="background:#0a0e14;height:12%;display:flex;align-items:center;padding:0 3%;position:relative;z-index:1;border-top:1px solid #1e2d3d">
+          <span style="color:#374558;font-size:0.9vw">WLAN: 192.168.1.42</span>
+          <span style="margin-left:auto;color:#374558;font-size:0.9vw">14.06.2026</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Amber Hive</h3>
+      <p>Dunkles Navy + Amber-Glow. Waben-Hintergrund, Gradient-Header, Glow-Werte. Warm und organisch.</p>
+    </div>
+  </div>
+
+  <!-- Concept B: Clean Dark -->
+  <div class="card" data-choice="clean-dark" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 0; overflow: hidden; border-radius: 8px;">
+      <div style="
+        background: #0a0a0a;
+        width: 100%; aspect-ratio: 1024/600;
+        position: relative; overflow: hidden; font-family: 'Inter', sans-serif;
+      ">
+        <!-- Thin amber top bar -->
+        <div style="height:2%;background:linear-gradient(90deg,#f59e0b,transparent);position:relative;z-index:1"></div>
+        <!-- Header -->
+        <div style="background:#111;height:12%;display:flex;align-items:center;padding:0 3%;position:relative;z-index:1">
+          <span style="color:#fff;font-weight:900;font-size:1.6vw;letter-spacing:-0.03em">HaniPi</span>
+          <span style="color:#f59e0b;font-weight:300;font-size:1.6vw;margin-left:0.3em">• Bienenstock 1</span>
+          <span style="margin-left:auto;color:#444;font-size:1.2vw">14:32</span>
+        </div>
+        <!-- Tiles -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5%;padding:2% 3%;height:70%;box-sizing:border-box;position:relative;z-index:1">
+          <div style="background:#161616;border-radius:8px;display:flex;flex-direction:column;justify-content:center;padding:5% 6%">
+            <div style="color:#444;font-size:0.7vw;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4%">Gewicht</div>
+            <div style="color:#fff;font-size:2.8vw;font-weight:900;line-height:1">24.7</div>
+            <div style="color:#f59e0b;font-size:1vw;margin-top:2%">kg</div>
+          </div>
+          <div style="background:#161616;border-radius:8px;display:flex;flex-direction:column;justify-content:center;padding:5% 6%">
+            <div style="color:#444;font-size:0.7vw;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4%">Temperatur</div>
+            <div style="color:#fff;font-size:2.8vw;font-weight:900;line-height:1">32.1</div>
+            <div style="color:#f59e0b;font-size:1vw;margin-top:2%">°C</div>
+          </div>
+          <div style="background:#161616;border-radius:8px;display:flex;flex-direction:column;justify-content:center;padding:5% 6%">
+            <div style="color:#444;font-size:0.7vw;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:4%">Feuchte</div>
+            <div style="color:#fff;font-size:2.8vw;font-weight:900;line-height:1">68</div>
+            <div style="color:#f59e0b;font-size:1vw;margin-top:2%">%</div>
+          </div>
+        </div>
+        <!-- Footer -->
+        <div style="background:#0a0a0a;height:13%;display:flex;align-items:center;padding:0 3%;position:relative;z-index:1">
+          <div style="width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e;margin-right:6px;display:inline-block"></div>
+          <span style="color:#333;font-size:0.9vw">WLAN: 192.168.1.42</span>
+          <span style="margin-left:auto;color:#333;font-size:0.9vw">14.06.2026 14:32</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Clean Dark</h3>
+      <p>Tiefschwarz, sehr aufgeräumt. Große weiße Werte, Amber nur für Einheiten. Kein Muster, maximale Lesbarkeit.</p>
+    </div>
+  </div>
+
+  <!-- Concept C: Kiosk Pro -->
+  <div class="card" data-choice="kiosk-pro" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding: 0; overflow: hidden; border-radius: 8px;">
+      <div style="
+        background: #050b14;
+        width: 100%; aspect-ratio: 1024/600;
+        position: relative; overflow: hidden; font-family: monospace;
+      ">
+        <!-- Left sidebar -->
+        <div style="position:absolute;left:0;top:0;bottom:0;width:22%;background:#080f1a;border-right:1px solid #0d1e30;display:flex;flex-direction:column;z-index:1">
+          <div style="padding:6% 10%;border-bottom:1px solid #0d1e30">
+            <div style="color:#f59e0b;font-size:1.3vw;font-weight:bold">🍯 HaniPi</div>
+            <div style="color:#335;font-size:0.8vw;margin-top:4%">14:32 Uhr</div>
+          </div>
+          <div style="padding:5% 8%;flex:1">
+            <div style="color:#22c55e;font-size:0.7vw;display:flex;align-items:center;gap:4px;margin-bottom:8px">
+              <div style="width:5px;height:5px;border-radius:50%;background:#22c55e"></div>Online
+            </div>
+            <div style="color:#1a3a50;font-size:0.7vw;margin-bottom:4px">WLAN</div>
+            <div style="color:#2a4a60;font-size:0.65vw">192.168.1.42</div>
+          </div>
+          <div style="padding:5% 8%;border-top:1px solid #0d1e30">
+            <div style="color:#1a2e40;font-size:0.65vw">Bienenstock 1</div>
+          </div>
+        </div>
+        <!-- Main content -->
+        <div style="position:absolute;left:22%;right:0;top:0;bottom:0;padding:3%;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:2%;z-index:1">
+          <div style="background:#071018;border:1px solid #0f2030;border-radius:6px;display:flex;flex-direction:column;padding:4% 5%;border-left:3px solid #f59e0b">
+            <div style="color:#1a3a50;font-size:0.65vw;text-transform:uppercase;letter-spacing:0.1em">Stockgewicht</div>
+            <div style="color:#f5f5f5;font-size:2.5vw;font-weight:900;flex:1;display:flex;align-items:center">24.7<span style="font-size:0.9vw;color:#f59e0b;margin-left:3px">kg</span></div>
+          </div>
+          <div style="background:#071018;border:1px solid #0f2030;border-radius:6px;display:flex;flex-direction:column;padding:4% 5%;border-left:3px solid #3b82f6">
+            <div style="color:#1a3a50;font-size:0.65vw;text-transform:uppercase;letter-spacing:0.1em">Innentemperatur</div>
+            <div style="color:#f5f5f5;font-size:2.5vw;font-weight:900;flex:1;display:flex;align-items:center">32.1<span style="font-size:0.9vw;color:#3b82f6;margin-left:3px">°C</span></div>
+          </div>
+          <div style="background:#071018;border:1px solid #0f2030;border-radius:6px;display:flex;flex-direction:column;padding:4% 5%;border-left:3px solid #06b6d4">
+            <div style="color:#1a3a50;font-size:0.65vw;text-transform:uppercase;letter-spacing:0.1em">Luftfeuchte</div>
+            <div style="color:#f5f5f5;font-size:2.5vw;font-weight:900;flex:1;display:flex;align-items:center">68<span style="font-size:0.9vw;color:#06b6d4;margin-left:3px">%</span></div>
+          </div>
+          <div style="background:#071018;border:1px solid #0f2030;border-radius:6px;display:flex;flex-direction:column;padding:4% 5%;border-left:3px solid #a855f7">
+            <div style="color:#1a3a50;font-size:0.65vw;text-transform:uppercase;letter-spacing:0.1em">Luftdruck</div>
+            <div style="color:#f5f5f5;font-size:2.5vw;font-weight:900;flex:1;display:flex;align-items:center">1013<span style="font-size:0.9vw;color:#a855f7;margin-left:3px">hPa</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Kiosk Pro</h3>
+      <p>Linke Sidebar für Status/Zeit, rechts 2×2 Kacheln mit farbigen Akzenten pro Sensor-Typ. Dashboard-Feeling.</p>
+    </div>
+  </div>
+
+</div>
+
+<p style="color:var(--text-muted);font-size:0.85rem;margin-top:1rem;text-align:center">Klicke auf eine Karte um sie auszuwählen, dann schreib mir im Terminal was du denkst.</p>

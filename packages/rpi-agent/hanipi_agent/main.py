@@ -30,6 +30,14 @@ def main() -> None:
     if not sensors:
         logger.warning("No sensors configured — check /etc/hanipi/hanipi.json")
 
+    try:
+        from .calibration import CalibrationServer
+        calibration_server = CalibrationServer(sensors=sensors)
+        calibration_server.start()
+    except Exception as exc:
+        logger.warning("Could not start CalibrationServer: %s", exc)
+        calibration_server = None
+
     maintenance_monitor = None
     if cfg.maintenance_switch.enabled:
         try:

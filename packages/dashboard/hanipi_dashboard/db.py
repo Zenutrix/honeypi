@@ -105,6 +105,96 @@ def cleanup_db(max_size_mb: int = 0, retention_days: int = 0) -> None:
         conn.execute("VACUUM")
 
 
+def get_measurements_range(
+    from_ts: float,
+    to_ts: float,
+    sensor: str | None = None,
+    hive_id: str | None = None,
+) -> list[dict]:
+    sql = (
+        "SELECT sensor_name, key, value, timestamp, hive_id FROM measurements "
+        "WHERE timestamp >= ? AND timestamp <= ?"
+    )
+    params: list[object] = [from_ts, to_ts]
+    if sensor:
+        sql += " AND sensor_name = ?"
+        params.append(sensor)
+    if hive_id is not None:
+        sql += " AND hive_id = ?"
+        params.append(hive_id)
+    sql += " ORDER BY timestamp ASC"
+    with _conn() as conn:
+        _ensure_hive_id_column(conn)
+        rows = conn.execute(sql, params).fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_morning_weights(
+    hive_id: str | None = None,
+    target_hour: int = 6,
+    days: int = 8,
+) -> list[dict]:
+    """
+    For each of the last `days` days find the weight_kg reading closest to
+    target_hour (local time, ±2 h window).  Returns [{date, weight_kg, ts}].
+    """
+    import datetime
+
+    results: list[dict] = []
+    today = datetime.date.today()
+    with _conn() as conn:
+        _ensure_hive_id_column(conn)
+        for i in range(days - 1, -1, -1):
+            d = today - datetime.timedelta(days=i)
+            dt_target = datetime.datetime(d.year, d.month, d.day, target_hour, 0, 0)
+            ts_target = dt_target.timestamp()
+            ts_from = ts_target - 2 * 3600
+            ts_to = ts_target + 2 * 3600
+            sql = (
+                "SELECT value, timestamp FROM measurements "
+                "WHERE key = 'weight_kg' AND timestamp >= ? AND timestamp <= ?"
+            )
+            params: list[object] = [ts_from, ts_to]
+            if hive_id:
+                sql += " AND hive_id = ?"
+                params.append(hive_id)
+            sql += " ORDER BY ABS(timestamp - ?) ASC LIMIT 1"
+            params.append(ts_target)
+            row = conn.execute(sql, params).fetchone()
+            if row:
+                results.append(
+                    {
+                        "date": d.isoformat(),
+                        "weight_kg": round(float(row[0]), 2),
+                        "ts": row[1],
+                    }
+                )
+    return results
+
+
+def get_day_stats(hive_id: str | None = None) -> list[dict]:
+    """Today's min / max / avg per sensor_name + key."""
+    import datetime
+
+    today_start = datetime.datetime.combine(
+        datetime.date.today(), datetime.time.min
+    ).timestamp()
+    sql = (
+        "SELECT sensor_name, key, "
+        "MIN(value) as min_val, MAX(value) as max_val, AVG(value) as avg_val "
+        "FROM measurements WHERE timestamp >= ?"
+    )
+    params: list[object] = [today_start]
+    if hive_id:
+        sql += " AND hive_id = ?"
+        params.append(hive_id)
+    sql += " GROUP BY sensor_name, key"
+    with _conn() as conn:
+        _ensure_hive_id_column(conn)
+        rows = conn.execute(sql, params).fetchall()
+    return [dict(r) for r in rows]
+
+
 def _ensure_hive_id_column(conn: sqlite3.Connection) -> None:
     cols = {row[1] for row in conn.execute("PRAGMA table_info(measurements)").fetchall()}
     if "hive_id" not in cols:

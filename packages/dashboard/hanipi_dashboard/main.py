@@ -13,6 +13,7 @@ from .api import network as network_router
 from .api import hives as hives_router
 from .api import maintenance as maintenance_router
 from .api import thingspeak as thingspeak_router
+from .api import calibrate as calibrate_router
 from . import db
 
 logger = logging.getLogger(__name__)
@@ -72,6 +73,7 @@ app.include_router(network_router.router, prefix="/api")
 app.include_router(hives_router.router, prefix="/api")
 app.include_router(maintenance_router.router, prefix="/api")
 app.include_router(thingspeak_router.router, prefix="/api")
+app.include_router(calibrate_router.router, prefix="/api")
 
 
 @app.get("/", include_in_schema=False)
