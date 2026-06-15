@@ -501,7 +501,7 @@ const SENSOR_TYPES = {
   hx711:  { label:'HX711',   fields:[
     { key:'data_pin',       label:'Data Pin (GPIO)',       type:'number', default:5 },
     { key:'clock_pin',      label:'Clock Pin (GPIO)',      type:'number', default:6 },
-    { key:'reference_unit', label:'Referenzeinheit',       type:'number', default:1000 },
+    { key:'reference_unit', label:'Referenzeinheit (auto)', type:'number', default:1000, readonly:true },
   ]},
   ds18b20:{ label:'DS18B20', fields:[
     { key:'sensor_index',   label:'Index (bei mehreren)', type:'number', default:0 },
@@ -565,6 +565,13 @@ function renderSensors() {
     const fieldHtml = fields.map(f => {
       const val = s[f.key] !== undefined ? s[f.key] : f.default;
       const hexVal = (f.key === 'i2c_address' && typeof val === 'number') ? '0x' + val.toString(16) : val;
+      if (f.readonly) {
+        return `<div class="field">
+          <label>${f.label}</label>
+          <input type="${f.type}" value="${hexVal}" readonly style="opacity:.5;cursor:default">
+          <div class="field-hint">Wird automatisch durch den Kalibrierungs-Wizard gesetzt.</div>
+        </div>`;
+      }
       return `<div class="field">
         <label>${f.label}</label>
         <input type="${f.type}" value="${hexVal}"
@@ -572,7 +579,7 @@ function renderSensors() {
       </div>`;
     }).join('');
 
-    const isCalibrated = s.calibrated === true || (s.reference_unit && s.reference_unit !== 1 && s.reference_unit !== 1.0);
+    const isCalibrated = s.calibrated === true;
     const tc = s.temp_compensation || {};
     const tcEnabled = !!tc.enabled;
     const tcSensor  = tc.sensor || '';
