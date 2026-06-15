@@ -9,6 +9,11 @@ echo "==> HaniPi Update"
 echo "==> Code aktualisieren..."
 git -C "$INSTALL_DIR" pull
 
+echo "==> Python-Pakete aktualisieren..."
+"$INSTALL_DIR/venv/bin/pip" install -q \
+  "$INSTALL_DIR/packages/dashboard" \
+  "$INSTALL_DIR/packages/rpi-agent"
+
 STATIC_DST=$(find /opt/hanipi/venv/lib -maxdepth 4 -name "static" \
   -path "*/hanipi_dashboard/static" 2>/dev/null | head -1)
 
