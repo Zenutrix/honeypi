@@ -509,6 +509,24 @@ main { padding: 16px 16px 90px; max-width: 1200px; margin: 0 auto; }
 .cal-ok    { background: rgba(48,209,88,.1); color: var(--success); }
 .cal-error { background: rgba(255,69,58,.1);  color: var(--danger); }
 
+/* ── TEMP COMPENSATION ── */
+.cal-tc-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; cursor: pointer; user-select: none;
+}
+.cal-tc-header:hover { opacity: .85; }
+.cal-tc-chevron { font-size: 12px; color: var(--text-faint); }
+.cal-tc-panel {
+  display: none; padding: 4px 0 8px 0;
+}
+.cal-tc-panel.open { display: block; }
+.cal-tc-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 7px;
+  border-radius: 20px; letter-spacing: .04em;
+}
+.cal-tc-on  { background: rgba(48,209,88,.15);  color: var(--success); }
+.cal-tc-off { background: var(--surface-2); color: var(--text-faint); }
+
 /* ── UTILS ── */
 .hidden     { display: none !important; }
 .text-muted { color: var(--text-muted); }

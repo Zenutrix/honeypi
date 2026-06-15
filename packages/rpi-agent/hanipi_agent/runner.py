@@ -47,7 +47,23 @@ class MeasurementRunner:
                         exporter.export(measurement)
                     except Exception as exc:
                         logger.error("Exporter %s failed: %s", type(exporter).__name__, exc)
+
+        self._update_temp_compensation(latest_values)
         return latest_values
+
+    def _update_temp_compensation(self, measurements: dict[str, Measurement]) -> None:
+        """Pass current temperature to any HX711 sensors that use temp compensation."""
+        from .sensors.hx711 import HX711Sensor
+        for sensor in self._sensors:
+            if not isinstance(sensor, HX711Sensor) or not sensor._tc_enabled:
+                continue
+            ref_sensor = sensor._tc_sensor
+            if not ref_sensor or ref_sensor not in measurements:
+                continue
+            m = measurements[ref_sensor]
+            temp = m.values.get("temperature_c")
+            if temp is not None:
+                sensor.set_current_temp(float(temp))
 
     def run(self) -> None:
         self._running = True

@@ -502,11 +502,23 @@ function renderSensors() {
       </div>`;
     }).join('');
 
+    const tc = s.temp_compensation || {};
+    const tcEnabled = !!tc.enabled;
+    const tcSensor  = tc.sensor || '';
+    const tcCoeff   = tc.coeff_kg_per_c ?? 0.0;
+    const tcRefC    = tc.ref_c ?? '';
+    const tcUpdated = tc.updated_at ? new Date(tc.updated_at).toLocaleString('de-AT') : '—';
+    const tempSensorOpts = sensors
+      .filter((ss, si) => si !== i && ss.type !== 'hx711')
+      .map(ss => `<option value="${ss.name}"${ss.name===tcSensor?' selected':''}>${ss.name}</option>`)
+      .join('');
+
     const calHtml = s.type === 'hx711' ? `
       <div style="height:1px;background:var(--border);margin:14px 0"></div>
       <div class="field-hint" style="font-size:11px;margin-bottom:10px;color:var(--text-muted)">
         Kalibrierung — Agent muss laufen · je Schritt ~3 Sek. (20 Messungen)
       </div>
+
       <div class="cal-step">
         <div class="cal-step-num">1</div>
         <div style="flex:1">
@@ -516,6 +528,7 @@ function renderSensors() {
           <div class="cal-result" id="cal-tare-${i}"></div>
         </div>
       </div>
+
       <div class="cal-step" style="margin-top:12px">
         <div class="cal-step-num">2</div>
         <div style="flex:1">
@@ -531,6 +544,7 @@ function renderSensors() {
           <div class="cal-result" id="cal-measure-${i}"></div>
         </div>
       </div>
+
       <div class="cal-step" style="margin-top:12px">
         <div class="cal-step-num">✓</div>
         <div style="flex:1">
@@ -539,6 +553,48 @@ function renderSensors() {
           <button class="btn btn-secondary btn-sm mt-8" onclick="calRead('${s.name}',${i})">Gewicht ablesen</button>
           <div class="cal-result" id="cal-read-${i}"></div>
         </div>
+      </div>
+
+      <div style="height:1px;background:var(--border);margin:14px 0"></div>
+      <div class="cal-tc-header" onclick="calToggleTcPanel(${i})">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+          <span style="font-size:13px;font-weight:600">Temperaturkompensation</span>
+          <span class="cal-tc-badge ${tcEnabled?'cal-tc-on':'cal-tc-off'}" id="cal-tc-badge-${i}">${tcEnabled?'Aktiv':'Aus'}</span>
+          ${tcEnabled ? `<span style="font-size:11px;color:var(--text-faint)">Ref. ${tcRefC}°C · zuletzt ${tcUpdated}</span>` : ''}
+        </div>
+        <span class="cal-tc-chevron" id="cal-tc-chev-${i}">▾</span>
+      </div>
+      <div class="cal-tc-panel" id="cal-tc-panel-${i}">
+        <div class="field mt-8">
+          <label class="check-label">
+            <input type="checkbox" id="cal-tc-on-${i}" ${tcEnabled?'checked':''} onchange="updateSensorTc(${i},'enabled',this.checked)">
+            Temperaturkompensation aktivieren
+          </label>
+        </div>
+        <div class="field-row mt-8">
+          <div class="field">
+            <label>Temperatursensor</label>
+            <select id="cal-tc-sensor-${i}" onchange="updateSensorTc(${i},'sensor',this.value)">
+              <option value="">— keinen —</option>
+              ${tempSensorOpts}
+            </select>
+            <div class="field-hint">Sensor der die Umgebungstemperatur liefert.</div>
+          </div>
+          <div class="field">
+            <label>Koeffizient (kg / °C)</label>
+            <input type="number" id="cal-tc-coeff-${i}" value="${tcCoeff}" step="0.001" oninput="updateSensorTc(${i},'coeff_kg_per_c',parseFloat(this.value)||0)">
+            <div class="field-hint">Typisch 0.01–0.05. Negativ wenn Waage bei Wärme leichter anzeigt.</div>
+          </div>
+        </div>
+        <div class="field-hint mt-8" id="cal-tc-ref-info-${i}">
+          Referenztemperatur: <strong>${tcRefC !== '' ? tcRefC + ' °C' : '—'}</strong>
+          · Zuletzt gesetzt: <strong>${tcUpdated}</strong>
+        </div>
+        <button class="btn btn-secondary btn-sm mt-8" onclick="calSetTempRef('${s.name}',${i})">
+          Referenztemperatur jetzt setzen
+        </button>
+        <div class="cal-result" id="cal-tc-result-${i}"></div>
       </div>` : '';
 
     const item = document.createElement('div');
@@ -888,8 +944,50 @@ async function calRead(sensorName, idx) {
   await fetch('/api/calibrate/result', { method: 'DELETE' });
   await fetch('/api/calibrate/read?sensor_name=' + encodeURIComponent(sensorName), { method: 'POST' });
   calStartPolling('cal-read-' + idx, sensorName, d => {
-    calShowResult('cal-read-' + idx, `Aktuelles Gewicht: ${d.weight_kg.toFixed(3)} kg`, false);
+    const tempStr = d.current_temp_c != null ? ` (Temp: ${d.current_temp_c.toFixed(1)} °C)` : '';
+    calShowResult('cal-read-' + idx, `Aktuelles Gewicht: ${d.weight_kg.toFixed(3)} kg${tempStr}`, false);
   });
+}
+
+async function calSetTempRef(sensorName, idx) {
+  await fetch('/api/calibrate/result', { method: 'DELETE' });
+  await fetch('/api/calibrate/set-temp-ref?sensor_name=' + encodeURIComponent(sensorName), { method: 'POST' });
+  calStartPolling('cal-tc-result-' + idx, sensorName, d => {
+    const ts = new Date().toLocaleString('de-AT');
+    calShowResult('cal-tc-result-' + idx, `Referenztemperatur gesetzt: ${d.ref_temp_c.toFixed(2)} °C`, false);
+    // Update displayed info live
+    const info = document.getElementById('cal-tc-ref-info-' + idx);
+    if (info) info.innerHTML = `Referenztemperatur: <strong>${d.ref_temp_c.toFixed(2)} °C</strong> · Zuletzt gesetzt: <strong>${ts}</strong>`;
+    // Persist in local sensors array
+    const s = sensors[idx];
+    if (s) {
+      s.temp_compensation = s.temp_compensation || {};
+      s.temp_compensation.ref_c = d.ref_temp_c;
+      s.temp_compensation.updated_at = new Date().toISOString();
+    }
+  });
+}
+
+function calToggleTcPanel(idx) {
+  const panel = document.getElementById('cal-tc-panel-' + idx);
+  const chev  = document.getElementById('cal-tc-chev-' + idx);
+  if (!panel) return;
+  const open = panel.classList.toggle('open');
+  if (chev) chev.textContent = open ? '▴' : '▾';
+}
+
+function updateSensorTc(idx, key, val) {
+  const s = sensors[idx];
+  if (!s) return;
+  s.temp_compensation = s.temp_compensation || {};
+  s.temp_compensation[key] = val;
+  // Update badge live
+  const badge = document.getElementById('cal-tc-badge-' + idx);
+  if (badge && key === 'enabled') {
+    badge.textContent = val ? 'Aktiv' : 'Aus';
+    badge.className = 'cal-tc-badge ' + (val ? 'cal-tc-on' : 'cal-tc-off');
+  }
+  markDirty();
 }
 
 loadConfig();
