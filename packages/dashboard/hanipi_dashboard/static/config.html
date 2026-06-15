@@ -32,6 +32,10 @@
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
       Stöcke
     </a>
+    <a href="/network" class="sidebar-nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+      Netzwerk
+    </a>
     <a href="/maintenance" class="sidebar-nav-link">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
       Wartung
@@ -55,7 +59,6 @@
         <div class="sidebar-label">Gerät</div>
         <a class="sidebar-link" href="#display">Display</a>
         <a class="sidebar-link" href="#system">System</a>
-        <a class="sidebar-link" href="#wlan">WLAN</a>
       </div>
     </aside>
 
@@ -217,39 +220,6 @@
               <button class="btn btn-secondary btn-sm mt-8" onclick="loadDcMappingRows()">Felder aktualisieren</button>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div class="config-section" id="wlan">
-        <div class="config-section-header" onclick="toggleSection(this)">
-          <div class="section-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
-          </div>
-          WLAN verbinden
-          <span class="section-chevron">▾</span>
-        </div>
-        <div class="config-section-body">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <span class="field-hint" style="margin:0">Netzwerke in Reichweite</span>
-            <button class="btn btn-secondary btn-sm" onclick="scanWifi()">
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              Scannen
-            </button>
-          </div>
-          <div class="wifi-list" id="wifiList">
-            <div class="text-muted" style="font-size:13px">Auf „Scannen" klicken um Netzwerke zu suchen.</div>
-          </div>
-          <div id="wifiConnectForm" class="hidden">
-            <div class="field">
-              <label>Passwort für <strong id="selectedSsid"></strong></label>
-              <input type="password" id="wifiPassword" placeholder="Passwort">
-            </div>
-            <div style="display:flex;gap:8px;margin-top:8px">
-              <button class="btn btn-primary btn-sm" onclick="connectWifi()">Verbinden</button>
-              <button class="btn btn-secondary btn-sm" onclick="cancelWifi()">Abbrechen</button>
-            </div>
-          </div>
-          <div class="field-hint mt-12" id="wifiResult"></div>
         </div>
       </div>
 
@@ -474,6 +444,10 @@
   <a href="/hives">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
     Stöcke
+  </a>
+  <a href="/network">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+    Netzwerk
   </a>
   <a href="/maintenance">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
@@ -1265,59 +1239,6 @@ function updateSensorTc(idx, key, val) {
   const badge = document.getElementById('cal-tc-badge-' + idx);
   if (badge && key === 'enabled') { badge.textContent = val ? 'Aktiv' : 'Aus'; badge.className = 'cal-tc-badge ' + (val ? 'cal-tc-on' : 'cal-tc-off'); }
   markDirty();
-}
-
-// ── WLAN scan/connect ──────────────────────────────────────────────────────
-let selectedSsid = '';
-
-async function scanWifi() {
-  const list = document.getElementById('wifiList');
-  list.innerHTML = '<div class="text-muted" style="font-size:13px">Suche…</div>';
-  try {
-    const r = await fetch('/api/network/wifi/scan');
-    const nets = await r.json();
-    if (!nets.length) {
-      list.innerHTML = '<div class="text-muted" style="font-size:13px">Keine Netzwerke gefunden.</div>';
-      return;
-    }
-    list.innerHTML = nets.map(n => `
-      <div class="wifi-item" onclick="selectWifi('${n.ssid.replace(/'/g,"\\'")}')">
-        <span class="wifi-ssid">${n.ssid}</span>
-        <span class="wifi-signal">${n.signal}% ${n.security || ''}</span>
-      </div>`).join('');
-  } catch {
-    list.innerHTML = '<div class="text-muted" style="font-size:13px">Fehler beim Scan.</div>';
-  }
-}
-
-function selectWifi(ssid) {
-  selectedSsid = ssid;
-  document.getElementById('selectedSsid').textContent = ssid;
-  document.getElementById('wifiConnectForm').classList.remove('hidden');
-  document.getElementById('wifiResult').textContent = '';
-}
-
-function cancelWifi() {
-  document.getElementById('wifiConnectForm').classList.add('hidden');
-}
-
-async function connectWifi() {
-  const res = document.getElementById('wifiResult');
-  res.textContent = 'Verbinde…';
-  try {
-    const r = await fetch('/api/network/wifi/connect', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ ssid: selectedSsid, password: document.getElementById('wifiPassword').value }),
-    });
-    if (!r.ok) { const d = await r.json(); throw new Error(d.detail); }
-    res.style.color = 'var(--success)';
-    res.textContent = `Verbunden mit ${selectedSsid}`;
-    document.getElementById('wifiConnectForm').classList.add('hidden');
-  } catch (e) {
-    res.style.color = 'var(--danger)';
-    res.textContent = 'Fehler: ' + e.message;
-  }
 }
 
 loadConfig();

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HaniPi – Netzwerk</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <a href="/" class="logo">Hani<span class="logo-accent">Pi</span></a>
+  <nav>
+    <a href="/" class="nav-tab">Dashboard</a>
+    <a href="/config-ui" class="nav-tab">Einstellungen</a>
+    <a href="/hives" class="nav-tab">Stöcke</a>
+    <a href="/network" class="nav-tab active">Netzwerk</a>
+    <a href="/maintenance" class="nav-tab">Wartung</a>
+  </nav>
+</header>
+
+<aside class="app-sidebar">
+  <a href="/" class="sidebar-logo">Hani<span class="logo-accent">Pi</span></a>
+  <nav class="sidebar-nav">
+    <a href="/" class="sidebar-nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a href="/config-ui" class="sidebar-nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Einstellungen
+    </a>
+    <a href="/hives" class="sidebar-nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
+      Stöcke
+    </a>
+    <a href="/network" class="sidebar-nav-link active">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+      Netzwerk
+    </a>
+    <a href="/maintenance" class="sidebar-nav-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      Wartung
+    </a>
+  </nav>
+</aside>
+
+<main>
+  <div class="page-header">
+    <span class="page-title">Netzwerk</span>
+    <button class="btn btn-secondary btn-sm" onclick="loadAll()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Aktualisieren
+    </button>
+  </div>
+
+  <!-- ── Status ───────────────────────────────────────────────── -->
+  <div class="status-card">
+    <div class="status-card-title">Status</div>
+    <div class="net-status-row">
+      <div class="net-status-card" id="wifiCard"><div class="net-card-loading">Lade…</div></div>
+      <div class="net-status-card hidden" id="lanCard"></div>
+    </div>
+  </div>
+
+  <!-- ── WLAN verbinden ───────────────────────────────────────── -->
+  <div class="status-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <strong>WLAN verbinden</strong>
+      <button class="btn btn-secondary btn-sm" onclick="scanWifi()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Scannen
+      </button>
+    </div>
+    <div class="wifi-list" id="wifiList">
+      <div class="text-muted" style="font-size:13px">Auf „Scannen" klicken um Netzwerke zu suchen.</div>
+    </div>
+    <div id="wifiConnectForm" class="hidden">
+      <div class="field" style="margin-top:10px">
+        <label>Passwort für <strong id="selectedSsid"></strong></label>
+        <input type="password" id="wifiPassword" placeholder="Passwort">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-primary btn-sm" onclick="connectWifi()">Verbinden</button>
+        <button class="btn btn-secondary btn-sm" onclick="cancelWifi()">Abbrechen</button>
+      </div>
+    </div>
+    <div class="field-hint mt-12" id="wifiResult"></div>
+  </div>
+
+  <!-- ── IP-Einstellungen ─────────────────────────────────────── -->
+  <div class="status-card hidden" id="ipCard">
+    <div class="status-card-title">IP-Einstellungen</div>
+
+    <div class="net-subsection hidden" id="wifiIpSection">
+      <div class="net-sub-header" onclick="toggleSub('wifiIp')">
+        <span>WLAN</span>
+        <svg id="wifiIp-chevron" class="net-sub-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="net-sub-body" id="wifiIpBody">
+        <div class="field">
+          <label>Modus</label>
+          <select id="wifi-ip-mode" onchange="toggleIpFields('wifi')">
+            <option value="dhcp">DHCP (automatisch)</option>
+            <option value="static">Statisch</option>
+          </select>
+        </div>
+        <div id="wifi-static-fields" class="hidden">
+          <div class="field"><label>IP-Adresse (z.B. 192.168.1.50/24)</label><input type="text" id="wifi-ip-addr" placeholder="192.168.1.50/24"></div>
+          <div class="field"><label>Gateway</label><input type="text" id="wifi-ip-gw" placeholder="192.168.1.1"></div>
+          <div class="field"><label>DNS</label><input type="text" id="wifi-ip-dns" placeholder="8.8.8.8"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
+          <button class="btn btn-primary btn-sm" onclick="saveIpConfig('wifi')">Speichern</button>
+          <span id="wifi-ip-status" style="font-size:12px;color:var(--text-muted)"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="net-subsection hidden" id="lanIpSection">
+      <div class="net-sub-header" onclick="toggleSub('lanIp')">
+        <span>LAN</span>
+        <svg id="lanIp-chevron" class="net-sub-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="net-sub-body" id="lanIpBody">
+        <div class="field">
+          <label>Modus</label>
+          <select id="lan-ip-mode" onchange="toggleIpFields('lan')">
+            <option value="dhcp">DHCP (automatisch)</option>
+            <option value="static">Statisch</option>
+          </select>
+        </div>
+        <div id="lan-static-fields" class="hidden">
+          <div class="field"><label>IP-Adresse (z.B. 192.168.1.60/24)</label><input type="text" id="lan-ip-addr" placeholder="192.168.1.60/24"></div>
+          <div class="field"><label>Gateway</label><input type="text" id="lan-ip-gw" placeholder="192.168.1.1"></div>
+          <div class="field"><label>DNS</label><input type="text" id="lan-ip-dns" placeholder="8.8.8.8"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
+          <button class="btn btn-primary btn-sm" onclick="saveIpConfig('lan')">Speichern</button>
+          <span id="lan-ip-status" style="font-size:12px;color:var(--text-muted)"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Gespeicherte WLANs ───────────────────────────────────── -->
+  <div class="status-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <strong>Gespeicherte WLANs</strong>
+    </div>
+    <div id="savedWifiList"><span style="color:var(--text-faint);font-size:12px">Lade…</span></div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+      <p class="net-warning">Alle gespeicherten WLANs löschen — der Pi öffnet danach den Setup-Hotspot.</p>
+      <button class="btn btn-danger btn-sm" onclick="wifiReset()">Alle WLANs zurücksetzen</button>
+    </div>
+  </div>
+
+  <!-- ── 4G / Mobilfunk ──────────────────────────────────────── -->
+  <div class="status-card">
+    <div class="status-card-title">4G / Mobilfunk</div>
+    <div id="modemStatus" style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Lade…</div>
+    <div class="field"><label>APN</label><input type="text" id="apnInput" placeholder="internet"></div>
+    <div class="field"><label>Benutzername (optional)</label><input type="text" id="apnUser"></div>
+    <div class="field"><label>Passwort (optional)</label><input type="password" id="apnPass"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn btn-primary btn-sm" onclick="connect4g()">Verbinden</button>
+      <button class="btn btn-secondary btn-sm" onclick="disconnect4g()">Trennen</button>
+    </div>
+    <div class="field-hint mt-12" id="modemResult"></div>
+  </div>
+</main>
+
+<nav class="bottom-nav">
+  <a href="/">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Dashboard
+  </a>
+  <a href="/config-ui">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Einstellungen
+  </a>
+  <a href="/hives">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
+    Stöcke
+  </a>
+  <a href="/network" class="active">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+    Netzwerk
+  </a>
+  <a href="/maintenance">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    Wartung
+  </a>
+</nav>
+
+<script>
+'use strict';
+
+const netDevices = { wifi: null, lan: null };
+
+function signalBars(pct) {
+  const levels = [25, 50, 75, 100];
+  const heights = ['4px', '7px', '10px', '13px'];
+  return `<span class="net-signal-bar">${levels.map((l, i) =>
+    `<span style="height:${heights[i]}" class="${pct >= l ? 'lit' : ''}"></span>`
+  ).join('')}</span>`;
+}
+
+async function loadNetworkStatus() {
+  try {
+    const r = await fetch('/api/network/status');
+    const d = await r.json();
+
+    const wifi = d.wifi || {};
+    netDevices.wifi = wifi.device || null;
+    const wifiCard = document.getElementById('wifiCard');
+    if (wifi.connected) {
+      wifiCard.innerHTML = `
+        <div class="net-card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+          WLAN · ${wifi.device || ''}
+        </div>
+        <div class="net-card-row"><span class="net-card-label">SSID</span><span class="net-card-value">${wifi.ssid}</span></div>
+        <div class="net-card-row"><span class="net-card-label">Signal</span><span class="net-card-value" style="display:flex;align-items:center;gap:6px">${signalBars(wifi.signal)}<span style="font-size:11px;color:var(--text-muted)">${wifi.signal}%</span></span></div>
+        ${wifi.security ? `<div class="net-card-row"><span class="net-card-label">Sicherheit</span><span class="net-card-value">${wifi.security}</span></div>` : ''}
+        ${wifi.ip ? `<div class="net-card-row"><span class="net-card-label">IP</span><span class="net-card-value">${wifi.ip}</span></div>` : ''}
+        <div style="margin-top:4px"><span class="tag" style="background:rgba(48,209,88,.12);color:var(--success);font-size:10px">Verbunden</span></div>`;
+    } else {
+      wifiCard.innerHTML = `
+        <div class="net-card-title">WLAN · ${wifi.device || 'wlan0'}</div>
+        <div style="font-size:12px;color:var(--text-faint)">Nicht verbunden</div>`;
+    }
+
+    const lan = d.lan || {};
+    const lanCard = document.getElementById('lanCard');
+    if (lan.available !== false) {
+      netDevices.lan = lan.device || null;
+      lanCard.classList.remove('hidden');
+      lanCard.innerHTML = `
+        <div class="net-card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          LAN · ${lan.device}
+        </div>
+        <div class="net-card-row"><span class="net-card-label">Status</span><span class="net-card-value">${lan.connected ? 'Verbunden' : 'Kein Kabel'}</span></div>
+        ${lan.ip ? `<div class="net-card-row"><span class="net-card-label">IP</span><span class="net-card-value">${lan.ip}</span></div>` : ''}
+        <div style="margin-top:4px"><span class="tag" style="background:${lan.connected ? 'rgba(48,209,88,.12)' : 'var(--surface)'};color:${lan.connected ? 'var(--success)' : 'var(--text-faint)'};font-size:10px">${lan.connected ? 'Verbunden' : 'Getrennt'}</span></div>`;
+    }
+
+    // Show IP card and relevant subsections
+    const ipCard = document.getElementById('ipCard');
+    const hasAny = netDevices.wifi || netDevices.lan;
+    ipCard.classList.toggle('hidden', !hasAny);
+    document.getElementById('wifiIpSection').classList.toggle('hidden', !netDevices.wifi);
+    document.getElementById('lanIpSection').classList.toggle('hidden', !netDevices.lan);
+    if (netDevices.wifi) loadIpConfig('wifi', netDevices.wifi);
+    if (netDevices.lan) loadIpConfig('lan', netDevices.lan);
+
+  } catch {
+    document.getElementById('wifiCard').innerHTML = `<div class="net-card-loading">Fehler beim Laden.</div>`;
+  }
+}
+
+function toggleSub(id) {
+  const body = document.getElementById(id + 'Body');
+  const chev = document.getElementById(id + '-chevron');
+  const open = body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open', open);
+}
+
+function toggleIpFields(iface) {
+  document.getElementById(iface + '-static-fields').classList.toggle(
+    'hidden',
+    document.getElementById(iface + '-ip-mode').value !== 'static'
+  );
+}
+
+async function loadIpConfig(iface, device) {
+  try {
+    const r = await fetch(`/api/network/ip/${encodeURIComponent(device)}`);
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById(iface + '-ip-mode').value = d.mode;
+    document.getElementById(iface + '-ip-addr').value = d.address || '';
+    document.getElementById(iface + '-ip-gw').value   = d.gateway || '';
+    document.getElementById(iface + '-ip-dns').value  = d.dns     || '';
+    toggleIpFields(iface);
+  } catch {}
+}
+
+async function saveIpConfig(iface) {
+  const device = netDevices[iface];
+  if (!device) return;
+  const statusEl = document.getElementById(iface + '-ip-status');
+  statusEl.style.color = 'var(--text-muted)';
+  statusEl.textContent = 'Speichern…';
+  const mode = document.getElementById(iface + '-ip-mode').value;
+  try {
+    const r = await fetch(`/api/network/ip/${encodeURIComponent(device)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mode,
+        address: document.getElementById(iface + '-ip-addr').value,
+        gateway: document.getElementById(iface + '-ip-gw').value,
+        dns:     document.getElementById(iface + '-ip-dns').value,
+      }),
+    });
+    if (r.ok) {
+      statusEl.style.color = 'var(--success)';
+      statusEl.textContent = mode === 'dhcp' ? 'DHCP aktiv.' : 'Gesetzt — kurze Unterbrechung möglich.';
+    } else {
+      const err = await r.json();
+      statusEl.style.color = 'var(--danger)';
+      statusEl.textContent = err.detail || 'Fehler';
+    }
+  } catch {
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Netzwerkfehler';
+  }
+}
+
+// ── WLAN scan/connect ──────────────────────────────────────────────────────
+let selectedSsid = '';
+
+async function scanWifi() {
+  const list = document.getElementById('wifiList');
+  list.innerHTML = '<div class="text-muted" style="font-size:13px">Suche…</div>';
+  try {
+    const r = await fetch('/api/network/wifi/scan');
+    const nets = await r.json();
+    if (!nets.length) {
+      list.innerHTML = '<div class="text-muted" style="font-size:13px">Keine Netzwerke gefunden.</div>';
+      return;
+    }
+    list.innerHTML = nets.map(n => `
+      <div class="wifi-item" onclick="selectWifi('${n.ssid.replace(/'/g, "\\'")}')">
+        <span class="wifi-ssid">${n.ssid}</span>
+        <span class="wifi-signal">${n.signal}% ${n.security || ''}</span>
+      </div>`).join('');
+  } catch {
+    list.innerHTML = '<div class="text-muted" style="font-size:13px">Fehler beim Scan.</div>';
+  }
+}
+
+function selectWifi(ssid) {
+  selectedSsid = ssid;
+  document.getElementById('selectedSsid').textContent = ssid;
+  document.getElementById('wifiConnectForm').classList.remove('hidden');
+  document.getElementById('wifiResult').textContent = '';
+}
+
+function cancelWifi() {
+  document.getElementById('wifiConnectForm').classList.add('hidden');
+}
+
+async function connectWifi() {
+  const res = document.getElementById('wifiResult');
+  res.style.color = 'var(--text-muted)';
+  res.textContent = 'Verbinde…';
+  try {
+    const r = await fetch('/api/network/wifi/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ssid: selectedSsid, password: document.getElementById('wifiPassword').value }),
+    });
+    if (!r.ok) { const d = await r.json(); throw new Error(d.detail); }
+    res.style.color = 'var(--success)';
+    res.textContent = `Verbunden mit ${selectedSsid}`;
+    document.getElementById('wifiConnectForm').classList.add('hidden');
+    loadNetworkStatus();
+  } catch (e) {
+    res.style.color = 'var(--danger)';
+    res.textContent = 'Fehler: ' + e.message;
+  }
+}
+
+// ── Gespeicherte WLANs ────────────────────────────────────────────────────
+async function loadSavedWifi() {
+  const list = document.getElementById('savedWifiList');
+  try {
+    const r = await fetch('/api/network/wifi/saved');
+    const networks = await r.json();
+    if (!networks.length) {
+      list.innerHTML = '<span style="color:var(--text-faint);font-size:12px">Keine gespeicherten WLANs.</span>';
+      return;
+    }
+    list.innerHTML = networks.map(n => `
+      <div class="net-card-row" style="padding:6px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px;font-weight:500">${n.name}</span>
+        <button class="btn btn-danger btn-sm" style="padding:3px 10px;font-size:11px" onclick="wifiForget('${n.name.replace(/'/g, "\\'")}')">Vergessen</button>
+      </div>`).join('');
+  } catch {
+    list.innerHTML = '<span style="color:var(--text-faint);font-size:12px">Fehler beim Laden.</span>';
+  }
+}
+
+async function wifiForget(name) {
+  if (!confirm(`WLAN "${name}" wirklich vergessen?`)) return;
+  await fetch('/api/network/wifi/forget', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  loadSavedWifi();
+  loadNetworkStatus();
+}
+
+async function wifiReset() {
+  if (!confirm('Alle gespeicherten WLANs löschen? Der Pi öffnet danach den Setup-Hotspot.')) return;
+  await fetch('/api/network/wifi/reset', { method: 'POST' });
+  loadSavedWifi();
+  loadNetworkStatus();
+}
+
+// ── 4G / Mobilfunk ────────────────────────────────────────────────────────
+async function loadModemStatus() {
+  const el = document.getElementById('modemStatus');
+  try {
+    const r = await fetch('/api/network/modem');
+    const d = await r.json();
+    if (!d.available) {
+      el.textContent = d.reason || 'Kein Mobilfunk-Stick erkannt.';
+      return;
+    }
+    el.innerHTML = `<strong>${d.model}</strong> · Status: ${d.state}${d.signal != null ? ` · Signal: ${d.signal}%` : ''}`;
+    if (d.apn) document.getElementById('apnInput').value = d.apn;
+  } catch {
+    el.textContent = 'Fehler beim Laden.';
+  }
+}
+
+async function connect4g() {
+  const res = document.getElementById('modemResult');
+  res.textContent = 'Verbinde…';
+  try {
+    const r = await fetch('/api/network/connect', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        apn:      document.getElementById('apnInput').value,
+        username: document.getElementById('apnUser').value,
+        password: document.getElementById('apnPass').value,
+      }),
+    });
+    if (r.ok) { res.style.color = 'var(--success)'; res.textContent = 'Verbunden!'; loadModemStatus(); }
+    else { const d = await r.json(); res.style.color = 'var(--danger)'; res.textContent = 'Fehler: ' + (d.detail || 'Unbekannt'); }
+  } catch (e) { res.style.color = 'var(--danger)'; res.textContent = 'Fehler: ' + e.message; }
+}
+
+async function disconnect4g() {
+  const res = document.getElementById('modemResult');
+  res.textContent = 'Trenne…';
+  try {
+    await fetch('/api/network/disconnect', { method: 'POST' });
+    res.style.color = 'var(--success)';
+    res.textContent = 'Getrennt.';
+    loadModemStatus();
+  } catch (e) { res.style.color = 'var(--danger)'; res.textContent = 'Fehler: ' + e.message; }
+}
+
+function loadAll() {
+  loadNetworkStatus();
+  loadSavedWifi();
+  loadModemStatus();
+}
+
+loadAll();
+</script>
+</body>
+</html>

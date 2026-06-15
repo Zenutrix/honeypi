@@ -91,6 +91,11 @@ def hives_page() -> FileResponse:
     return FileResponse(str(_STATIC / "hives.html"))
 
 
+@app.get("/network", include_in_schema=False)
+def network_page() -> FileResponse:
+    return FileResponse(str(_STATIC / "network.html"))
+
+
 @app.get("/maintenance", include_in_schema=False)
 def maintenance_page() -> FileResponse:
     return FileResponse(str(_STATIC / "maintenance.html"))
