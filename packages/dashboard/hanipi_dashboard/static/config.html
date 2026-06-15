@@ -633,8 +633,8 @@ function renderSensors() {
           </div>
           <div class="field">
             <label>Koeffizient (kg / °C)</label>
-            <input type="number" id="cal-tc-coeff-${i}" value="${tcCoeff}" step="0.001" oninput="updateSensorTc(${i},'coeff_kg_per_c',parseFloat(this.value)||0)">
-            <div class="field-hint">Typisch 0.01–0.05.</div>
+            <input type="number" id="cal-tc-coeff-${i}" value="${tcCoeff}" readonly style="opacity:.5;cursor:default">
+            <div class="field-hint">Automatisch berechnet — wird in einer späteren Version durch den Wizard gesetzt.</div>
           </div>
         </div>
         <div class="field-hint mt-8" id="cal-tc-ref-info-${i}">
