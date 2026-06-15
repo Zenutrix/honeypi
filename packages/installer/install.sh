@@ -72,25 +72,7 @@ if [ ! -f "$CFG_DIR/hanipi.json" ]; then
   sudo tee "$CFG_DIR/hanipi.json" > /dev/null <<'HANIPI_JSON'
 {
   "interval": 300,
-  "sensors": [
-    {
-      "type": "hx711",
-      "name": "Waage",
-      "data_pin": 5,
-      "clock_pin": 6,
-      "reference_unit": 1000
-    },
-    {
-      "type": "ds18b20",
-      "name": "Temperatur_Innen"
-    },
-    {
-      "type": "bme280",
-      "name": "Aussenklima",
-      "i2c_port": 1,
-      "i2c_address": 118
-    }
-  ],
+  "sensors": [],
   "exporters": {
     "local": {
       "enabled": true,

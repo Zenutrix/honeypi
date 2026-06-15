@@ -709,6 +709,51 @@ async function saveConfig() {
 }
 
 document.getElementById('addSensorBtn').addEventListener('click', addSensor);
+
+// ── Sidebar section filtering (desktop only) ─────────────────────────────────
+function showSection(id) {
+  const isDesktop = window.innerWidth >= 1024;
+  document.querySelectorAll('.sidebar-link').forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+  });
+  if (!isDesktop) return;
+
+  document.querySelectorAll('.config-section').forEach(s => {
+    s.style.display = s.id === id ? '' : 'none';
+    if (s.id === id) {
+      s.querySelector('.config-section-header')?.classList.add('open');
+      s.querySelector('.config-section-body')?.classList.add('open');
+    }
+  });
+  document.querySelectorAll('.config-group-label').forEach(label => {
+    let el = label.nextElementSibling;
+    let visible = false;
+    while (el && !el.classList.contains('config-group-label')) {
+      if (el.classList.contains('config-section') && el.style.display !== 'none') visible = true;
+      el = el.nextElementSibling;
+    }
+    label.style.display = visible ? '' : 'none';
+  });
+}
+
+function showAll() {
+  document.querySelectorAll('.config-section').forEach(s => s.style.display = '');
+  document.querySelectorAll('.config-group-label').forEach(l => l.style.display = '');
+}
+
+document.querySelectorAll('.sidebar-link').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    showSection(link.getAttribute('href').slice(1));
+  });
+});
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth < 1024) showAll();
+});
+
+if (window.innerWidth >= 1024) showSection('sensors');
+
 loadConfig();
 loadModemStatus();
 </script>
