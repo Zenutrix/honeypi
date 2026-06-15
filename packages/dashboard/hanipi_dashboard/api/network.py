@@ -129,3 +129,154 @@ def wifi_connect(req: WifiConnectRequest) -> dict:
     if rc != 0:
         raise HTTPException(status_code=400, detail=f"WLAN-Verbindung fehlgeschlagen: {err.strip()}")
     return {"status": "connected", "ssid": req.ssid}
+
+
+@router.get("/network/status")
+def network_status() -> dict:
+    result: dict = {}
+
+    # WiFi — active connection
+    _, wifi_out, _ = _run(["nmcli", "-t", "-f", "ACTIVE,SSID,SIGNAL,DEVICE,SECURITY", "dev", "wifi"])
+    for line in wifi_out.splitlines():
+        parts = line.split(":")
+        if len(parts) >= 4 and parts[0] == "yes":
+            device = parts[3]
+            _, ip_out, _ = _run(["ip", "-4", "-o", "addr", "show", device])
+            ip_m = re.search(r"inet\s+(\S+)", ip_out)
+            result["wifi"] = {
+                "connected": True,
+                "ssid": parts[1],
+                "signal": int(parts[2]) if parts[2].isdigit() else 0,
+                "device": device,
+                "security": parts[4] if len(parts) > 4 else "",
+                "ip": ip_m.group(1) if ip_m else None,
+            }
+            break
+    if "wifi" not in result:
+        # detect wifi device even when disconnected
+        _, dev_out, _ = _run(["nmcli", "-t", "-f", "DEVICE,TYPE", "device", "status"])
+        for line in dev_out.splitlines():
+            parts = line.split(":")
+            if len(parts) >= 2 and parts[1] == "wifi":
+                result["wifi"] = {"connected": False, "device": parts[0]}
+                break
+        if "wifi" not in result:
+            result["wifi"] = {"connected": False}
+
+    # LAN — first ethernet device
+    _, dev_out, _ = _run(["nmcli", "-t", "-f", "DEVICE,TYPE,STATE", "device", "status"])
+    for line in dev_out.splitlines():
+        parts = line.split(":")
+        if len(parts) >= 3 and parts[1] == "ethernet":
+            device = parts[0]
+            _, ip_out, _ = _run(["ip", "-4", "-o", "addr", "show", device])
+            ip_m = re.search(r"inet\s+(\S+)", ip_out)
+            _, link_out, _ = _run(["ip", "link", "show", device])
+            result["lan"] = {
+                "available": True,
+                "device": device,
+                "state": parts[2],
+                "connected": "LOWER_UP" in link_out,
+                "ip": ip_m.group(1) if ip_m else None,
+            }
+            break
+    if "lan" not in result:
+        result["lan"] = {"available": False}
+
+    return result
+
+
+def _find_connection(device: str) -> str | None:
+    """Return the nmcli connection name associated with a device."""
+    _, out, _ = _run(["nmcli", "-t", "-f", "NAME,DEVICE", "connection", "show"])
+    for line in out.splitlines():
+        parts = line.split(":")
+        if len(parts) >= 2 and parts[1] == device:
+            return parts[0]
+    return None
+
+
+@router.get("/network/ip/{device}")
+def get_ip_config(device: str) -> dict:
+    con = _find_connection(device)
+    if not con:
+        raise HTTPException(status_code=404, detail="Keine Verbindung für dieses Interface")
+    _, detail, _ = _run(["nmcli", "-t", "-f",
+                          "ipv4.method,ipv4.addresses,ipv4.gateway,ipv4.dns",
+                          "connection", "show", con])
+    method_m = re.search(r"ipv4\.method:(.+)", detail)
+    addr_m   = re.search(r"ipv4\.addresses:(.+)", detail)
+    gw_m     = re.search(r"ipv4\.gateway:(.+)", detail)
+    dns_m    = re.search(r"ipv4\.dns:(.+)", detail)
+    return {
+        "connection": con,
+        "mode": "dhcp" if method_m and "auto" in method_m.group(1) else "static",
+        "address": addr_m.group(1).strip() if addr_m else "",
+        "gateway": gw_m.group(1).strip() if gw_m else "",
+        "dns":     dns_m.group(1).strip() if dns_m else "",
+    }
+
+
+class IpConfigRequest(BaseModel):
+    mode: str
+    address: str = ""
+    gateway: str = ""
+    dns: str = ""
+
+
+@router.post("/network/ip/{device}")
+def set_ip_config(device: str, req: IpConfigRequest) -> dict:
+    con = _find_connection(device)
+    if not con:
+        raise HTTPException(status_code=404, detail="Keine Verbindung für dieses Interface")
+    if req.mode == "dhcp":
+        cmd = ["sudo", "nmcli", "connection", "modify", con,
+               "ipv4.method", "auto",
+               "ipv4.addresses", "", "ipv4.gateway", "", "ipv4.dns", ""]
+    else:
+        if not req.address:
+            raise HTTPException(status_code=400, detail="IP-Adresse fehlt")
+        cmd = ["sudo", "nmcli", "connection", "modify", con,
+               "ipv4.method", "manual",
+               "ipv4.addresses", req.address,
+               "ipv4.gateway", req.gateway,
+               "ipv4.dns", req.dns]
+    rc, _, err = _run(cmd)
+    if rc != 0:
+        raise HTTPException(status_code=400, detail=f"Fehler: {err.strip()}")
+    _run(["sudo", "nmcli", "connection", "up", con], timeout=30)
+    return {"status": "ok", "connection": con}
+
+
+@router.get("/network/wifi/saved")
+def wifi_saved() -> list[dict]:
+    _, out, _ = _run(["nmcli", "-t", "-f", "NAME,TYPE", "connection", "show"])
+    return [
+        {"name": line.split(":")[0]}
+        for line in out.splitlines()
+        if len(line.split(":")) >= 2 and line.split(":")[1] in ("802-11-wireless", "wifi")
+    ]
+
+
+class ForgetRequest(BaseModel):
+    name: str
+
+
+@router.post("/network/wifi/forget")
+def wifi_forget(req: ForgetRequest) -> dict:
+    rc, _, err = _run(["sudo", "nmcli", "connection", "delete", req.name], timeout=10)
+    if rc != 0:
+        raise HTTPException(status_code=400, detail=f"Fehler: {err.strip()}")
+    return {"status": "deleted"}
+
+
+@router.post("/network/wifi/reset")
+def wifi_reset() -> dict:
+    _, out, _ = _run(["nmcli", "-t", "-f", "NAME,TYPE", "connection", "show"])
+    deleted = []
+    for line in out.splitlines():
+        parts = line.split(":")
+        if len(parts) >= 2 and parts[1] in ("802-11-wireless", "wifi"):
+            _run(["sudo", "nmcli", "connection", "delete", parts[0]], timeout=10)
+            deleted.append(parts[0])
+    return {"status": "reset", "deleted": deleted}

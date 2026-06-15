@@ -648,6 +648,54 @@ input[type=number][readonly] { -moz-appearance: textfield; }
 .cal-tc-on  { background: rgba(48,209,88,.15);  color: var(--success); }
 .cal-tc-off { background: var(--surface-2); color: var(--text-faint); }
 
+/* ── NETWORK STATUS ── */
+.net-status-row { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px; }
+@media (min-width: 640px) { .net-status-row { grid-template-columns: 1fr 1fr; } }
+.net-status-card {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+}
+.net-card-loading { font-size: 12px; color: var(--text-faint); }
+.net-card-title {
+  font-size: 10px; font-weight: 700; color: var(--text-faint);
+  text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.net-card-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.net-card-label { font-size: 12px; color: var(--text-muted); }
+.net-card-value { font-size: 12px; font-weight: 600; color: var(--text); font-family: monospace; }
+.net-signal-bar {
+  display: inline-flex; align-items: flex-end; gap: 2px; height: 14px;
+}
+.net-signal-bar span {
+  width: 3px; background: var(--border); border-radius: 1px;
+  transition: background .2s;
+}
+.net-signal-bar span.lit { background: var(--success); }
+
+/* ── NETWORK SUBSECTIONS ── */
+.net-subsection {
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  margin-bottom: 8px; overflow: hidden;
+}
+.net-sub-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; cursor: pointer; background: var(--surface-2);
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+  user-select: none;
+}
+.net-sub-header:hover { background: var(--border); color: var(--text); }
+.net-sub-header svg { flex-shrink: 0; opacity: .7; }
+.net-sub-chevron { margin-left: auto; font-size: 11px; color: var(--text-faint); transition: transform .2s; }
+.net-sub-chevron.open { transform: rotate(180deg); }
+.net-sub-body { padding: 14px; display: none; }
+.net-sub-body.open { display: block; }
+.net-warning {
+  font-size: 11px; color: var(--amber); background: var(--amber-glow);
+  border: 1px solid rgba(245,158,11,.25); border-radius: var(--radius-sm);
+  padding: 7px 10px; margin-top: 10px; line-height: 1.5;
+}
+
 /* ── UTILS ── */
 .hidden     { display: none !important; }
 .text-muted { color: var(--text-muted); }

@@ -223,24 +223,120 @@
       <div class="config-section" id="network">
         <div class="config-section-header" onclick="toggleSection(this)">
           <div class="section-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
           </div>
-          Netzwerk / 4G
+          Netzwerk
           <span class="section-chevron">▾</span>
         </div>
         <div class="config-section-body">
-          <div id="modemStatus" class="field-hint">Lade Modem-Status…</div>
-          <div id="modemForm" class="hidden">
-            <div class="field mt-12"><label>APN</label><input type="text" id="4g-apn" placeholder="internet.telekom"></div>
-            <div class="field-row">
-              <div class="field"><label>Benutzername (optional)</label><input type="text" id="4g-user"></div>
-              <div class="field"><label>Passwort (optional)</label><input type="password" id="4g-pass"></div>
+
+          <!-- Status-Karten -->
+          <div class="net-status-row" id="netStatusRow">
+            <div class="net-status-card" id="wifiCard">
+              <div class="net-card-loading">Lade WLAN-Status…</div>
             </div>
-            <div style="display:flex;gap:8px;margin-top:8px">
-              <button class="btn btn-primary btn-sm" onclick="connect4g()">Verbinden</button>
-              <button class="btn btn-secondary btn-sm" onclick="disconnect4g()">Trennen</button>
+            <div class="net-status-card hidden" id="lanCard">
+              <div class="net-card-loading">Lade LAN-Status…</div>
             </div>
           </div>
+
+          <!-- WLAN IP-Einstellungen -->
+          <div class="net-subsection hidden" id="wifiIpSection">
+            <div class="net-sub-header" onclick="toggleNetSub('wifiIp')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              WLAN IP-Einstellungen
+              <span class="net-sub-chevron" id="wifiIp-chevron">▾</span>
+            </div>
+            <div class="net-sub-body hidden" id="wifiIpBody">
+              <div class="field">
+                <label>Modus</label>
+                <select id="wifi-ip-mode" onchange="toggleIpFields('wifi')">
+                  <option value="dhcp">DHCP (automatisch)</option>
+                  <option value="static">Statische IP</option>
+                </select>
+              </div>
+              <div id="wifi-static-fields" class="hidden">
+                <div class="field-row">
+                  <div class="field"><label>IP-Adresse / CIDR</label><input type="text" id="wifi-ip-addr" placeholder="192.168.1.100/24"></div>
+                  <div class="field"><label>Gateway</label><input type="text" id="wifi-ip-gw" placeholder="192.168.1.1"></div>
+                </div>
+                <div class="field"><label>DNS</label><input type="text" id="wifi-ip-dns" placeholder="8.8.8.8,8.8.4.4"></div>
+              </div>
+              <div class="net-warning">Falsche IP-Einstellungen können die Verbindung zum Pi unterbrechen.</div>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+                <button class="btn btn-primary btn-sm" onclick="saveIpConfig('wifi')">Übernehmen</button>
+                <span id="wifi-ip-status" class="field-hint"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- LAN IP-Einstellungen -->
+          <div class="net-subsection hidden" id="lanIpSection">
+            <div class="net-sub-header" onclick="toggleNetSub('lanIp')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+              LAN IP-Einstellungen
+              <span class="net-sub-chevron" id="lanIp-chevron">▾</span>
+            </div>
+            <div class="net-sub-body hidden" id="lanIpBody">
+              <div class="field">
+                <label>Modus</label>
+                <select id="lan-ip-mode" onchange="toggleIpFields('lan')">
+                  <option value="dhcp">DHCP (automatisch)</option>
+                  <option value="static">Statische IP</option>
+                </select>
+              </div>
+              <div id="lan-static-fields" class="hidden">
+                <div class="field-row">
+                  <div class="field"><label>IP-Adresse / CIDR</label><input type="text" id="lan-ip-addr" placeholder="192.168.1.101/24"></div>
+                  <div class="field"><label>Gateway</label><input type="text" id="lan-ip-gw" placeholder="192.168.1.1"></div>
+                </div>
+                <div class="field"><label>DNS</label><input type="text" id="lan-ip-dns" placeholder="8.8.8.8,8.8.4.4"></div>
+              </div>
+              <div class="net-warning">Falsche IP-Einstellungen können die Verbindung zum Pi unterbrechen.</div>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+                <button class="btn btn-primary btn-sm" onclick="saveIpConfig('lan')">Übernehmen</button>
+                <span id="lan-ip-status" class="field-hint"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gespeicherte WLANs -->
+          <div class="net-subsection">
+            <div class="net-sub-header" onclick="toggleNetSub('savedWifi')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+              Gespeicherte WLANs
+              <span class="net-sub-chevron" id="savedWifi-chevron">▾</span>
+            </div>
+            <div class="net-sub-body hidden" id="savedWifiBody">
+              <div id="savedWifiList" class="field-hint">Lade…</div>
+              <button class="btn btn-danger btn-sm mt-8" onclick="wifiReset()">Alle WLANs zurücksetzen</button>
+              <div class="net-warning mt-8">Nach dem Zurücksetzen öffnet der Pi den Hotspot <strong>HaniPi-Setup</strong> zur Neukonfiguration.</div>
+            </div>
+          </div>
+
+          <!-- 4G / LTE -->
+          <div class="net-subsection">
+            <div class="net-sub-header" onclick="toggleNetSub('modem4g')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              4G / LTE Stick
+              <span class="net-sub-chevron" id="modem4g-chevron">▾</span>
+            </div>
+            <div class="net-sub-body hidden" id="modem4gBody">
+              <div id="modemStatus" class="field-hint">Lade Modem-Status…</div>
+              <div id="modemForm" class="hidden">
+                <div class="field mt-12"><label>APN</label><input type="text" id="4g-apn" placeholder="internet.telekom"></div>
+                <div class="field-row">
+                  <div class="field"><label>Benutzername (optional)</label><input type="text" id="4g-user"></div>
+                  <div class="field"><label>Passwort (optional)</label><input type="password" id="4g-pass"></div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                  <button class="btn btn-primary btn-sm" onclick="connect4g()">Verbinden</button>
+                  <button class="btn btn-secondary btn-sm" onclick="disconnect4g()">Trennen</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -1180,8 +1276,162 @@ function updateSensorTc(idx, key, val) {
   markDirty();
 }
 
+// ── Network ────────────────────────────────────────────────────────────────
+let netDevices = { wifi: null, lan: null };
+
+function signalBars(pct) {
+  const levels = [25, 50, 75, 100];
+  const heights = ['4px','7px','10px','13px'];
+  return `<span class="net-signal-bar">${levels.map((l,i) =>
+    `<span style="height:${heights[i]}" class="${pct >= l ? 'lit' : ''}"></span>`
+  ).join('')}</span>`;
+}
+
+async function loadNetworkStatus() {
+  try {
+    const r = await fetch('/api/network/status');
+    const d = await r.json();
+
+    // WiFi card
+    const wifiCard = document.getElementById('wifiCard');
+    const wifi = d.wifi || {};
+    netDevices.wifi = wifi.device || null;
+    if (wifi.connected) {
+      wifiCard.innerHTML = `
+        <div class="net-card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+          WLAN · ${wifi.device || ''}
+        </div>
+        <div class="net-card-row"><span class="net-card-label">SSID</span><span class="net-card-value">${wifi.ssid}</span></div>
+        <div class="net-card-row"><span class="net-card-label">Signal</span><span class="net-card-value" style="display:flex;align-items:center;gap:6px">${signalBars(wifi.signal)}<span style="font-size:11px;color:var(--text-muted)">${wifi.signal}%</span></span></div>
+        ${wifi.security ? `<div class="net-card-row"><span class="net-card-label">Sicherheit</span><span class="net-card-value">${wifi.security}</span></div>` : ''}
+        ${wifi.ip ? `<div class="net-card-row"><span class="net-card-label">IP</span><span class="net-card-value">${wifi.ip}</span></div>` : ''}
+        <div style="margin-top:4px"><span class="tag" style="background:rgba(48,209,88,.12);color:var(--success);font-size:10px">Verbunden</span></div>`;
+    } else {
+      wifiCard.innerHTML = `
+        <div class="net-card-title">WLAN · ${wifi.device || 'wlan0'}</div>
+        <div style="font-size:12px;color:var(--text-faint)">Nicht verbunden</div>`;
+    }
+    document.getElementById('wifiIpSection').classList.toggle('hidden', !netDevices.wifi);
+
+    // LAN card
+    const lan = d.lan || {};
+    const lanCard = document.getElementById('lanCard');
+    if (lan.available !== false) {
+      netDevices.lan = lan.device || null;
+      lanCard.classList.remove('hidden');
+      lanCard.innerHTML = `
+        <div class="net-card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          LAN · ${lan.device}
+        </div>
+        <div class="net-card-row"><span class="net-card-label">Status</span><span class="net-card-value">${lan.connected ? 'Verbunden' : 'Kein Kabel'}</span></div>
+        ${lan.ip ? `<div class="net-card-row"><span class="net-card-label">IP</span><span class="net-card-value">${lan.ip}</span></div>` : ''}
+        <div style="margin-top:4px"><span class="tag" style="background:${lan.connected?'rgba(48,209,88,.12)':'var(--surface)'};color:${lan.connected?'var(--success)':'var(--text-faint)'};font-size:10px">${lan.connected?'Verbunden':'Getrennt'}</span></div>`;
+      document.getElementById('lanIpSection').classList.remove('hidden');
+      if (netDevices.lan) loadIpConfig('lan', netDevices.lan);
+    }
+    if (netDevices.wifi) loadIpConfig('wifi', netDevices.wifi);
+  } catch(e) {
+    document.getElementById('wifiCard').innerHTML = `<div class="net-card-loading">Fehler beim Laden.</div>`;
+  }
+  await loadSavedWifi();
+}
+
+function toggleNetSub(id) {
+  const body = document.getElementById(id + 'Body');
+  const chev = document.getElementById(id + '-chevron');
+  const open = body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open', open);
+}
+
+function toggleIpFields(iface) {
+  const mode = document.getElementById(iface + '-ip-mode').value;
+  document.getElementById(iface + '-static-fields').classList.toggle('hidden', mode !== 'static');
+}
+
+async function loadIpConfig(iface, device) {
+  try {
+    const r = await fetch(`/api/network/ip/${encodeURIComponent(device)}`);
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById(iface + '-ip-mode').value = d.mode;
+    document.getElementById(iface + '-ip-addr').value = d.address || '';
+    document.getElementById(iface + '-ip-gw').value   = d.gateway || '';
+    document.getElementById(iface + '-ip-dns').value  = d.dns     || '';
+    toggleIpFields(iface);
+  } catch {}
+}
+
+async function saveIpConfig(iface) {
+  const device = netDevices[iface];
+  if (!device) return;
+  const statusEl = document.getElementById(iface + '-ip-status');
+  statusEl.textContent = 'Speichern…';
+  const mode = document.getElementById(iface + '-ip-mode').value;
+  const body = {
+    mode,
+    address: document.getElementById(iface + '-ip-addr').value,
+    gateway: document.getElementById(iface + '-ip-gw').value,
+    dns:     document.getElementById(iface + '-ip-dns').value,
+  };
+  try {
+    const r = await fetch(`/api/network/ip/${encodeURIComponent(device)}`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body),
+    });
+    if (r.ok) {
+      statusEl.style.color = 'var(--success)';
+      statusEl.textContent = mode === 'dhcp' ? 'DHCP aktiv.' : 'Statische IP gesetzt — Verbindung kann sich kurz trennen.';
+    } else {
+      const err = await r.json();
+      statusEl.style.color = 'var(--danger)';
+      statusEl.textContent = err.detail || 'Fehler';
+    }
+  } catch {
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Netzwerkfehler';
+  }
+}
+
+async function loadSavedWifi() {
+  const list = document.getElementById('savedWifiList');
+  try {
+    const r = await fetch('/api/network/wifi/saved');
+    const networks = await r.json();
+    if (!networks.length) {
+      list.innerHTML = '<span style="color:var(--text-faint);font-size:12px">Keine gespeicherten WLANs.</span>';
+      return;
+    }
+    list.innerHTML = networks.map(n => `
+      <div class="net-card-row" style="padding:6px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px;font-weight:500">${n.name}</span>
+        <button class="btn btn-danger btn-sm" style="padding:3px 10px;font-size:11px" onclick="wifiForget('${n.name.replace(/'/g,"\\'")}')">Vergessen</button>
+      </div>`).join('');
+  } catch {
+    list.innerHTML = '<span style="color:var(--text-faint);font-size:12px">Fehler beim Laden.</span>';
+  }
+}
+
+async function wifiForget(name) {
+  if (!confirm(`WLAN "${name}" wirklich vergessen?`)) return;
+  await fetch('/api/network/wifi/forget', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name }),
+  });
+  await loadSavedWifi();
+  await loadNetworkStatus();
+}
+
+async function wifiReset() {
+  if (!confirm('Alle gespeicherten WLANs löschen? Der Pi öffnet danach den Setup-Hotspot.')) return;
+  await fetch('/api/network/wifi/reset', { method: 'POST' });
+  await loadSavedWifi();
+  await loadNetworkStatus();
+}
+
 loadConfig();
 loadModemStatus();
+loadNetworkStatus();
 </script>
 </body>
 </html>
