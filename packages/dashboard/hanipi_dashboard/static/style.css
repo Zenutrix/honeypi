@@ -448,6 +448,11 @@ main { padding: 16px 16px 90px; max-width: 1200px; margin: 0 auto; }
 .modal-close:hover { background: var(--border); color: var(--text); }
 .modal-body { padding: 16px 20px; overflow-x: auto; }
 
+/* ── MOBILE: nur Bottom-Nav, Header-Nav verstecken ── */
+@media (max-width: 1023px) {
+  header nav { display: none; }
+}
+
 /* ── DESKTOP ── */
 @media (min-width: 1024px) {
   main { padding: 24px 32px 32px; }
