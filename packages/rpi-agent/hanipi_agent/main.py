@@ -23,6 +23,8 @@ def main() -> None:
                 "Sensor '%s' (%s) konnte nicht initialisiert werden: %s",
                 s_cfg.get("name", "?"), s_cfg.get("type", "?"), exc,
             )
+    if "telegram" in cfg.exporters and cfg.exporters["telegram"].get("enabled"):
+        cfg.exporters["telegram"]["_hives"] = [h.model_dump() for h in cfg.hives]
     exporters = create_exporters(cfg.exporters)
 
     if not sensors:

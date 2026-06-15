@@ -130,6 +130,32 @@
             </div>
           </div>
 
+          <div class="exporter-item" id="exp-tg">
+            <div class="exporter-header" onclick="toggleExp('tg')">
+              <span class="exporter-title">Telegram</span>
+              <span class="exporter-badge" id="badge-tg">Aus</span>
+              <span style="color:var(--text-faint);font-size:11px">▾</span>
+            </div>
+            <div class="exporter-body" id="body-tg">
+              <div class="field"><label class="check-label"><input type="checkbox" id="tg-on" onchange="syncBadge('tg')"> Aktiviert</label></div>
+              <div class="field">
+                <label>Bot Token</label>
+                <input type="password" id="tg-token" placeholder="123456789:ABC-DEF...">
+                <div class="field-hint">Von @BotFather auf Telegram erhalten.</div>
+              </div>
+              <div class="field">
+                <label>Chat ID</label>
+                <input type="text" id="tg-chat" placeholder="-100123456789">
+                <div class="field-hint">Eigene Chat-ID oder Gruppen-ID (mit - für Gruppen).</div>
+              </div>
+              <div class="field">
+                <label>Sendezeit (HH:MM)</label>
+                <input type="time" id="tg-time" value="08:00">
+                <div class="field-hint">Täglicher Statusbericht — nur wenn Netzwerk verfügbar.</div>
+              </div>
+            </div>
+          </div>
+
           <div class="exporter-item" id="exp-mqtt">
             <div class="exporter-header" onclick="toggleExp('mqtt')">
               <span class="exporter-title">MQTT</span>
@@ -627,6 +653,12 @@ async function loadConfig() {
   const idb  = exp.influxdb   || {};
   const mqtt = exp.mqtt       || {};
 
+  const tg   = exp.telegram   || {};
+  document.getElementById('tg-on').checked    = !!tg.enabled;  syncBadge('tg');
+  document.getElementById('tg-token').value   = tg.bot_token  || '';
+  document.getElementById('tg-chat').value    = tg.chat_id    || '';
+  document.getElementById('tg-time').value    = tg.send_time  || '08:00';
+
   document.getElementById('ts-on').checked  = !!ts.enabled;  syncBadge('ts');
   document.getElementById('ts-key').value   = ts.api_key || '';
   tsMapping = ts.field_mapping || {};
@@ -674,6 +706,7 @@ async function saveConfig() {
     sensors,
     exporters: {
       local:      { enabled: true, db_path: '/var/lib/hanipi/data.db' },
+      telegram:   { enabled: document.getElementById('tg-on').checked, bot_token: document.getElementById('tg-token').value, chat_id: document.getElementById('tg-chat').value, send_time: document.getElementById('tg-time').value },
       thingspeak: { enabled: document.getElementById('ts-on').checked,   api_key: document.getElementById('ts-key').value, field_mapping: tsMapping },
       influxdb:   { enabled: document.getElementById('idb-on').checked,  url: document.getElementById('idb-url').value, bucket: document.getElementById('idb-bucket').value || 'hanipi', org: document.getElementById('idb-org').value, token: document.getElementById('idb-token').value },
       mqtt:       { enabled: document.getElementById('mqtt-on').checked, broker: document.getElementById('mqtt-broker').value, port: parseInt(document.getElementById('mqtt-port').value) || 1883, topic: document.getElementById('mqtt-topic').value || 'hanipi' },

@@ -4,12 +4,14 @@ from .local import LocalExporter
 from .thingspeak import ThingSpeakExporter
 from .influxdb import InfluxDBExporter
 from .mqtt import MQTTExporter
+from .telegram import TelegramExporter
 
 _REGISTRY: dict[str, type[BaseExporter]] = {
-    "local": LocalExporter,
+    "local":      LocalExporter,
     "thingspeak": ThingSpeakExporter,
-    "influxdb": InfluxDBExporter,
-    "mqtt": MQTTExporter,
+    "influxdb":   InfluxDBExporter,
+    "mqtt":       MQTTExporter,
+    "telegram":   TelegramExporter,
 }
 
 
