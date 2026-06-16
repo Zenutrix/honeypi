@@ -1,6 +1,8 @@
 import time
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from hanipi_agent.sensors.base import BaseSensor, Measurement
 
 
@@ -21,39 +23,40 @@ def test_measurement_has_values() -> None:
     assert m.name == "Test"
 
 
-from hanipi_agent.sensors.dummy import DummySensor
+def test_hx711_reads_weight() -> None:
+    mock_gpio = MagicMock()
+    mock_gpio.HIGH = 1
+    mock_gpio.LOW = 0
+    mock_gpio.input.return_value = 0  # constant DOUT -> raw reading of 0 every cycle
+    fake_rpi = MagicMock()
+    fake_rpi.GPIO = mock_gpio
 
+    with patch.dict("sys.modules", {"RPi": fake_rpi, "RPi.GPIO": mock_gpio}):
+        from importlib import reload
 
-def test_dummy_sensor_returns_configured_values() -> None:
-    s = DummySensor({"type": "dummy", "name": "Fake", "values": {"weight": 42.5, "temp": 21.0}})
-    m = s.read()
-    assert m.values["weight"] == pytest.approx(42.5, abs=5.0)
-    assert "temp" in m.values
+        import hanipi_agent.sensors.hx711 as hx711_mod
+        reload(hx711_mod)
 
-
-def test_dummy_sensor_default_values() -> None:
-    s = DummySensor({"type": "dummy", "name": "Default"})
-    m = s.read()
-    assert "value" in m.values
-
-
-def test_hx711_reads_weight(mocker: MagicMock) -> None:
-    mock_hx = mocker.patch("hanipi_agent.sensors.hx711.HX711")
-    mock_instance = mock_hx.return_value
-    mock_instance.get_weight_mean.return_value = 15340.0
-
-    from hanipi_agent.sensors.hx711 import HX711Sensor
-    s = HX711Sensor({"type": "hx711", "name": "Stock", "data_pin": 5, "clock_pin": 6, "reference_unit": 21.0})
-    m = s.read()
+        s = hx711_mod.HX711Sensor({
+            "type": "hx711", "name": "Stock",
+            "data_pin": 5, "clock_pin": 6, "reference_unit": 21.0,
+        })
+        m = s.read()
 
     assert "weight_kg" in m.values
-    assert m.values["weight_kg"] == pytest.approx(15340.0 / 1000, abs=0.1)
+    assert m.values["weight_kg"] == pytest.approx(0.0)
 
 
-def test_ds18b20_reads_temperature(mocker: MagicMock) -> None:
-    mock_sensor_cls = mocker.patch("hanipi_agent.sensors.ds18b20.W1ThermSensor")
-    mock_instance = mock_sensor_cls.return_value
-    mock_instance.get_temperature.return_value = 36.5
+def test_ds18b20_reads_temperature(tmp_path, mocker: MagicMock) -> None:
+    device_dir = tmp_path / "28-000000000000"
+    device_dir.mkdir()
+    w1_slave = device_dir / "w1_slave"
+    w1_slave.write_text(
+        "01 01 4b 46 7f ff 0c 10 56 : crc=56 YES\n01 01 4b 46 7f ff 0c 10 56 t=36500\n"
+    )
+
+    import hanipi_agent.sensors.ds18b20 as ds18b20_mod
+    mocker.patch.object(ds18b20_mod, "_W1_BASE", tmp_path)
 
     from hanipi_agent.sensors.ds18b20 import DS18B20Sensor
     s = DS18B20Sensor({"type": "ds18b20", "name": "BroodTemp"})
@@ -64,10 +67,12 @@ def test_ds18b20_reads_temperature(mocker: MagicMock) -> None:
 
 
 def test_bme280_reads_all_values(mocker: MagicMock) -> None:
-    mock_smbus = mocker.patch("hanipi_agent.sensors.bme280.smbus2")
+    mocker.patch("hanipi_agent.sensors.bme280.smbus2")
     mock_bme = mocker.patch("hanipi_agent.sensors.bme280.bme280_module")
     mock_bme.load_calibration_params.return_value = object()
-    mock_bme.sample.return_value = MagicMock(temperature=22.3, humidity=58.1, pressure=1013.2)
+    mock_bme.sample.return_value = MagicMock(
+        temperature=22.3, humidity=58.1, pressure=1013.2
+    )
 
     from hanipi_agent.sensors.bme280 import BME280Sensor
     s = BME280Sensor({"type": "bme280", "name": "OutsideWeather"})
@@ -79,14 +84,17 @@ def test_bme280_reads_all_values(mocker: MagicMock) -> None:
     assert m.values["temperature_c"] == pytest.approx(22.3)
 
 
-def test_sensor_factory_creates_dummy() -> None:
+def test_sensor_factory_creates_bme280(mocker: MagicMock) -> None:
+    mocker.patch("hanipi_agent.sensors.bme280.smbus2")
+    mocker.patch("hanipi_agent.sensors.bme280.bme280_module")
+
     from hanipi_agent.sensors import create_sensor
-    s = create_sensor({"type": "dummy", "name": "Test"})
-    from hanipi_agent.sensors.dummy import DummySensor
-    assert isinstance(s, DummySensor)
+    from hanipi_agent.sensors.bme280 import BME280Sensor
+    s = create_sensor({"type": "bme280", "name": "Test"})
+    assert isinstance(s, BME280Sensor)
 
 
 def test_sensor_factory_raises_on_unknown() -> None:
     from hanipi_agent.sensors import create_sensor
-    with pytest.raises(ValueError, match="Unknown sensor type"):
+    with pytest.raises(ValueError, match="Unbekannter Sensor-Typ"):
         create_sensor({"type": "nonexistent", "name": "X"})

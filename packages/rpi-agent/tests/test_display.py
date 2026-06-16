@@ -1,14 +1,13 @@
 from __future__ import annotations
-import sys
+
 import time
-from types import ModuleType
 from unittest.mock import MagicMock, patch
+
 import pytest
 
-from hanipi_agent.display.base import DisplayPage, BaseDisplay
+from hanipi_agent.display.base import DisplayPage
 from hanipi_agent.display.renderer import DisplayRenderer
 from hanipi_agent.sensors.base import Measurement
-
 
 # ── DisplayPage ──────────────────────────────────────────────────────────────
 
@@ -59,6 +58,7 @@ def test_tft_display_show_page_writes_to_device(tmp_path) -> None:
         "PIL.ImageFont": pil_mock.ImageFont,
     }):
         from importlib import reload
+
         import hanipi_agent.display.tft as tft_mod
         reload(tft_mod)
 
@@ -76,6 +76,7 @@ def test_tft_display_skips_when_pil_unavailable(tmp_path) -> None:
 
     with patch.dict("sys.modules", {"PIL": None}):
         from importlib import reload
+
         import hanipi_agent.display.tft as tft_mod
         try:
             reload(tft_mod)
@@ -86,47 +87,35 @@ def test_tft_display_skips_when_pil_unavailable(tmp_path) -> None:
             pass  # Expected when PIL is fully absent
 
 
-# ── HDMIDisplay (mocked pygame) ──────────────────────────────────────────────
+# ── HDMIDisplay (mocked PIL + framebuffer) ───────────────────────────────────
 
-def _make_pygame_mock() -> MagicMock:
-    pg = MagicMock()
-    pg.FULLSCREEN = 1
-    pg.display.set_mode.return_value = MagicMock()
-    pg.font.SysFont.return_value = MagicMock()
-    pg.Surface.return_value = MagicMock()
-    return pg
+def test_hdmi_display_start_skips_when_fb_missing(mocker: MagicMock) -> None:
+    mocker.patch("pathlib.Path.exists", return_value=False)
 
+    import hanipi_agent.display.hdmi as hdmi_mod
+    disp = hdmi_mod.HDMIDisplay()
+    disp.start()
 
-def test_hdmi_display_start_initializes_pygame() -> None:
-    pg_mock = _make_pygame_mock()
-
-    with patch.dict("sys.modules", {"pygame": pg_mock}):
-        from importlib import reload
-        import hanipi_agent.display.hdmi as hdmi_mod
-        reload(hdmi_mod)
-
-        disp = hdmi_mod.HDMIDisplay()
-        disp.start()
-
-    pg_mock.init.assert_called_once()
+    assert disp._available is False
 
 
-def test_hdmi_display_show_page_renders(tmp_path) -> None:
-    pg_mock = _make_pygame_mock()
-    screen = MagicMock()
-    pg_mock.display.set_mode.return_value = screen
+def test_hdmi_display_show_page_writes_to_framebuffer(mocker: MagicMock) -> None:
+    mocker.patch("pathlib.Path.exists", return_value=True)
+    mocker.patch("hanipi_agent.display.hdmi._detect_fb", return_value=(320, 240, 16))
+    mocker.patch("hanipi_agent.display.hdmi.HDMIDisplay._hide_cursor")
+    write_bytes = mocker.patch("pathlib.Path.write_bytes")
 
-    with patch.dict("sys.modules", {"pygame": pg_mock}):
-        from importlib import reload
-        import hanipi_agent.display.hdmi as hdmi_mod
-        reload(hdmi_mod)
+    import hanipi_agent.display.hdmi as hdmi_mod
+    disp = hdmi_mod.HDMIDisplay()
+    disp.start()
+    assert disp._available is True
 
-        disp = hdmi_mod.HDMIDisplay()
-        disp.start()
-        page = DisplayPage(hive_name="Feld", timestamp=time.time(), values={"temperature_c": 35.0})
-        disp.show_page(page)
+    page = DisplayPage(
+        hive_name="Feld", timestamp=time.time(), values={"temperature_c": 35.0}
+    )
+    disp.show_page(page)
 
-    pg_mock.display.flip.assert_called()
+    write_bytes.assert_called()
 
 
 # ── DisplayRenderer ──────────────────────────────────────────────────────────
@@ -152,8 +141,8 @@ def test_renderer_builds_pages_without_hive_config() -> None:
 
     pages = renderer._build_pages()
     assert len(pages) >= 1
-    # hive_id=None → name "Umgebung"
-    assert pages[0].hive_name == "Umgebung"
+    # hive_id=None → name "Alle Sensoren"
+    assert pages[0].hive_name == "Alle Sensoren"
     assert pages[0].battery_voltage == pytest.approx(3.8)
     assert "weight_kg" in pages[0].values
 

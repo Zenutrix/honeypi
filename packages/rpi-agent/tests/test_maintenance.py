@@ -1,9 +1,9 @@
 from __future__ import annotations
+
 import json
-import threading
-import time
 from pathlib import Path
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from hanipi_agent.maintenance import MaintenanceMonitor
@@ -124,10 +124,12 @@ def test_start_sets_up_gpio_and_starts_thread() -> None:
     mock_gpio.BCM = 11
     mock_gpio.IN = 1
     mock_gpio.PUD_UP = 22
+    fake_rpi = MagicMock()
+    fake_rpi.GPIO = mock_gpio
 
     mon = _make_monitor(gpio_pin=17)
 
-    with patch.dict("sys.modules", {"RPi": MagicMock(), "RPi.GPIO": mock_gpio}):
+    with patch.dict("sys.modules", {"RPi": fake_rpi, "RPi.GPIO": mock_gpio}):
         with patch.object(mon, "_poll_loop"):
             mon.start()
 
