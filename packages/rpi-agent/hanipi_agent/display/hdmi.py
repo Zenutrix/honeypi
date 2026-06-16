@@ -122,6 +122,12 @@ def _fonts(sizes: list[int]) -> list[FontT]:
             except OSError:
                 continue
         else:
+            logger.warning(
+                "DejaVu-Schriftart nicht gefunden (%s) — Anzeige nutzt PIL-"
+                "Mini-Fallback-Font, der jede Groessenangabe ignoriert. "
+                "Fix: sudo apt-get install fonts-dejavu-core",
+                bold,
+            )
             out.append(ImageFont.load_default())
     return out
 
