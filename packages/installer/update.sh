@@ -9,6 +9,11 @@ echo "==> HaniPi Update"
 echo "==> Code aktualisieren..."
 git -C "$INSTALL_DIR" pull
 
+echo "==> System-Build-Abhaengigkeiten pruefen..."
+# swig wird zum Bauen der lgpio-C-Extension (rpi-lgpio) benoetigt; idempotent,
+# falls schon installiert macht apt-get hier praktisch nichts.
+sudo apt-get install -y -qq swig python3-dev build-essential
+
 echo "==> Python-Pakete aktualisieren..."
 PYTHON="$INSTALL_DIR/venv/bin/python3"
 if [ ! -f "$PYTHON" ]; then PYTHON="$INSTALL_DIR/venv/bin/python"; fi
