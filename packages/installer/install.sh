@@ -16,7 +16,7 @@ sudo apt-get install -y -qq \
   i2c-tools \
   network-manager \
   modemmanager usb-modeswitch usb-modeswitch-data \
-  build-essential swig
+  build-essential swig liblgpio-dev
 
 # Enable I2C and 1-Wire interfaces if not already active
 if ! grep -q "^dtparam=i2c_arm=on" /boot/firmware/config.txt 2>/dev/null && \
