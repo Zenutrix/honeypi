@@ -1,7 +1,11 @@
 from __future__ import annotations
 import datetime
 import logging
+from typing import TYPE_CHECKING
 from .base import BaseDisplay, DisplayPage
+
+if TYPE_CHECKING:
+    from PIL import Image, ImageDraw, ImageFont
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +46,7 @@ class TFTDisplay(BaseDisplay):
         self._rotation = rotation
         self._available = False
         try:
-            from PIL import Image, ImageDraw, ImageFont  # type: ignore[import-untyped]
+            from PIL import Image, ImageDraw, ImageFont
             self._Image = Image
             self._ImageDraw = ImageDraw
             self._ImageFont = ImageFont
@@ -62,6 +66,9 @@ class TFTDisplay(BaseDisplay):
         img = self._Image.new("RGB", (WIDTH, HEIGHT), BG_COLOR)
         draw = self._ImageDraw.Draw(img)
         font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+        font_large: ImageFont.FreeTypeFont | ImageFont.ImageFont
+        font_med: ImageFont.FreeTypeFont | ImageFont.ImageFont
+        font_small: ImageFont.FreeTypeFont | ImageFont.ImageFont
         try:
             font_large = self._ImageFont.truetype(font_path, 26)
             font_med = self._ImageFont.truetype(font_path, 18)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 import logging
+from typing import Any
 import httpx
 from .base import BaseExporter
 from ..sensors.base import Measurement
@@ -9,7 +10,7 @@ _URL = "https://api.datacake.co/v1/device/measurements/"
 
 
 class DatacakeExporter(BaseExporter):
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: dict[str, Any]) -> None:
         self._token: str = config["token"]
         self._serial: str = config["serial_number"]
         self._field_mapping: dict[str, str] = config.get("field_mapping", {})

@@ -1,12 +1,13 @@
 from __future__ import annotations
 import json
-import paho.mqtt.client as mqtt  # type: ignore[import-untyped]
+from typing import Any
+import paho.mqtt.client as mqtt
 from .base import BaseExporter
 from ..sensors.base import Measurement
 
 
 class MQTTExporter(BaseExporter):
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: dict[str, Any]) -> None:
         self._topic: str = config.get("topic", "hanipi")
         self._client = mqtt.Client()
         self._client.connect(config["broker"], config.get("port", 1883))

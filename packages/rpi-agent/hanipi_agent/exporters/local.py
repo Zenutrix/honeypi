@@ -1,6 +1,7 @@
 from __future__ import annotations
 import sqlite3
 from pathlib import Path
+from typing import Any
 from .base import BaseExporter
 from ..sensors.base import Measurement
 
@@ -19,7 +20,7 @@ CREATE TABLE IF NOT EXISTS measurements (
 class LocalExporter(BaseExporter):
     realtime: bool = True
 
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: dict[str, Any]) -> None:
         db_path = Path(config.get("db_path", "/var/lib/hanipi/data.db"))
         db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(str(db_path), check_same_thread=False)

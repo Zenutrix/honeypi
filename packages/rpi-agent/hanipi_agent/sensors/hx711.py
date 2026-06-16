@@ -1,6 +1,7 @@
 from __future__ import annotations
 import time
 import logging
+from typing import Any
 from .base import BaseSensor, Measurement
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ except ImportError:
 class HX711Sensor(BaseSensor):
     """HX711 Wägezelle — liest direkt über RPi.GPIO, keine externe hx711-Library nötig."""
 
-    def _configure(self, config: dict) -> None:
+    def _configure(self, config: dict[str, Any]) -> None:
         if not _GPIO_AVAILABLE:
             raise RuntimeError("RPi.GPIO nicht installiert")
         self._data_pin: int = config["data_pin"]

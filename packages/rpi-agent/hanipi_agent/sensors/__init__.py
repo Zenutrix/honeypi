@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Any
 from .base import BaseSensor
 from .hx711 import HX711Sensor
 from .ds18b20 import DS18B20Sensor
@@ -17,7 +18,7 @@ _REGISTRY: dict[str, type[BaseSensor]] = {
 }
 
 
-def create_sensor(config: dict) -> BaseSensor:
+def create_sensor(config: dict[str, Any]) -> BaseSensor:
     sensor_type = config["type"]
     if sensor_type not in _REGISTRY:
         raise ValueError(

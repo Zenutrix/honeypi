@@ -2,6 +2,7 @@ from __future__ import annotations
 import glob
 import time
 from pathlib import Path
+from typing import Any
 from .base import BaseSensor, Measurement
 
 _W1_BASE = Path("/sys/bus/w1/devices")
@@ -24,7 +25,7 @@ def _read_temp(device: Path) -> float:
 class DS18B20Sensor(BaseSensor):
     """DS18B20 1-Wire Temperatursensor (liest direkt aus /sys/bus/w1/devices)."""
 
-    def _configure(self, config: dict) -> None:
+    def _configure(self, config: dict[str, Any]) -> None:
         self._index = int(config.get("sensor_index", 0))
         self._sensor_id: str | None = config.get("sensor_id")
 

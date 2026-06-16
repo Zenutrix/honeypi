@@ -1,17 +1,18 @@
 from __future__ import annotations
 import time
+from typing import Any
 from .base import BaseSensor, Measurement
 
 try:
-    import smbus2  # type: ignore[import-untyped]
-    import bme280 as bme280_module  # type: ignore[import-untyped]
+    import smbus2
+    import bme280 as bme280_module  # type: ignore[import-not-found]
 except ImportError:
     smbus2 = None  # type: ignore[assignment]
-    bme280_module = None  # type: ignore[assignment]
+    bme280_module = None
 
 
 class BME280Sensor(BaseSensor):
-    def _configure(self, config: dict) -> None:
+    def _configure(self, config: dict[str, Any]) -> None:
         if smbus2 is None or bme280_module is None:
             raise RuntimeError("smbus2 or RPi.bme280 package not installed")
         port = config.get("i2c_port", 1)

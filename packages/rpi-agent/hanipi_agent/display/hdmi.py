@@ -5,7 +5,12 @@ import math
 import struct
 import subprocess
 from pathlib import Path
+from typing import TYPE_CHECKING
 from .base import BaseDisplay, DisplayPage
+
+if TYPE_CHECKING:
+    from PIL import Image, ImageDraw, ImageFont
+    FontT = ImageFont.FreeTypeFont | ImageFont.ImageFont
 
 logger = logging.getLogger(__name__)
 
@@ -55,8 +60,8 @@ def _detect_fb() -> tuple[int, int, int]:
         return 1024, 600, 16
 
 
-def _to_bytes(img: object, bpp: int) -> bytes:
-    from PIL import Image  # type: ignore[import-untyped]
+def _to_bytes(img: Image.Image, bpp: int) -> bytes:
+    from PIL import Image
     assert isinstance(img, Image.Image)
     try:
         if bpp == 16:
@@ -75,11 +80,11 @@ def _to_bytes(img: object, bpp: int) -> bytes:
         return b""
 
 
-def _fonts(sizes: list[int]) -> list:
-    from PIL import ImageFont  # type: ignore[import-untyped]
+def _fonts(sizes: list[int]) -> list[FontT]:
+    from PIL import ImageFont
     bold = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
     reg  = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-    out  = []
+    out: list[FontT] = []
     for i, size in enumerate(sizes):
         path = bold if i % 2 == 0 else reg
         for p in (path, bold, reg):
@@ -130,16 +135,17 @@ def _get_network() -> list[tuple[str, str, bool]]:
     return result or [("Netzwerk", "nicht verbunden", False)]
 
 
-def _pill(d: object, x0: int, y0: int, x1: int, y1: int,
-          fill: tuple, radius: int) -> None:
+def _pill(d: ImageDraw.ImageDraw, x0: int, y0: int, x1: int, y1: int,
+          fill: tuple[int, int, int], radius: int) -> None:
     """Gefülltes Rechteck mit runden Ecken."""
-    d.rounded_rectangle([x0, y0, x1, y1], radius=radius, fill=fill)  # type: ignore
+    d.rounded_rectangle([x0, y0, x1, y1], radius=radius, fill=fill)
 
 
-def _pill_outline(d: object, x0: int, y0: int, x1: int, y1: int,
-                  fill: tuple, outline: tuple, radius: int) -> None:
+def _pill_outline(d: ImageDraw.ImageDraw, x0: int, y0: int, x1: int, y1: int,
+                  fill: tuple[int, int, int], outline: tuple[int, int, int],
+                  radius: int) -> None:
     d.rounded_rectangle([x0, y0, x1, y1], radius=radius,
-                        fill=fill, outline=outline)  # type: ignore
+                        fill=fill, outline=outline)
 
 
 # ── Display ───────────────────────────────────────────────────────────────────
@@ -156,7 +162,7 @@ class HDMIDisplay(BaseDisplay):
 
     def start(self) -> None:
         try:
-            from PIL import Image  # type: ignore[import-untyped]  # noqa: F401
+            from PIL import Image  # noqa: F401
         except ImportError:
             logger.warning("Pillow nicht installiert")
             return
@@ -184,8 +190,8 @@ class HDMIDisplay(BaseDisplay):
             except Exception:
                 pass
 
-    def _flush(self, img: object) -> None:
-        from PIL import Image  # type: ignore[import-untyped]
+    def _flush(self, img: Image.Image) -> None:
+        from PIL import Image
         assert isinstance(img, Image.Image)
         if self._rotation:
             img = img.rotate(self._rotation, expand=True)
@@ -193,8 +199,8 @@ class HDMIDisplay(BaseDisplay):
         if raw:
             _FB.write_bytes(raw)
 
-    def _new(self) -> tuple:
-        from PIL import Image, ImageDraw  # type: ignore[import-untyped]
+    def _new(self) -> tuple[Image.Image, ImageDraw.ImageDraw]:
+        from PIL import Image, ImageDraw
         img = Image.new("RGB", (self._w, self._h), BG)
         return img, ImageDraw.Draw(img)
 
@@ -219,7 +225,7 @@ class HDMIDisplay(BaseDisplay):
 
             # Logo "HaniPi" — "Hani" weiß, "Pi" amber
             try:
-                hani_w = int(f_logo.getlength("Hani"))  # type: ignore
+                hani_w = int(f_logo.getlength("Hani"))
                 pi_w   = int(f_logo.getlength("Pi"))
                 total  = hani_w + pi_w
                 lx = cx - total // 2
@@ -419,9 +425,10 @@ class HDMIDisplay(BaseDisplay):
 
         self._flush(img)
 
-    def _draw_hero(self, d: object, item: tuple, accent: tuple,
+    def _draw_hero(self, d: ImageDraw.ImageDraw, item: tuple[str, float],
+                   accent: tuple[int, int, int],
                    x0: int, y0: int, x1: int, y1: int,
-                   f_lbl: object, f_val: object, f_unit: object) -> None:
+                   f_lbl: FontT, f_val: FontT, f_unit: FontT) -> None:
         key, val = item
         lbl  = LABEL_MAP.get(key, key)
         unit = UNIT_MAP.get(key, "")
@@ -431,7 +438,7 @@ class HDMIDisplay(BaseDisplay):
         _pill_outline(d, x0, y0, x1, y1, SURFACE, BORDER, self._s(14))
         # Amber-Akzentlinie oben auf Karte
         d.rounded_rectangle([x0 + 1, y0 + 1, x1 - 1, y0 + self._s(3)],
-                            radius=self._s(14), fill=accent)  # type: ignore
+                            radius=self._s(14), fill=accent)
 
         d.text((cx, cy - self._s(34)), lbl.upper(),
                fill=MUTED, font=f_lbl, anchor="mm")
@@ -441,15 +448,16 @@ class HDMIDisplay(BaseDisplay):
                fill=WHITE, font=f_val, anchor="mm")
 
         try:
-            val_w = int(f_val.getlength(val_str))  # type: ignore
+            val_w = int(f_val.getlength(val_str))
         except Exception:
             val_w = self._s(80)
         d.text((cx + val_w // 2 + self._s(6), cy + self._s(18)),
                unit, fill=accent, font=f_unit, anchor="lm")
 
-    def _draw_tile(self, d: object, item: tuple, accent: tuple,
+    def _draw_tile(self, d: ImageDraw.ImageDraw, item: tuple[str, float],
+                   accent: tuple[int, int, int],
                    x0: int, y0: int, x1: int, y1: int,
-                   f_lbl: object, f_val: object, f_unit: object) -> None:
+                   f_lbl: FontT, f_val: FontT, f_unit: FontT) -> None:
         key, val = item
         lbl  = LABEL_MAP.get(key, key)
         unit = UNIT_MAP.get(key, "")
@@ -458,7 +466,7 @@ class HDMIDisplay(BaseDisplay):
 
         _pill_outline(d, x0, y0, x1, y1, SURFACE, BORDER, self._s(12))
         d.rounded_rectangle([x0 + 1, y0 + 1, x1 - 1, y0 + self._s(3)],
-                            radius=self._s(12), fill=accent)  # type: ignore
+                            radius=self._s(12), fill=accent)
 
         d.text((cx, cy - self._s(20)), lbl.upper(),
                fill=MUTED, font=f_lbl, anchor="mm")
@@ -468,7 +476,7 @@ class HDMIDisplay(BaseDisplay):
                fill=WHITE, font=f_val, anchor="mm")
 
         try:
-            val_w = int(f_val.getlength(val_str))  # type: ignore
+            val_w = int(f_val.getlength(val_str))
         except Exception:
             val_w = self._s(50)
         d.text((cx + val_w // 2 + self._s(4), cy + self._s(12)),

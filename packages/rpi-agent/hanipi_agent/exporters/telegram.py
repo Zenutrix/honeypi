@@ -6,6 +6,7 @@ import urllib.request
 import urllib.error
 from collections import defaultdict
 from pathlib import Path
+from typing import Any
 from .base import BaseExporter
 from ..sensors.base import Measurement
 
@@ -45,7 +46,7 @@ _MONTHS   = ["Januar","Februar","März","April","Mai","Juni",
 class TelegramExporter(BaseExporter):
     realtime: bool = False
 
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: dict[str, Any]) -> None:
         self._bot_token = config.get("bot_token", "").strip()
         self._chat_id   = str(config.get("chat_id", "")).strip()
         self._send_time = config.get("send_time", "08:00")

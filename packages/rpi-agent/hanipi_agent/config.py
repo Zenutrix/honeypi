@@ -1,6 +1,7 @@
 from __future__ import annotations
 import json
 from pathlib import Path
+from typing import Any
 from pydantic import BaseModel, Field
 
 
@@ -39,8 +40,8 @@ class HaniPiConfig(BaseModel):
     maintenance_switch: MaintenanceSwitchConfig = Field(default_factory=MaintenanceSwitchConfig)
     display: DisplayConfig = Field(default_factory=DisplayConfig)
     # Existing
-    sensors: list[dict] = Field(default_factory=list)
-    exporters: dict[str, dict] = Field(default_factory=dict)
+    sensors: list[dict[str, Any]] = Field(default_factory=list)
+    exporters: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
     @property
     def effective_measure_interval(self) -> int:

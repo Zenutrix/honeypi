@@ -1,5 +1,6 @@
 from __future__ import annotations
 import logging
+from typing import Any
 import httpx
 from .base import BaseExporter
 from ..sensors.base import Measurement
@@ -9,12 +10,12 @@ _URL = "https://api.thingspeak.com/update"
 
 
 class ThingSpeakExporter(BaseExporter):
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: dict[str, Any]) -> None:
         self._api_key: str = config["api_key"]
         self._field_mapping: dict[str, str] = config.get("field_mapping", {})
 
     def export(self, measurement: Measurement) -> None:
-        params: dict[str, object] = {"api_key": self._api_key}
+        params: dict[str, str | float] = {"api_key": self._api_key}
         for key, value in measurement.values.items():
             full_key = f"{measurement.name}.{key}"
             field = self._field_mapping.get(full_key) or self._field_mapping.get(key)

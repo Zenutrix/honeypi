@@ -1,9 +1,10 @@
 from __future__ import annotations
 import time
+from typing import Any
 from .base import BaseSensor, Measurement
 
 try:
-    import smbus2  # type: ignore[import-untyped]
+    import smbus2
     _HW_AVAILABLE = True
 except ImportError:
     _HW_AVAILABLE = False
@@ -16,7 +17,7 @@ _CONT_H_RES = 0x10  # continuous high resolution mode (1 lux resolution)
 class BH1750Sensor(BaseSensor):
     """BH1750 digital ambient light sensor via I2C."""
 
-    def _configure(self, config: dict) -> None:
+    def _configure(self, config: dict[str, Any]) -> None:
         self._port = config.get("i2c_port", 1)
         self._address = config.get("i2c_address", 0x23)  # 0x5C if ADDR pin high
 

@@ -1,9 +1,10 @@
 from __future__ import annotations
 import time
+from typing import Any
 from .base import BaseSensor, Measurement
 
 try:
-    import smbus2  # type: ignore[import-untyped]
+    import smbus2
     _HW_AVAILABLE = True
 except ImportError:
     _HW_AVAILABLE = False
@@ -32,7 +33,7 @@ class ADS1115Sensor(BaseSensor):
       voltage_divider: float multiplier to recover actual voltage (e.g. 5.7 for 100k/20k divider)
     """
 
-    def _configure(self, config: dict) -> None:
+    def _configure(self, config: dict[str, Any]) -> None:
         self._port = config.get("i2c_port", 1)
         self._address = config.get("i2c_address", 0x48)
         self._channel = int(config.get("channel", 0))

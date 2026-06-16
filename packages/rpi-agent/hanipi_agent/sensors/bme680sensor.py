@@ -1,9 +1,10 @@
 from __future__ import annotations
 import time
+from typing import Any
 from .base import BaseSensor, Measurement
 
 try:
-    import bme680  # type: ignore[import-untyped]
+    import bme680  # type: ignore[import-not-found]
     _HW_AVAILABLE = True
 except ImportError:
     _HW_AVAILABLE = False
@@ -12,7 +13,7 @@ except ImportError:
 class BME680Sensor(BaseSensor):
     """BME680 environmental sensor: temperature, humidity, pressure, gas resistance."""
 
-    def _configure(self, config: dict) -> None:
+    def _configure(self, config: dict[str, Any]) -> None:
         if not _HW_AVAILABLE:
             return
         address = config.get("i2c_address", bme680.I2C_ADDR_PRIMARY)

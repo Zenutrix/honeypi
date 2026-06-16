@@ -48,13 +48,13 @@ class MaintenanceMonitor:
             self._thread.join(timeout=2)
         try:
             if self._gpio is not None:
-                import RPi.GPIO as GPIO  # type: ignore[import-untyped]
+                import RPi.GPIO as GPIO
                 GPIO.cleanup(self._gpio_pin)
         except Exception:
             pass
 
     def _poll_loop(self) -> None:
-        import RPi.GPIO as GPIO  # type: ignore[import-untyped]
+        import RPi.GPIO as GPIO
         while not self._stop_event.is_set():
             try:
                 pin_low = GPIO.input(self._gpio_pin) == GPIO.LOW

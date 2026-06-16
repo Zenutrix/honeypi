@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Any
 from .base import BaseExporter
 from .local import LocalExporter
 from .thingspeak import ThingSpeakExporter
@@ -17,7 +18,7 @@ _REGISTRY: dict[str, type[BaseExporter]] = {
 }
 
 
-def create_exporters(config: dict[str, dict]) -> list[BaseExporter]:
+def create_exporters(config: dict[str, dict[str, Any]]) -> list[BaseExporter]:
     return [
         _REGISTRY[name](cfg)
         for name, cfg in config.items()

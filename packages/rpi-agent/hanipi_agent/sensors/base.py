@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -12,13 +13,13 @@ class Measurement:
 
 
 class BaseSensor(ABC):
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: dict[str, Any]) -> None:
         self.name: str = config.get("name", self.__class__.__name__)
         self.hive_id: str | None = config.get("hive_id")
         self.paused: bool = False
         self._configure(config)
 
-    def _configure(self, config: dict) -> None:
+    def _configure(self, config: dict[str, Any]) -> None:
         pass
 
     @abstractmethod

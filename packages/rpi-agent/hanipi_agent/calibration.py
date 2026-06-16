@@ -4,6 +4,9 @@ import logging
 import threading
 import time
 from pathlib import Path
+from typing import Any
+from .sensors.base import BaseSensor
+from .sensors.hx711 import HX711Sensor
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +18,7 @@ CONFIG_PATH = Path("/etc/hanipi/hanipi.json")
 class CalibrationServer:
     """Polls for calibration commands from the dashboard and executes them on HX711 sensors."""
 
-    def __init__(self, sensors: list) -> None:
+    def __init__(self, sensors: list[BaseSensor]) -> None:
         self._sensors = sensors
         self._thread: threading.Thread | None = None
         self._running = False
@@ -49,7 +52,7 @@ class CalibrationServer:
                         pass
             time.sleep(2)
 
-    def _execute(self, cmd: dict) -> dict:
+    def _execute(self, cmd: dict[str, Any]) -> dict[str, Any]:
         action = cmd.get("action")
         sensor_name = cmd.get("sensor_name")
 
@@ -60,7 +63,7 @@ class CalibrationServer:
         if action == "tare":
             raw = sensor._read_raw_mean(20)
             sensor._offset = raw
-            result: dict = {
+            result: dict[str, Any] = {
                 "status": "ok",
                 "action": "tare",
                 "offset": round(raw, 2),
@@ -151,9 +154,9 @@ class CalibrationServer:
         except Exception as exc:
             logger.warning("Could not persist temp ref: %s", exc)
 
-    def _find_hx711(self, sensor_name: str | None):
+    def _find_hx711(self, sensor_name: str | None) -> HX711Sensor | None:
         for s in self._sensors:
-            if s.__class__.__name__ == "HX711Sensor":
+            if isinstance(s, HX711Sensor):
                 if sensor_name is None or s.name == sensor_name:
                     return s
         return None
