@@ -18,7 +18,16 @@ echo "==> Python-Pakete aktualisieren..."
 PYTHON="$INSTALL_DIR/venv/bin/python3"
 if [ ! -f "$PYTHON" ]; then PYTHON="$INSTALL_DIR/venv/bin/python"; fi
 "$PYTHON" -m ensurepip -q 2>/dev/null || true
+# Erst neue/geaenderte Abhaengigkeiten normal aufloesen ...
 "$PYTHON" -m pip install -q \
+  "$INSTALL_DIR/packages/dashboard" \
+  "$INSTALL_DIR/packages/rpi-agent"
+# ... dann hanipi-agent/-dashboard selbst IMMER neu bauen+installieren.
+# Ohne --force-reinstall ueberspringt pip lokale Pfad-Installs, wenn die
+# Versionsnummer gleich bleibt ("Requirement already satisfied") - der
+# eigentliche Quellcode wuerde dann NIE aktualisiert werden, nur neue
+# Abhaengigkeiten kaemen an.
+"$PYTHON" -m pip install -q --force-reinstall --no-deps \
   "$INSTALL_DIR/packages/dashboard" \
   "$INSTALL_DIR/packages/rpi-agent"
 
