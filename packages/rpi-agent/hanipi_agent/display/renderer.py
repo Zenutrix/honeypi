@@ -1,14 +1,37 @@
 from __future__ import annotations
+
 import logging
 import threading
 import time
 from typing import TYPE_CHECKING
+
 from .base import BaseDisplay, DisplayPage
 
 if TYPE_CHECKING:
     from ..sensors.base import Measurement
 
 logger = logging.getLogger(__name__)
+
+_MAX_VALUES_PER_PAGE = 3
+
+
+def _chunk_values(values: dict[str, float]) -> list[dict[str, float]]:
+    """Split a hive's measurements into groups of at most _MAX_VALUES_PER_PAGE.
+
+    Keeps the HDMI display readable (see docs/superpowers/specs/
+    2026-06-16-hdmi-display-design-language.md). weight_kg, if present, is
+    always the first key of the first chunk since it becomes the hero value.
+    """
+    keys = list(values.keys())
+    if "weight_kg" in keys:
+        keys.remove("weight_kg")
+        keys.insert(0, "weight_kg")
+    if not keys:
+        return [{}]
+    return [
+        {k: values[k] for k in keys[i : i + _MAX_VALUES_PER_PAGE]}
+        for i in range(0, len(keys), _MAX_VALUES_PER_PAGE)
+    ]
 
 
 class DisplayRenderer:
@@ -81,13 +104,16 @@ class DisplayRenderer:
                 color = "#f59e0b"
 
             batt = values.pop("voltage_v", None)
-            pages.append(DisplayPage(
-                hive_name=name,
-                timestamp=timestamps.get(hid, time.time()),
-                values=values,
-                hive_color=color,
-                battery_voltage=batt,
-            ))
+            for chunk in _chunk_values(values):
+                pages.append(
+                    DisplayPage(
+                        hive_name=name,
+                        timestamp=timestamps.get(hid, time.time()),
+                        values=chunk,
+                        hive_color=color,
+                        battery_voltage=batt,
+                    )
+                )
         return pages
 
     def _loop(self) -> None:

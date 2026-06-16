@@ -1,15 +1,20 @@
 from __future__ import annotations
+
 from typing import Any
+
 from influxdb_client.client.influxdb_client import InfluxDBClient
 from influxdb_client.client.write.point import Point
 from influxdb_client.client.write_api import SYNCHRONOUS
-from .base import BaseExporter
+
 from ..sensors.base import Measurement
+from .base import BaseExporter
 
 
 class InfluxDBExporter(BaseExporter):
     def __init__(self, config: dict[str, Any]) -> None:
-        self._client = InfluxDBClient(url=config["url"], token=config["token"], org=config["org"])
+        self._client = InfluxDBClient(
+            url=config["url"], token=config["token"], org=config["org"]
+        )
         self._write_api = self._client.write_api(write_options=SYNCHRONOUS)
         self._bucket: str = config["bucket"]
         self._org: str = config["org"]

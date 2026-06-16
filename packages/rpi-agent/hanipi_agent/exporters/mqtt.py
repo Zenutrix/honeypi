@@ -1,9 +1,12 @@
 from __future__ import annotations
+
 import json
 from typing import Any
+
 import paho.mqtt.client as mqtt
-from .base import BaseExporter
+
 from ..sensors.base import Measurement
+from .base import BaseExporter
 
 
 class MQTTExporter(BaseExporter):
@@ -14,7 +17,13 @@ class MQTTExporter(BaseExporter):
         self._client.loop_start()
 
     def export(self, measurement: Measurement) -> None:
-        payload = json.dumps({"sensor": measurement.name, "timestamp": measurement.timestamp, **measurement.values})
+        payload = json.dumps(
+            {
+                "sensor": measurement.name,
+                "timestamp": measurement.timestamp,
+                **measurement.values,
+            }
+        )
         self._client.publish(f"{self._topic}/{measurement.name}", payload)
 
     def close(self) -> None:

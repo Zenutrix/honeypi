@@ -30,6 +30,7 @@ def _make_monitor(gpio_pin: int = 17, sensors=None) -> MaintenanceMonitor:
 
 # ── _set_hx711_paused ────────────────────────────────────────────────────────
 
+
 def test_set_hx711_paused_pauses_hx711_sensors() -> None:
     hx = _make_hx711()
     non_hx = MagicMock()
@@ -53,8 +54,10 @@ def test_set_hx711_paused_unpauses() -> None:
 
 # ── _write_status ────────────────────────────────────────────────────────────
 
+
 def test_write_status_active(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import hanipi_agent.maintenance as m_mod
+
     status_file = tmp_path / "maintenance.json"
     monkeypatch.setattr(m_mod, "_STATUS_FILE", status_file)
 
@@ -68,6 +71,7 @@ def test_write_status_active(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) ->
 
 def test_write_status_inactive(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import hanipi_agent.maintenance as m_mod
+
     status_file = tmp_path / "maintenance.json"
     monkeypatch.setattr(m_mod, "_STATUS_FILE", status_file)
 
@@ -81,10 +85,12 @@ def test_write_status_inactive(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
 
 # ── _activate / _deactivate ──────────────────────────────────────────────────
 
+
 def test_activate_pauses_hx711_and_calls_hotspot(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     import hanipi_agent.maintenance as m_mod
+
     monkeypatch.setattr(m_mod, "_STATUS_FILE", tmp_path / "m.json")
 
     hx = _make_hx711()
@@ -102,6 +108,7 @@ def test_deactivate_unpauses_hx711_and_calls_hotspot(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     import hanipi_agent.maintenance as m_mod
+
     monkeypatch.setattr(m_mod, "_STATUS_FILE", tmp_path / "m.json")
 
     hx = _make_hx711()
@@ -119,6 +126,7 @@ def test_deactivate_unpauses_hx711_and_calls_hotspot(
 
 # ── start() with mock GPIO ───────────────────────────────────────────────────
 
+
 def test_start_sets_up_gpio_and_starts_thread() -> None:
     mock_gpio = MagicMock()
     mock_gpio.BCM = 11
@@ -134,7 +142,9 @@ def test_start_sets_up_gpio_and_starts_thread() -> None:
             mon.start()
 
     mock_gpio.setmode.assert_called_once_with(mock_gpio.BCM)
-    mock_gpio.setup.assert_called_once_with(17, mock_gpio.IN, pull_up_down=mock_gpio.PUD_UP)
+    mock_gpio.setup.assert_called_once_with(
+        17, mock_gpio.IN, pull_up_down=mock_gpio.PUD_UP
+    )
 
 
 def test_start_disables_gracefully_when_gpio_unavailable() -> None:
@@ -150,6 +160,7 @@ def test_start_disables_gracefully_when_gpio_unavailable() -> None:
 
 
 # ── is_active property ───────────────────────────────────────────────────────
+
 
 def test_is_active_reflects_internal_state() -> None:
     mon = _make_monitor()

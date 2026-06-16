@@ -35,12 +35,18 @@ def test_hx711_reads_weight() -> None:
         from importlib import reload
 
         import hanipi_agent.sensors.hx711 as hx711_mod
+
         reload(hx711_mod)
 
-        s = hx711_mod.HX711Sensor({
-            "type": "hx711", "name": "Stock",
-            "data_pin": 5, "clock_pin": 6, "reference_unit": 21.0,
-        })
+        s = hx711_mod.HX711Sensor(
+            {
+                "type": "hx711",
+                "name": "Stock",
+                "data_pin": 5,
+                "clock_pin": 6,
+                "reference_unit": 21.0,
+            }
+        )
         m = s.read()
 
     assert "weight_kg" in m.values
@@ -56,9 +62,11 @@ def test_ds18b20_reads_temperature(tmp_path, mocker: MagicMock) -> None:
     )
 
     import hanipi_agent.sensors.ds18b20 as ds18b20_mod
+
     mocker.patch.object(ds18b20_mod, "_W1_BASE", tmp_path)
 
     from hanipi_agent.sensors.ds18b20 import DS18B20Sensor
+
     s = DS18B20Sensor({"type": "ds18b20", "name": "BroodTemp"})
     m = s.read()
 
@@ -75,6 +83,7 @@ def test_bme280_reads_all_values(mocker: MagicMock) -> None:
     )
 
     from hanipi_agent.sensors.bme280 import BME280Sensor
+
     s = BME280Sensor({"type": "bme280", "name": "OutsideWeather"})
     m = s.read()
 
@@ -90,11 +99,13 @@ def test_sensor_factory_creates_bme280(mocker: MagicMock) -> None:
 
     from hanipi_agent.sensors import create_sensor
     from hanipi_agent.sensors.bme280 import BME280Sensor
+
     s = create_sensor({"type": "bme280", "name": "Test"})
     assert isinstance(s, BME280Sensor)
 
 
 def test_sensor_factory_raises_on_unknown() -> None:
     from hanipi_agent.sensors import create_sensor
+
     with pytest.raises(ValueError, match="Unbekannter Sensor-Typ"):
         create_sensor({"type": "nonexistent", "name": "X"})

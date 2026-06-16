@@ -1,20 +1,23 @@
 from __future__ import annotations
-import time
+
 import logging
+import time
 from typing import Any
+
 from .base import BaseSensor, Measurement
 
 logger = logging.getLogger(__name__)
 
 try:
     import RPi.GPIO as GPIO  # type: ignore[import-untyped]
+
     _GPIO_AVAILABLE = True
 except ImportError:
     _GPIO_AVAILABLE = False
 
 
 class HX711Sensor(BaseSensor):
-    """HX711 Wägezelle — liest direkt über RPi.GPIO, keine externe hx711-Library nötig."""
+    """HX711 Wägezelle — liest direkt über RPi.GPIO, keine externe hx711-Library."""
 
     def _configure(self, config: dict[str, Any]) -> None:
         if not _GPIO_AVAILABLE:
@@ -44,8 +47,12 @@ class HX711Sensor(BaseSensor):
         self._offset = self._read_raw_mean(10)
         logger.info(
             "HX711 '%s' tare offset: %.0f  ref_unit=%.4f  temp_comp=%s",
-            self.name, self._offset, self._ref_unit,
-            f"on (ref={self._tc_ref_c}°C coeff={self._tc_coeff})" if self._tc_enabled else "off",
+            self.name,
+            self._offset,
+            self._ref_unit,
+            f"on (ref={self._tc_ref_c}°C coeff={self._tc_coeff})"
+            if self._tc_enabled
+            else "off",
         )
 
     def set_current_temp(self, temp_c: float) -> None:
@@ -89,7 +96,10 @@ class HX711Sensor(BaseSensor):
             weight_kg -= delta_t * self._tc_coeff
             logger.debug(
                 "HX711 '%s' temp comp: T=%.1f ref=%.1f Δ=%.2f correction=%.4f kg",
-                self.name, self._current_temp_c, self._tc_ref_c, delta_t,
+                self.name,
+                self._current_temp_c,
+                self._tc_ref_c,
+                delta_t,
                 delta_t * self._tc_coeff,
             )
 

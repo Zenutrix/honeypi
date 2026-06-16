@@ -1,22 +1,27 @@
 from __future__ import annotations
+
 import json
 import uuid
+from typing import Any
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from .config import CONFIG_PATH, _systemctl
+
+from . import config as cfg_module
 
 router = APIRouter()
 
 
-def _read_cfg() -> dict:
-    if not CONFIG_PATH.exists():
+def _read_cfg() -> dict[str, Any]:
+    if not cfg_module.CONFIG_PATH.exists():
         return {}
-    return json.loads(CONFIG_PATH.read_text())
+    data: dict[str, Any] = json.loads(cfg_module.CONFIG_PATH.read_text())
+    return data
 
 
-def _write_cfg(cfg: dict) -> None:
-    CONFIG_PATH.write_text(json.dumps(cfg, indent=2, ensure_ascii=False))
-    _systemctl("restart")
+def _write_cfg(cfg: dict[str, Any]) -> None:
+    cfg_module.CONFIG_PATH.write_text(json.dumps(cfg, indent=2, ensure_ascii=False))
+    cfg_module._systemctl("restart")
 
 
 class HiveBody(BaseModel):
@@ -25,13 +30,14 @@ class HiveBody(BaseModel):
 
 
 @router.get("/hives")
-def list_hives() -> list[dict]:
+def list_hives() -> list[dict[str, Any]]:
     cfg = _read_cfg()
-    return cfg.get("hives", [])
+    hives: list[dict[str, Any]] = cfg.get("hives", [])
+    return hives
 
 
 @router.post("/hives")
-def add_hive(body: HiveBody) -> dict:
+def add_hive(body: HiveBody) -> dict[str, Any]:
     cfg = _read_cfg()
     hive = {"id": str(uuid.uuid4()), "name": body.name, "color": body.color}
     cfg.setdefault("hives", []).append(hive)
@@ -40,9 +46,9 @@ def add_hive(body: HiveBody) -> dict:
 
 
 @router.put("/hives/{hive_id}")
-def update_hive(hive_id: str, body: HiveBody) -> dict:
+def update_hive(hive_id: str, body: HiveBody) -> dict[str, Any]:
     cfg = _read_cfg()
-    hives: list[dict] = cfg.get("hives", [])
+    hives: list[dict[str, Any]] = cfg.get("hives", [])
     for h in hives:
         if h["id"] == hive_id:
             h["name"] = body.name
@@ -53,9 +59,9 @@ def update_hive(hive_id: str, body: HiveBody) -> dict:
 
 
 @router.delete("/hives/{hive_id}")
-def delete_hive(hive_id: str) -> dict:
+def delete_hive(hive_id: str) -> dict[str, Any]:
     cfg = _read_cfg()
-    hives: list[dict] = cfg.get("hives", [])
+    hives: list[dict[str, Any]] = cfg.get("hives", [])
     cfg["hives"] = [h for h in hives if h["id"] != hive_id]
     # Clear hive_id from sensors
     for sensor in cfg.get("sensors", []):

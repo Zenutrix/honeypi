@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 import json
 import logging
 import threading
 import time
 from pathlib import Path
 from typing import Any
+
 from .sensors.base import BaseSensor
 from .sensors.hx711 import HX711Sensor
 
@@ -16,7 +18,7 @@ CONFIG_PATH = Path("/etc/hanipi/hanipi.json")
 
 
 class CalibrationServer:
-    """Polls for calibration commands from the dashboard and executes them on HX711 sensors."""
+    """Polls for calibration commands from the dashboard and executes them on HX711."""
 
     def __init__(self, sensors: list[BaseSensor]) -> None:
         self._sensors = sensors
@@ -25,7 +27,9 @@ class CalibrationServer:
 
     def start(self) -> None:
         self._running = True
-        self._thread = threading.Thread(target=self._loop, daemon=True, name="calibration")
+        self._thread = threading.Thread(
+            target=self._loop, daemon=True, name="calibration"
+        )
         self._thread.start()
         logger.info("CalibrationServer started")
 
@@ -112,10 +116,18 @@ class CalibrationServer:
 
         if action == "set_temp_ref":
             if not sensor._tc_sensor:
-                return {"status": "error", "error": "Kein Temperatursensor konfiguriert"}
+                return {
+                    "status": "error",
+                    "error": "Kein Temperatursensor konfiguriert",
+                }
             temp_c = self._read_temp(sensor._tc_sensor)
             if temp_c is None:
-                return {"status": "error", "error": f"Sensor '{sensor._tc_sensor}' hat keine Temperaturmessung"}
+                return {
+                    "status": "error",
+                    "error": (
+                        f"Sensor '{sensor._tc_sensor}' hat keine Temperaturmessung"
+                    ),
+                }
             sensor._tc_ref_c = temp_c
             self._persist_temp_ref(sensor.name, temp_c)
             return {
@@ -134,7 +146,9 @@ class CalibrationServer:
                     m = s.read()
                     return m.values.get("temperature_c")
                 except Exception as exc:
-                    logger.warning("Could not read temp from '%s': %s", sensor_name, exc)
+                    logger.warning(
+                        "Could not read temp from '%s': %s", sensor_name, exc
+                    )
                     return None
         return None
 
@@ -143,12 +157,15 @@ class CalibrationServer:
             return
         try:
             from datetime import datetime, timezone
+
             cfg = json.loads(CONFIG_PATH.read_text())
             for s in cfg.get("sensors", []):
                 if s.get("name") == sensor_name and s.get("type") == "hx711":
                     tc = s.setdefault("temp_compensation", {})
                     tc["ref_c"] = round(temp_c, 2)
-                    tc["updated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    tc["updated_at"] = datetime.now(timezone.utc).strftime(
+                        "%Y-%m-%dT%H:%M:%SZ"
+                    )
                     break
             CONFIG_PATH.write_text(json.dumps(cfg, indent=2, ensure_ascii=False))
         except Exception as exc:

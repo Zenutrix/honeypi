@@ -1,7 +1,7 @@
 import json
-import pytest
 from pathlib import Path
-from hanipi_agent.config import load_config, HaniPiConfig
+
+from hanipi_agent.config import load_config
 
 
 def test_load_minimal_config(tmp_path: Path) -> None:

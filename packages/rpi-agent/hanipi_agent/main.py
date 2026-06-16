@@ -1,14 +1,18 @@
 from __future__ import annotations
+
 import logging
 import signal
 import sys
 from pathlib import Path
+
 from .config import load_config
-from .sensors import create_sensor
 from .exporters import create_exporters
 from .runner import MeasurementRunner
+from .sensors import create_sensor
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -21,7 +25,9 @@ def main() -> None:
         except Exception as exc:
             logger.error(
                 "Sensor '%s' (%s) konnte nicht initialisiert werden: %s",
-                s_cfg.get("name", "?"), s_cfg.get("type", "?"), exc,
+                s_cfg.get("name", "?"),
+                s_cfg.get("type", "?"),
+                exc,
             )
     if "telegram" in cfg.exporters and cfg.exporters["telegram"].get("enabled"):
         cfg.exporters["telegram"]["_hives"] = [h.model_dump() for h in cfg.hives]
@@ -32,6 +38,7 @@ def main() -> None:
 
     try:
         from .calibration import CalibrationServer
+
         calibration_server = CalibrationServer(sensors=sensors)
         calibration_server.start()
     except Exception as exc:
@@ -42,6 +49,7 @@ def main() -> None:
     if cfg.maintenance_switch.enabled:
         try:
             from .maintenance import MaintenanceMonitor
+
             maintenance_monitor = MaintenanceMonitor(
                 gpio_pin=cfg.maintenance_switch.gpio_pin,
                 sensors=sensors,
@@ -53,11 +61,14 @@ def main() -> None:
     if cfg.display.enabled and cfg.display.type != "none":
         try:
             from .display.renderer import DisplayRenderer
+
             if cfg.display.type == "hdmi":
                 from .display.hdmi import HDMIDisplay
+
                 display_obj: object = HDMIDisplay(rotation=cfg.display.rotation)
             else:
                 from .display.tft import TFTDisplay
+
                 display_obj = TFTDisplay(
                     device=cfg.display.tft_device, rotation=cfg.display.rotation
                 )

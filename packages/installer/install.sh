@@ -2,6 +2,7 @@
 set -euo pipefail
 
 REPO="https://github.com/Zenutrix/HaniPi"
+RAW_UPDATE_URL="https://raw.githubusercontent.com/Zenutrix/HaniPi/main/packages/installer/update.sh"
 INSTALL_DIR="/opt/hanipi"
 DATA_DIR="/var/lib/hanipi"
 CFG_DIR="/etc/hanipi"
@@ -101,6 +102,16 @@ else
   echo "    HaniPi-Wartung connection already exists – skipping"
 fi
 
+echo "==> Erstelle 'hanipi-update' Befehl..."
+sudo tee /usr/local/bin/hanipi-update > /dev/null <<HANIPI_UPDATE_WRAPPER
+#!/usr/bin/env bash
+set -euo pipefail
+# Holt update.sh immer frisch von GitHub statt einer lokalen, ggf. veralteten Kopie -
+# so laeuft bei jedem Aufruf garantiert die aktuelle Update-Logik.
+curl -fsSL "$RAW_UPDATE_URL" | sudo bash
+HANIPI_UPDATE_WRAPPER
+sudo chmod +x /usr/local/bin/hanipi-update
+
 echo "==> Installing systemd services..."
 sudo cp "$INSTALL_DIR/packages/rpi-agent/systemd/hanipi-agent.service" /etc/systemd/system/
 sudo cp "$INSTALL_DIR/packages/dashboard/systemd/hanipi-dashboard.service" /etc/systemd/system/
@@ -143,6 +154,7 @@ echo "=========================================="
 echo "  Dashboard: http://hanipi.local"
 echo "  Config:    $CFG_DIR/hanipi.json"
 echo "  Logs:      journalctl -u hanipi-agent -f"
+echo "  Update:    sudo hanipi-update   (holt update.sh immer frisch von GitHub)"
 echo ""
 echo "  Supported sensors:"
 echo "    hx711   - Waage (HX711 Load Cell)"

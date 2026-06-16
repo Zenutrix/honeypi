@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 import sqlite3
 from pathlib import Path
 from typing import Any
-from .base import BaseExporter
+
 from ..sensors.base import Measurement
+from .base import BaseExporter
 
 _CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS measurements (
@@ -27,7 +29,10 @@ class LocalExporter(BaseExporter):
         self._conn.execute(_CREATE_TABLE)
         self._conn.commit()
         # Idempotent migration: add hive_id column if missing
-        cols = {row[1] for row in self._conn.execute("PRAGMA table_info(measurements)").fetchall()}
+        cols = {
+            row[1]
+            for row in self._conn.execute("PRAGMA table_info(measurements)").fetchall()
+        }
         if "hive_id" not in cols:
             self._conn.execute("ALTER TABLE measurements ADD COLUMN hive_id TEXT")
             self._conn.commit()
@@ -38,7 +43,8 @@ class LocalExporter(BaseExporter):
             for key, value in measurement.values.items()
         ]
         self._conn.executemany(
-            "INSERT INTO measurements (sensor_name, key, value, timestamp, hive_id) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO measurements (sensor_name, key, value, timestamp, hive_id) "
+            "VALUES (?, ?, ?, ?, ?)",
             rows,
         )
         self._conn.commit()

@@ -1,46 +1,81 @@
 from __future__ import annotations
+
 import datetime
 import json
 import logging
-import urllib.request
 import urllib.error
+import urllib.request
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
-from .base import BaseExporter
+
 from ..sensors.base import Measurement
+from .base import BaseExporter
 
 logger = logging.getLogger(__name__)
 
 _STATE_FILE = Path("/var/lib/hanipi/telegram_last_sent.txt")
 
 _LABELS = {
-    "weight_kg":        "Gewicht",
-    "temperature_c":    "Temperatur",
-    "humidity_pct":     "Feuchte",
-    "pressure_hpa":     "Luftdruck",
-    "illuminance_lux":  "Licht",
+    "weight_kg": "Gewicht",
+    "temperature_c": "Temperatur",
+    "humidity_pct": "Feuchte",
+    "pressure_hpa": "Luftdruck",
+    "illuminance_lux": "Licht",
     "gas_resistance_ohm": "Gas",
-    "voltage_v":        "Spannung",
+    "voltage_v": "Spannung",
 }
 _UNITS = {
-    "weight_kg": "kg", "temperature_c": "°C", "humidity_pct": "%",
-    "pressure_hpa": "hPa", "illuminance_lux": "lx",
-    "gas_resistance_ohm": "Ω", "voltage_v": "V",
+    "weight_kg": "kg",
+    "temperature_c": "°C",
+    "humidity_pct": "%",
+    "pressure_hpa": "hPa",
+    "illuminance_lux": "lx",
+    "gas_resistance_ohm": "Ω",
+    "voltage_v": "V",
 }
 _ICONS = {
-    "weight_kg": "⚖️", "temperature_c": "🌡", "humidity_pct": "💧",
-    "pressure_hpa": "🔵", "illuminance_lux": "☀️",
-    "voltage_v": "🔋", "gas_resistance_ohm": "💨",
+    "weight_kg": "⚖️",
+    "temperature_c": "🌡",
+    "humidity_pct": "💧",
+    "pressure_hpa": "🔵",
+    "illuminance_lux": "☀️",
+    "voltage_v": "🔋",
+    "gas_resistance_ohm": "💨",
 }
 _KEY_ORDER = [
-    "weight_kg", "temperature_c", "humidity_pct",
-    "pressure_hpa", "voltage_v", "illuminance_lux", "gas_resistance_ohm",
+    "weight_kg",
+    "temperature_c",
+    "humidity_pct",
+    "pressure_hpa",
+    "voltage_v",
+    "illuminance_lux",
+    "gas_resistance_ohm",
 ]
 
-_WEEKDAYS = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"]
-_MONTHS   = ["Januar","Februar","März","April","Mai","Juni",
-             "Juli","August","September","Oktober","November","Dezember"]
+_WEEKDAYS = [
+    "Montag",
+    "Dienstag",
+    "Mittwoch",
+    "Donnerstag",
+    "Freitag",
+    "Samstag",
+    "Sonntag",
+]
+_MONTHS = [
+    "Januar",
+    "Februar",
+    "März",
+    "April",
+    "Mai",
+    "Juni",
+    "Juli",
+    "August",
+    "September",
+    "Oktober",
+    "November",
+    "Dezember",
+]
 
 
 class TelegramExporter(BaseExporter):
@@ -48,11 +83,10 @@ class TelegramExporter(BaseExporter):
 
     def __init__(self, config: dict[str, Any]) -> None:
         self._bot_token = config.get("bot_token", "").strip()
-        self._chat_id   = str(config.get("chat_id", "")).strip()
+        self._chat_id = str(config.get("chat_id", "")).strip()
         self._send_time = config.get("send_time", "08:00")
         self._hives: dict[str, str] = {
-            h["id"]: h["name"]
-            for h in config.get("_hives", [])
+            h["id"]: h["name"] for h in config.get("_hives", [])
         }
         # hive_id → {key: value}
         self._latest: dict[str, dict[str, float]] = defaultdict(dict)
@@ -107,23 +141,29 @@ class TelegramExporter(BaseExporter):
         ]
 
         for hive_id, values in self._latest.items():
-            name = self._hives.get(hive_id, "Sensoren" if hive_id == "__none__" else hive_id)
+            name = self._hives.get(
+                hive_id, "Sensoren" if hive_id == "__none__" else hive_id
+            )
             lines.append(f"📍 *{name}*")
 
-            for key in sorted(values, key=lambda k: _KEY_ORDER.index(k) if k in _KEY_ORDER else 99):
-                val   = values[key]
-                icon  = _ICONS.get(key, "•")
+            for key in sorted(
+                values, key=lambda k: _KEY_ORDER.index(k) if k in _KEY_ORDER else 99
+            ):
+                val = values[key]
+                icon = _ICONS.get(key, "•")
                 label = _LABELS.get(key, key)
-                unit  = _UNITS.get(key, "")
+                unit = _UNITS.get(key, "")
                 lines.append(f"{icon} {label}: *{val:.1f} {unit}*")
             lines.append("")
 
-        text    = "\n".join(lines).rstrip()
-        payload = json.dumps({
-            "chat_id":    self._chat_id,
-            "text":       text,
-            "parse_mode": "Markdown",
-        }).encode()
+        text = "\n".join(lines).rstrip()
+        payload = json.dumps(
+            {
+                "chat_id": self._chat_id,
+                "text": text,
+                "parse_mode": "Markdown",
+            }
+        ).encode()
 
         req = urllib.request.Request(
             f"https://api.telegram.org/bot{self._bot_token}/sendMessage",

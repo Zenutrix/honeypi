@@ -1,20 +1,23 @@
 from __future__ import annotations
+
 import asyncio
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
+
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from .api import data as data_router
+from fastapi.staticfiles import StaticFiles
+
+from . import db
+from .api import calibrate as calibrate_router
 from .api import config as config_router
-from .api import network as network_router
+from .api import data as data_router
 from .api import hives as hives_router
 from .api import maintenance as maintenance_router
+from .api import network as network_router
 from .api import thingspeak as thingspeak_router
-from .api import calibrate as calibrate_router
-from . import db
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +27,11 @@ async def _cleanup_loop() -> None:
     while True:
         await asyncio.sleep(86400)
         try:
-            from .api.config import CONFIG_PATH
             import json
-            cfg: dict = {}
+
+            from .api.config import CONFIG_PATH
+
+            cfg: dict[str, Any] = {}
             if CONFIG_PATH.exists():
                 cfg = json.loads(CONFIG_PATH.read_text())
             db.cleanup_db(
@@ -42,9 +47,11 @@ async def _cleanup_loop() -> None:
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Run cleanup once at startup
     try:
-        from .api.config import CONFIG_PATH
         import json
-        cfg: dict = {}
+
+        from .api.config import CONFIG_PATH
+
+        cfg: dict[str, Any] = {}
         if CONFIG_PATH.exists():
             cfg = json.loads(CONFIG_PATH.read_text())
         db.cleanup_db(
@@ -103,4 +110,5 @@ def maintenance_page() -> FileResponse:
 
 def main() -> None:
     import uvicorn
+
     uvicorn.run("hanipi_dashboard.main:app", host="0.0.0.0", port=80, reload=False)

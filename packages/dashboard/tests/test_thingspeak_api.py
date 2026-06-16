@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 import sqlite3
 import time
 from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -18,7 +20,8 @@ def db_with_data(tmp_path: Path) -> Path:
     """)
     now = time.time()
     conn.executemany(
-        "INSERT INTO measurements (sensor_name, key, value, timestamp, hive_id) VALUES (?,?,?,?,?)",
+        "INSERT INTO measurements (sensor_name, key, value, timestamp, hive_id) "
+        "VALUES (?,?,?,?,?)",
         [
             ("Waage", "weight_kg", 42.0, now, None),
             ("Waage", "temperature_c", 35.0, now, None),
@@ -34,8 +37,10 @@ def db_with_data(tmp_path: Path) -> Path:
 @pytest.fixture
 def client(db_with_data: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     import hanipi_dashboard.db as db_module
+
     monkeypatch.setattr(db_module, "DB_PATH", db_with_data)
     from hanipi_dashboard.main import app
+
     return TestClient(app)
 
 
@@ -55,7 +60,9 @@ def test_thingspeak_keys_sorted(client: TestClient) -> None:
     assert keys == sorted(keys)
 
 
-def test_thingspeak_keys_empty_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_thingspeak_keys_empty_db(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     empty_db = tmp_path / "empty.db"
     conn = sqlite3.connect(str(empty_db))
     conn.execute("""
@@ -68,10 +75,13 @@ def test_thingspeak_keys_empty_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     conn.close()
 
     import hanipi_dashboard.db as db_module
+
     monkeypatch.setattr(db_module, "DB_PATH", empty_db)
 
-    from hanipi_dashboard.main import app
     from fastapi.testclient import TestClient as TC
+
+    from hanipi_dashboard.main import app
+
     c = TC(app)
     r = c.get("/api/thingspeak/keys")
     assert r.status_code == 200
@@ -80,12 +90,14 @@ def test_thingspeak_keys_empty_db(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
 
 # ── ThingSpeakExporter: sensor_name.key mapping ──────────────────────────────
 
+
 def test_thingspeak_exporter_sensor_dot_key_mapping() -> None:
     import time as t
     from unittest.mock import patch
+
+    import pytest as _pytest
     from hanipi_agent.exporters.thingspeak import ThingSpeakExporter
     from hanipi_agent.sensors.base import Measurement
-    import pytest as _pytest
 
     cfg = {
         "enabled": True,
@@ -108,9 +120,10 @@ def test_thingspeak_exporter_sensor_dot_key_mapping() -> None:
 def test_thingspeak_exporter_fallback_to_key_only() -> None:
     import time as t
     from unittest.mock import patch
+
+    import pytest as _pytest
     from hanipi_agent.exporters.thingspeak import ThingSpeakExporter
     from hanipi_agent.sensors.base import Measurement
-    import pytest as _pytest
 
     cfg = {
         "enabled": True,
@@ -129,6 +142,7 @@ def test_thingspeak_exporter_fallback_to_key_only() -> None:
 def test_thingspeak_exporter_skips_unmapped_fields() -> None:
     import time as t
     from unittest.mock import patch
+
     from hanipi_agent.exporters.thingspeak import ThingSpeakExporter
     from hanipi_agent.sensors.base import Measurement
 
@@ -141,6 +155,8 @@ def test_thingspeak_exporter_skips_unmapped_fields() -> None:
 
     with patch("hanipi_agent.exporters.thingspeak.httpx.get") as mock_get:
         # Sensor with no mapped fields
-        m = Measurement(name="Aussen", values={"temperature_c": 30.0}, timestamp=t.time())
+        m = Measurement(
+            name="Aussen", values={"temperature_c": 30.0}, timestamp=t.time()
+        )
         exp.export(m)
         mock_get.assert_not_called()

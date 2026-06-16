@@ -1,10 +1,13 @@
 from __future__ import annotations
+
 import time
 from typing import Any
+
 from .base import BaseSensor, Measurement
 
 try:
     import smbus2
+
     _HW_AVAILABLE = True
 except ImportError:
     _HW_AVAILABLE = False

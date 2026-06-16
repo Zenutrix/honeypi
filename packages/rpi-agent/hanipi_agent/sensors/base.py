@@ -1,6 +1,7 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 
@@ -23,5 +24,4 @@ class BaseSensor(ABC):
         pass
 
     @abstractmethod
-    def read(self) -> Measurement:
-        ...
+    def read(self) -> Measurement: ...

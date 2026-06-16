@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 import glob
 import time
 from pathlib import Path
 from typing import Any
+
 from .base import BaseSensor, Measurement
 
 _W1_BASE = Path("/sys/bus/w1/devices")
@@ -37,7 +39,9 @@ class DS18B20Sensor(BaseSensor):
             return device
         devices = _find_devices()
         if not devices:
-            raise RuntimeError("Kein DS18B20 am 1-Wire Bus (dtoverlay=w1-gpio in config.txt?)")
+            raise RuntimeError(
+                "Kein DS18B20 am 1-Wire Bus (dtoverlay=w1-gpio in config.txt?)"
+            )
         if self._index >= len(devices):
             raise RuntimeError(
                 f"DS18B20 Index {self._index} nicht vorhanden "

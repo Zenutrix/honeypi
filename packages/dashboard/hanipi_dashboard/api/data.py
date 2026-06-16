@@ -1,17 +1,21 @@
 from __future__ import annotations
+
 import csv
 import io
 import time
 from datetime import datetime, timezone
+from typing import Any
+
 from fastapi import APIRouter, Query
 from fastapi.responses import StreamingResponse
+
 from .. import db
 
 router = APIRouter()
 
 
 @router.get("/data/latest")
-def latest(hive_id: str | None = Query(default=None)) -> list[dict]:
+def latest(hive_id: str | None = Query(default=None)) -> list[dict[str, Any]]:
     return db.get_latest(hive_id=hive_id)
 
 
@@ -22,7 +26,7 @@ def history(
     from_ts: float | None = Query(default=None),
     to_ts: float | None = Query(default=None),
     hive_id: str | None = Query(default=None),
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     if from_ts is not None and to_ts is not None:
         return db.get_measurements_range(
             from_ts=from_ts, to_ts=to_ts, sensor=sensor, hive_id=hive_id
@@ -34,7 +38,7 @@ def history(
 def weight_trend(
     hive_id: str | None = Query(default=None),
     target_hour: int = Query(default=6, ge=0, le=23),
-) -> dict:
+) -> dict[str, Any]:
     points = db.get_morning_weights(hive_id=hive_id, target_hour=target_hour)
 
     delta_1d: float | None = None
@@ -65,7 +69,7 @@ def weight_trend(
 
 
 @router.get("/data/day-stats")
-def day_stats(hive_id: str | None = Query(default=None)) -> list[dict]:
+def day_stats(hive_id: str | None = Query(default=None)) -> list[dict[str, Any]]:
     return db.get_day_stats(hive_id=hive_id)
 
 
@@ -91,7 +95,14 @@ def export_csv(
             "%Y-%m-%dT%H:%M:%SZ"
         )
         writer.writerow(
-            [ts_iso, r["timestamp"], r.get("hive_id", ""), r["sensor_name"], r["key"], r["value"]]
+            [
+                ts_iso,
+                r["timestamp"],
+                r.get("hive_id", ""),
+                r["sensor_name"],
+                r["key"],
+                r["value"],
+            ]
         )
 
     buf.seek(0)
@@ -104,5 +115,5 @@ def export_csv(
 
 
 @router.get("/db/stats")
-def db_stats() -> dict:
+def db_stats() -> dict[str, Any]:
     return db.get_db_stats()

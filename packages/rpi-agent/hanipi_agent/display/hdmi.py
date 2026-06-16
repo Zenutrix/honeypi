@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import datetime
 import logging
 import math
@@ -6,45 +7,70 @@ import struct
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
+
 from .base import BaseDisplay, DisplayPage
 
 if TYPE_CHECKING:
     from PIL import Image, ImageDraw, ImageFont
+
     FontT = ImageFont.FreeTypeFont | ImageFont.ImageFont
 
 logger = logging.getLogger(__name__)
 
-_FB      = Path("/dev/fb0")
+_FB = Path("/dev/fb0")
 _FB_SIZE = Path("/sys/class/graphics/fb0/virtual_size")
-_FB_BPP  = Path("/sys/class/graphics/fb0/bits_per_pixel")
+_FB_BPP = Path("/sys/class/graphics/fb0/bits_per_pixel")
 
 # ── Farben – deckungsgleich mit Web-UI (System Dark) ─────────────────────────
-BG      = (28,  28,  30)    # --bg        #1c1c1e
-SURFACE = (44,  44,  46)    # --surface   #2c2c2e
-SURF2   = (58,  58,  60)    # --surface-2 #3a3a3c
-BORDER  = (72,  72,  74)    # --border    #48484a
-AMBER   = (245, 158, 11)    # --amber     #f59e0b
-AMBER_D = (180, 110,  5)    # --amber-dim #d97706
-WHITE   = (255, 255, 255)   # --text
-MUTED   = (142, 142, 147)   # --text-muted #8e8e93
-FAINT   = (72,  72,  74)    # --text-faint #48484a
-GREEN   = (48,  209, 88)    # --success   #30d158
-RED     = (255, 69,  58)    # --danger    #ff453a
+BG = (28, 28, 30)  # --bg        #1c1c1e
+SURFACE = (44, 44, 46)  # --surface   #2c2c2e
+SURF2 = (58, 58, 60)  # --surface-2 #3a3a3c
+BORDER = (72, 72, 74)  # --border    #48484a
+AMBER = (245, 158, 11)  # --amber     #f59e0b
+AMBER_D = (180, 110, 5)  # --amber-dim #d97706
+WHITE = (255, 255, 255)  # --text
+MUTED = (142, 142, 147)  # --text-muted #8e8e93
+FAINT = (72, 72, 74)  # --text-faint #48484a
+GREEN = (48, 209, 88)  # --success   #30d158
+RED = (255, 69, 58)  # --danger    #ff453a
+
+# ── Typografie-Skala (1024×600-Referenz, via _s() skaliert) ─────────────────
+SIZE_DISPLAY = 120  # Hero-Messwert
+SIZE_TITLE = 40  # Stockname im Header
+SIZE_HEADING = 64  # Sekundäre Kachel-Werte
+SIZE_BODY = 26  # Labels, Idle-Datum
+SIZE_CAPTION = 20  # Footer, Einheiten, Netzwerk, Header-Uhr
+SIZE_BOOT_LOGO = 96  # Boot-Splash-Logo (Sonderfall)
+SIZE_IDLE_CLOCK = 140  # Idle-Screen-Uhrzeit (Sonderfall)
+
+# ── Spacing-Skala ─────────────────────────────────────────────────────────
+SPACE_XS = 8
+SPACE_SM = 16
+SPACE_MD = 24
+SPACE_LG = 32
 
 UNIT_MAP = {
-    "weight_kg": "kg",  "temperature_c": "°C",  "humidity_pct": "%",
-    "pressure_hpa": "hPa", "illuminance_lux": "lx",
-    "gas_resistance_ohm": "Ω", "voltage_v": "V",
+    "weight_kg": "kg",
+    "temperature_c": "°C",
+    "humidity_pct": "%",
+    "pressure_hpa": "hPa",
+    "illuminance_lux": "lx",
+    "gas_resistance_ohm": "Ω",
+    "voltage_v": "V",
 }
 LABEL_MAP = {
-    "weight_kg": "Gewicht",    "temperature_c": "Temperatur",
-    "humidity_pct": "Feuchte", "pressure_hpa": "Luftdruck",
-    "illuminance_lux": "Licht","gas_resistance_ohm": "Gas",
+    "weight_kg": "Gewicht",
+    "temperature_c": "Temperatur",
+    "humidity_pct": "Feuchte",
+    "pressure_hpa": "Luftdruck",
+    "illuminance_lux": "Licht",
+    "gas_resistance_ohm": "Gas",
     "voltage_v": "Spannung",
 }
 
 
 # ── Hilfsfunktionen ───────────────────────────────────────────────────────────
+
 
 def _hex_to_rgb(h: str) -> tuple[int, int, int]:
     h = h.lstrip("#")
@@ -54,7 +80,7 @@ def _hex_to_rgb(h: str) -> tuple[int, int, int]:
 def _detect_fb() -> tuple[int, int, int]:
     try:
         w, h = _FB_SIZE.read_text().strip().split(",")
-        bpp  = int(_FB_BPP.read_text().strip())
+        bpp = int(_FB_BPP.read_text().strip())
         return int(w), int(h), bpp
     except Exception:
         return 1024, 600, 16
@@ -62,6 +88,7 @@ def _detect_fb() -> tuple[int, int, int]:
 
 def _to_bytes(img: Image.Image, bpp: int) -> bytes:
     from PIL import Image
+
     assert isinstance(img, Image.Image)
     try:
         if bpp == 16:
@@ -82,8 +109,9 @@ def _to_bytes(img: Image.Image, bpp: int) -> bytes:
 
 def _fonts(sizes: list[int]) -> list[FontT]:
     from PIL import ImageFont
+
     bold = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-    reg  = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    reg = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     out: list[FontT] = []
     for i, size in enumerate(sizes):
         path = bold if i % 2 == 0 else reg
@@ -102,7 +130,10 @@ def _get_network() -> list[tuple[str, str, bool]]:
     result = []
     try:
         out = subprocess.run(
-            ["ip", "-br", "addr"], capture_output=True, text=True, timeout=3,
+            ["ip", "-br", "addr"],
+            capture_output=True,
+            text=True,
+            timeout=3,
         ).stdout
         for line in out.splitlines():
             parts = line.split()
@@ -112,8 +143,11 @@ def _get_network() -> list[tuple[str, str, bool]]:
             if iface.startswith(("lo", "HaniPi", "docker")):
                 continue
             ip = next(
-                (p.split("/")[0] for p in parts[2:]
-                 if "." in p and not p.startswith(("127.", "169.254", "10.42."))),
+                (
+                    p.split("/")[0]
+                    for p in parts[2:]
+                    if "." in p and not p.startswith(("127.", "169.254", "10.42."))
+                ),
                 None,
             )
             connected = state in ("UP", "UNKNOWN") and ip is not None
@@ -121,11 +155,15 @@ def _get_network() -> list[tuple[str, str, bool]]:
                 try:
                     ssid = subprocess.run(
                         ["iwgetid", iface, "-r"],
-                        capture_output=True, text=True, timeout=2,
+                        capture_output=True,
+                        text=True,
+                        timeout=2,
                     ).stdout.strip()
                 except Exception:
                     ssid = ""
-                result.append((f"WLAN  {ssid}" if ssid else "WLAN", ip or "—", connected))
+                result.append(
+                    (f"WLAN  {ssid}" if ssid else "WLAN", ip or "—", connected)
+                )
             elif iface.startswith(("eth", "enp", "end")):
                 result.append(("LAN", ip or "—", connected))
             elif iface.startswith(("wwan", "ppp", "usb")):
@@ -135,23 +173,106 @@ def _get_network() -> list[tuple[str, str, bool]]:
     return result or [("Netzwerk", "nicht verbunden", False)]
 
 
-def _pill(d: ImageDraw.ImageDraw, x0: int, y0: int, x1: int, y1: int,
-          fill: tuple[int, int, int], radius: int) -> None:
-    """Gefülltes Rechteck mit runden Ecken."""
-    d.rounded_rectangle([x0, y0, x1, y1], radius=radius, fill=fill)
+def _pill_outline(
+    d: ImageDraw.ImageDraw,
+    x0: int,
+    y0: int,
+    x1: int,
+    y1: int,
+    fill: tuple[int, int, int],
+    outline: tuple[int, int, int],
+    radius: int,
+) -> None:
+    d.rounded_rectangle([x0, y0, x1, y1], radius=radius, fill=fill, outline=outline)
 
 
-def _pill_outline(d: ImageDraw.ImageDraw, x0: int, y0: int, x1: int, y1: int,
-                  fill: tuple[int, int, int], outline: tuple[int, int, int],
-                  radius: int) -> None:
-    d.rounded_rectangle([x0, y0, x1, y1], radius=radius,
-                        fill=fill, outline=outline)
+def _draw_icon(
+    d: ImageDraw.ImageDraw,
+    key: str,
+    cx: int,
+    cy: int,
+    size: int,
+    color: tuple[int, int, int],
+) -> None:
+    """Zeichnet ein einfaches Icon für den Messwert-Typ, zentriert auf (cx, cy)."""
+    r = max(3, size // 2)
+    w = max(2, size // 10)
+    if key == "weight_kg":
+        d.line([cx, cy - r, cx, cy], fill=color, width=w)
+        d.line([cx - r, cy, cx + r, cy], fill=color, width=w)
+        cr = max(2, r // 3)
+        d.ellipse([cx - r - cr, cy, cx - r + cr, cy + 2 * cr], outline=color, width=w)
+        d.ellipse([cx + r - cr, cy, cx + r + cr, cy + 2 * cr], outline=color, width=w)
+    elif key == "temperature_c":
+        bulb_r = max(3, int(r * 0.55))
+        stem_w = max(2, int(r * 0.5))
+        d.rounded_rectangle(
+            [cx - stem_w // 2, cy - r, cx + stem_w // 2, cy + bulb_r],
+            radius=stem_w // 2,
+            outline=color,
+            width=w,
+        )
+        d.ellipse(
+            [
+                cx - bulb_r,
+                cy + bulb_r - 2 * bulb_r // 3,
+                cx + bulb_r,
+                cy + bulb_r + 2 * bulb_r // 3,
+            ],
+            fill=color,
+        )
+    elif key == "humidity_pct":
+        d.polygon(
+            [
+                (cx, cy - r),
+                (cx + int(r * 0.7), cy + int(r * 0.4)),
+                (cx, cy + r),
+                (cx - int(r * 0.7), cy + int(r * 0.4)),
+            ],
+            fill=color,
+        )
+    elif key == "pressure_hpa":
+        d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=color, width=w)
+        d.line([cx, cy, cx + int(r * 0.6), cy - int(r * 0.5)], fill=color, width=w)
+        d.ellipse([cx - w, cy - w, cx + w, cy + w], fill=color)
+    elif key == "illuminance_lux":
+        cr = max(2, int(r * 0.5))
+        d.ellipse([cx - cr, cy - cr, cx + cr, cy + cr], fill=color)
+        for i in range(8):
+            ang = math.pi * 2 * i / 8
+            x0 = cx + int(math.cos(ang) * cr * 1.6)
+            y0 = cy + int(math.sin(ang) * cr * 1.6)
+            x1 = cx + int(math.cos(ang) * r)
+            y1 = cy + int(math.sin(ang) * r)
+            d.line([x0, y0, x1, y1], fill=color, width=w)
+    elif key == "gas_resistance_ohm":
+        cr = max(2, int(r * 0.5))
+        d.ellipse(
+            [cx - r, cy - cr // 2, cx - r + 2 * cr, cy - cr // 2 + 2 * cr], fill=color
+        )
+        d.ellipse([cx - cr, cy - cr, cx - cr + 2 * cr, cy - cr + 2 * cr], fill=color)
+        d.ellipse([cx, cy - cr // 2, cx + 2 * cr, cy - cr // 2 + 2 * cr], fill=color)
+    elif key == "voltage_v":
+        d.polygon(
+            [
+                (cx + int(r * 0.2), cy - r),
+                (cx - int(r * 0.5), cy + int(r * 0.1)),
+                (cx, cy + int(r * 0.1)),
+                (cx - int(r * 0.2), cy + r),
+                (cx + int(r * 0.5), cy - int(r * 0.1)),
+                (cx, cy - int(r * 0.1)),
+            ],
+            fill=color,
+        )
+    else:
+        cr = max(3, int(r * 0.6))
+        d.ellipse([cx - cr, cy - cr, cx + cr, cy + cr], fill=color)
 
 
 # ── Display ───────────────────────────────────────────────────────────────────
 
-class HDMIDisplay(BaseDisplay):
 
+class HDMIDisplay(BaseDisplay):
     def __init__(self, rotation: int = 0) -> None:
         self._rotation = rotation
         self._available = False
@@ -192,6 +313,7 @@ class HDMIDisplay(BaseDisplay):
 
     def _flush(self, img: Image.Image) -> None:
         from PIL import Image
+
         assert isinstance(img, Image.Image)
         if self._rotation:
             img = img.rotate(self._rotation, expand=True)
@@ -201,6 +323,7 @@ class HDMIDisplay(BaseDisplay):
 
     def _new(self) -> tuple[Image.Image, ImageDraw.ImageDraw]:
         from PIL import Image, ImageDraw
+
         img = Image.new("RGB", (self._w, self._h), BG)
         return img, ImageDraw.Draw(img)
 
@@ -213,9 +336,14 @@ class HDMIDisplay(BaseDisplay):
             img, d = self._new()
             W, H = self._w, self._h
 
-            f_logo, f_sub, f_hint, f_small = _fonts([
-                self._s(88), self._s(28), self._s(20), self._s(16),
-            ])
+            f_logo, f_sub, f_hint, f_small = _fonts(
+                [
+                    self._s(SIZE_BOOT_LOGO),
+                    self._s(SIZE_BODY),
+                    self._s(SIZE_CAPTION),
+                    self._s(SIZE_CAPTION),
+                ]
+            )
 
             cx = W // 2
             cy = H // 2 - self._s(20)
@@ -226,26 +354,48 @@ class HDMIDisplay(BaseDisplay):
             # Logo "HaniPi" — "Hani" weiß, "Pi" amber
             try:
                 hani_w = int(f_logo.getlength("Hani"))
-                pi_w   = int(f_logo.getlength("Pi"))
-                total  = hani_w + pi_w
+                pi_w = int(f_logo.getlength("Pi"))
+                total = hani_w + pi_w
                 lx = cx - total // 2
-                d.text((lx, cy - self._s(50)), "Hani",
-                       fill=WHITE, font=f_logo, anchor="lt")
-                d.text((lx + hani_w, cy - self._s(50)), "Pi",
-                       fill=AMBER, font=f_logo, anchor="lt")
+                d.text(
+                    (lx, cy - self._s(50)), "Hani", fill=WHITE, font=f_logo, anchor="lt"
+                )
+                d.text(
+                    (lx + hani_w, cy - self._s(50)),
+                    "Pi",
+                    fill=AMBER,
+                    font=f_logo,
+                    anchor="lt",
+                )
             except Exception:
-                d.text((cx, cy - self._s(50)), "HaniPi",
-                       fill=AMBER, font=f_logo, anchor="mt")
+                d.text(
+                    (cx, cy - self._s(50)),
+                    "HaniPi",
+                    fill=AMBER,
+                    font=f_logo,
+                    anchor="mt",
+                )
 
             # Dünne Trennlinie unter Logo
             lw = self._s(220)
-            d.rectangle([cx - lw, cy + self._s(46), cx + lw, cy + self._s(48)],
-                        fill=BORDER)
+            d.rectangle(
+                [cx - lw, cy + self._s(56), cx + lw, cy + self._s(58)], fill=BORDER
+            )
 
-            d.text((cx, cy + self._s(66)), "Bienenstock-Monitoring",
-                   fill=WHITE, font=f_sub, anchor="mm")
-            d.text((cx, cy + self._s(98)), "by Thomas Schöpf",
-                   fill=MUTED, font=f_hint, anchor="mm")
+            d.text(
+                (cx, cy + self._s(80)),
+                "Bienenstock-Monitoring",
+                fill=WHITE,
+                font=f_sub,
+                anchor="mm",
+            )
+            d.text(
+                (cx, cy + self._s(112)),
+                "by Thomas Schöpf",
+                fill=MUTED,
+                font=f_hint,
+                anchor="mm",
+            )
 
             # Ladebalken-Dots
             dot_y = H - self._s(38)
@@ -254,8 +404,13 @@ class HDMIDisplay(BaseDisplay):
                 r = self._s(5) if i == 1 else self._s(4)
                 d.ellipse([dot_x - r, dot_y - r, dot_x + r, dot_y + r], fill=col)
 
-            d.text((cx, H - self._s(16)), "System startet …",
-                   fill=FAINT, font=f_small, anchor="mm")
+            d.text(
+                (cx, H - self._s(16)),
+                "System startet …",
+                fill=FAINT,
+                font=f_small,
+                anchor="mm",
+            )
 
             self._flush(img)
         except Exception as exc:
@@ -270,47 +425,82 @@ class HDMIDisplay(BaseDisplay):
             img, d = self._new()
             W, H = self._w, self._h
 
-            f_clock, f_date, f_label, f_net, f_hint = _fonts([
-                self._s(108), self._s(30), self._s(22), self._s(18), self._s(16),
-            ])
+            f_clock, f_date, f_net, f_hint = _fonts(
+                [
+                    self._s(SIZE_IDLE_CLOCK),
+                    self._s(SIZE_BODY),
+                    self._s(SIZE_CAPTION),
+                    self._s(SIZE_CAPTION),
+                ]
+            )
 
             now = datetime.datetime.now()
-            cx  = W // 2
+            cx = W // 2
 
             # Amber-Akzentlinie oben
             d.rectangle([0, 0, W, self._s(4)], fill=AMBER)
 
             # Uhrzeit — zentriert, leicht über Mitte
-            d.text((cx, H // 2 - self._s(30)),
-                   now.strftime("%H:%M"),
-                   fill=WHITE, font=f_clock, anchor="mm")
+            d.text(
+                (cx, H // 2 - self._s(30)),
+                now.strftime("%H:%M"),
+                fill=WHITE,
+                font=f_clock,
+                anchor="mm",
+            )
 
             # Datum
-            d.text((cx, H // 2 + self._s(72)),
-                   now.strftime("%A, %d. %B %Y"),
-                   fill=MUTED, font=f_date, anchor="mm")
+            d.text(
+                (cx, H // 2 + self._s(90)),
+                now.strftime("%A, %d. %B %Y"),
+                fill=MUTED,
+                font=f_date,
+                anchor="mm",
+            )
 
             # Dünne Trennlinie
-            d.rectangle([cx - self._s(180), H // 2 + self._s(95),
-                         cx + self._s(180), H // 2 + self._s(96)], fill=BORDER)
+            d.rectangle(
+                [
+                    cx - self._s(180),
+                    H // 2 + self._s(118),
+                    cx + self._s(180),
+                    H // 2 + self._s(119),
+                ],
+                fill=BORDER,
+            )
 
             # Netzwerk-Info
             net = _get_network()
-            ny  = H // 2 + self._s(118)
+            ny = H // 2 + self._s(142)
             for label, ip, ok in net[:2]:
                 dot_c = GREEN if ok else RED
                 dot_x = cx - self._s(130)
-                d.ellipse([dot_x - self._s(5), ny - self._s(5),
-                           dot_x + self._s(5), ny + self._s(5)], fill=dot_c)
-                d.text((dot_x + self._s(14), ny),
-                       f"{label}  {ip}", fill=MUTED if ok else FAINT,
-                       font=f_net, anchor="lm")
-                ny += self._s(28)
+                d.ellipse(
+                    [
+                        dot_x - self._s(5),
+                        ny - self._s(5),
+                        dot_x + self._s(5),
+                        ny + self._s(5),
+                    ],
+                    fill=dot_c,
+                )
+                d.text(
+                    (dot_x + self._s(14), ny),
+                    f"{label}  {ip}",
+                    fill=MUTED if ok else FAINT,
+                    font=f_net,
+                    anchor="lm",
+                )
+                ny += self._s(30)
 
             # Wartetext
-            d.text((cx, H - self._s(22)), "Warte auf Sensordaten …",
-                   fill=FAINT, font=f_hint, anchor="mm")
-
+            d.text(
+                (cx, H - self._s(22)),
+                "Warte auf Sensordaten …",
+                fill=FAINT,
+                font=f_hint,
+                anchor="mm",
+            )
             self._flush(img)
         except Exception as exc:
             logger.warning("Idle-Screen: %s", exc)
@@ -332,18 +522,23 @@ class HDMIDisplay(BaseDisplay):
         accent = _hex_to_rgb(page.hive_color)
 
         ACCENT_H = self._s(4)
-        HEADER_H = self._s(56)
-        FOOTER_H = self._s(40)
-        PAD      = self._s(10)
+        HEADER_H = self._s(80)
+        FOOTER_H = self._s(56)
+        PAD = self._s(SPACE_MD)
 
         body_top = ACCENT_H + HEADER_H
-        body_h   = H - body_top - FOOTER_H
+        body_h = H - body_top - FOOTER_H
 
-        f_hive, f_clock, f_hero_lbl, f_hero_val, f_hero_unit, \
-            f_tile_lbl, f_tile_val, f_tile_unit, f_foot = _fonts([
-            self._s(28), self._s(22), self._s(20), self._s(72), self._s(28),
-            self._s(18), self._s(40), self._s(18), self._s(16),
-        ])
+        f_hive, f_clock, f_lbl, f_hero_val, f_tile_val, f_unit = _fonts(
+            [
+                self._s(SIZE_TITLE),
+                self._s(SIZE_CAPTION),
+                self._s(SIZE_BODY),
+                self._s(SIZE_DISPLAY),
+                self._s(SIZE_HEADING),
+                self._s(SIZE_CAPTION),
+            ]
+        )
 
         # ── Akzent-Linie oben (Hive-Farbe) ───────────────────────────────────
         d.rectangle([0, 0, W, ACCENT_H], fill=accent)
@@ -351,16 +546,29 @@ class HDMIDisplay(BaseDisplay):
         # ── Header ────────────────────────────────────────────────────────────
         d.rectangle([0, ACCENT_H, W, ACCENT_H + HEADER_H], fill=SURFACE)
 
-        d.text((self._s(20), ACCENT_H + HEADER_H // 2),
-               page.hive_name, fill=WHITE, font=f_hive, anchor="lm")
+        d.text(
+            (self._s(SPACE_LG), ACCENT_H + HEADER_H // 2),
+            page.hive_name,
+            fill=WHITE,
+            font=f_hive,
+            anchor="lm",
+        )
 
-        d.text((W - self._s(20), ACCENT_H + HEADER_H // 2),
-               datetime.datetime.now().strftime("%H:%M"),
-               fill=MUTED, font=f_clock, anchor="rm")
+        status_color = GREEN if page.connected else RED
+        sr = self._s(6)
+        sx = W - self._s(SPACE_LG) - self._s(120)
+        sy = ACCENT_H + HEADER_H // 2
+        d.ellipse([sx - sr, sy - sr, sx + sr, sy + sr], fill=status_color)
+        d.text(
+            (W - self._s(SPACE_LG), sy),
+            datetime.datetime.now().strftime("%H:%M"),
+            fill=MUTED,
+            font=f_clock,
+            anchor="rm",
+        )
 
         # Trennlinie Header/Body
-        d.rectangle([0, ACCENT_H + HEADER_H, W, ACCENT_H + HEADER_H + 1],
-                    fill=BORDER)
+        d.rectangle([0, ACCENT_H + HEADER_H, W, ACCENT_H + HEADER_H + 1], fill=BORDER)
 
         # ── Footer ────────────────────────────────────────────────────────────
         fy = H - FOOTER_H
@@ -368,116 +576,209 @@ class HDMIDisplay(BaseDisplay):
         d.rectangle([0, fy, W, fy + 1], fill=BORDER)
 
         net = _get_network()
-        net_txt = "  ·  ".join(
-            f"{lbl}: {ip}" for lbl, ip, ok in net if ok
-        ) or "kein Netzwerk"
-        d.text((self._s(16), fy + FOOTER_H // 2),
-               net_txt, fill=MUTED, font=f_foot, anchor="lm")
+        net_txt = (
+            "  ·  ".join(f"{lbl}: {ip}" for lbl, ip, ok in net if ok) or "kein Netzwerk"
+        )
+        d.text(
+            (self._s(SPACE_SM), fy + FOOTER_H // 2),
+            net_txt,
+            fill=MUTED,
+            font=f_unit,
+            anchor="lm",
+        )
 
         ts = datetime.datetime.fromtimestamp(page.timestamp).strftime("%d.%m.%Y  %H:%M")
-        d.text((W - self._s(16), fy + FOOTER_H // 2),
-               ts, fill=FAINT, font=f_foot, anchor="rm")
+        d.text(
+            (W - self._s(SPACE_SM), fy + FOOTER_H // 2),
+            ts,
+            fill=FAINT,
+            font=f_unit,
+            anchor="rm",
+        )
 
-        # ── Body: Kacheln ─────────────────────────────────────────────────────
+        # ── Body: maximal 3 Messwerte (Dichte-Regel) ─────────────────────────
         items = list(page.values.items())
         if not items:
-            d.text((W // 2, body_top + body_h // 2),
-                   "Keine Messwerte", fill=MUTED, font=f_hive, anchor="mm")
+            d.text(
+                (W // 2, body_top + body_h // 2),
+                "Keine Messwerte",
+                fill=MUTED,
+                font=f_hive,
+                anchor="mm",
+            )
             self._flush(img)
             return
 
+        fonts = (f_lbl, f_hero_val, f_tile_val, f_unit)
+
         if len(items) == 1:
-            self._draw_hero(d, items[0], accent,
-                            PAD, body_top + PAD, W - PAD, fy - PAD,
-                            f_hero_lbl, f_hero_val, f_hero_unit)
-        elif len(items) <= 4:
-            # Alle gleich groß, 2 Spalten
-            cols = 2
-            rows = math.ceil(len(items) / cols)
-            tw = (W - PAD * (cols + 1)) // cols
-            th = (body_h - PAD * (rows + 1)) // rows
-            for idx, item in enumerate(items):
-                row, col = divmod(idx, cols)
-                tx = PAD + col * (tw + PAD)
-                ty = body_top + PAD + row * (th + PAD)
-                self._draw_tile(d, item, accent,
-                                tx, ty, tx + tw, ty + th,
-                                f_tile_lbl, f_tile_val, f_tile_unit)
+            self._draw_hero(
+                d, items[0], accent, PAD, body_top + PAD, W - PAD, fy - PAD, fonts
+            )
+        elif len(items) == 2:
+            avail_w = W - PAD * 3
+            hero_w = int(avail_w * 0.58)
+            self._draw_hero(
+                d,
+                items[0],
+                accent,
+                PAD,
+                body_top + PAD,
+                PAD + hero_w,
+                fy - PAD,
+                fonts,
+            )
+            self._draw_tile(
+                d,
+                items[1],
+                accent,
+                PAD * 2 + hero_w,
+                body_top + PAD,
+                W - PAD,
+                fy - PAD,
+                fonts,
+            )
         else:
-            # Hero oben (erste/wichtigste Messung), Grid unten
-            hero_h = int(body_h * 0.42)
-            grid_top = body_top + hero_h + PAD
-
-            self._draw_hero(d, items[0], accent,
-                            PAD, body_top + PAD,
-                            W - PAD, body_top + hero_h,
-                            f_hero_lbl, f_hero_val, f_hero_unit)
-
-            rest = items[1:]
-            cols = min(len(rest), 4)
-            grid_h = fy - grid_top - PAD
-            tw = (W - PAD * (cols + 1)) // cols
-            for idx, item in enumerate(rest[:cols]):
-                tx = PAD + idx * (tw + PAD)
-                self._draw_tile(d, item, accent,
-                                tx, grid_top, tx + tw, grid_top + grid_h,
-                                f_tile_lbl, f_tile_val, f_tile_unit)
+            avail_w = W - PAD * 3
+            hero_w = int(avail_w * 0.58)
+            self._draw_hero(
+                d,
+                items[0],
+                accent,
+                PAD,
+                body_top + PAD,
+                PAD + hero_w,
+                fy - PAD,
+                fonts,
+            )
+            tile_x0 = PAD * 2 + hero_w
+            tile_h = (body_h - PAD * 3) // 2
+            self._draw_tile(
+                d,
+                items[1],
+                accent,
+                tile_x0,
+                body_top + PAD,
+                W - PAD,
+                body_top + PAD + tile_h,
+                fonts,
+            )
+            self._draw_tile(
+                d,
+                items[2],
+                accent,
+                tile_x0,
+                body_top + PAD * 2 + tile_h,
+                W - PAD,
+                fy - PAD,
+                fonts,
+            )
 
         self._flush(img)
 
-    def _draw_hero(self, d: ImageDraw.ImageDraw, item: tuple[str, float],
-                   accent: tuple[int, int, int],
-                   x0: int, y0: int, x1: int, y1: int,
-                   f_lbl: FontT, f_val: FontT, f_unit: FontT) -> None:
+    def _draw_label_row(
+        self,
+        d: ImageDraw.ImageDraw,
+        key: str,
+        cx: int,
+        y: int,
+        icon_size: int,
+        f_lbl: FontT,
+    ) -> None:
+        """Icon + Label, als Gruppe horizontal zentriert auf cx."""
+        label = LABEL_MAP.get(key, key).upper()
+        try:
+            label_w = int(f_lbl.getlength(label))
+        except Exception:
+            label_w = len(label) * icon_size
+
+        gap = max(4, icon_size // 3)
+        total_w = icon_size + gap + label_w
+        start_x = cx - total_w // 2
+
+        _draw_icon(d, key, start_x + icon_size // 2, y, icon_size, MUTED)
+        d.text(
+            (start_x + icon_size + gap, y), label, fill=MUTED, font=f_lbl, anchor="lm"
+        )
+
+    def _draw_hero(
+        self,
+        d: ImageDraw.ImageDraw,
+        item: tuple[str, float],
+        accent: tuple[int, int, int],
+        x0: int,
+        y0: int,
+        x1: int,
+        y1: int,
+        fonts: tuple[FontT, FontT, FontT, FontT],
+    ) -> None:
         key, val = item
-        lbl  = LABEL_MAP.get(key, key)
+        f_lbl, f_hero_val, _f_tile_val, f_unit = fonts
         unit = UNIT_MAP.get(key, "")
-        cx   = (x0 + x1) // 2
-        cy   = (y0 + y1) // 2
+        cx = (x0 + x1) // 2
+        cy = (y0 + y1) // 2
 
         _pill_outline(d, x0, y0, x1, y1, SURFACE, BORDER, self._s(14))
-        # Amber-Akzentlinie oben auf Karte
-        d.rounded_rectangle([x0 + 1, y0 + 1, x1 - 1, y0 + self._s(3)],
-                            radius=self._s(14), fill=accent)
+        d.rounded_rectangle(
+            [x0 + 1, y0 + 1, x1 - 1, y0 + self._s(3)], radius=self._s(14), fill=accent
+        )
 
-        d.text((cx, cy - self._s(34)), lbl.upper(),
-               fill=MUTED, font=f_lbl, anchor="mm")
+        self._draw_label_row(d, key, cx, cy - self._s(72), self._s(28), f_lbl)
 
         val_str = f"{val:.1f}" if isinstance(val, float) else str(val)
-        d.text((cx, cy + self._s(14)), val_str,
-               fill=WHITE, font=f_val, anchor="mm")
+        d.text(
+            (cx, cy + self._s(10)), val_str, fill=WHITE, font=f_hero_val, anchor="mm"
+        )
 
         try:
-            val_w = int(f_val.getlength(val_str))
+            val_w = int(f_hero_val.getlength(val_str))
         except Exception:
-            val_w = self._s(80)
-        d.text((cx + val_w // 2 + self._s(6), cy + self._s(18)),
-               unit, fill=accent, font=f_unit, anchor="lm")
+            val_w = self._s(140)
+        d.text(
+            (cx + val_w // 2 + self._s(SPACE_SM), cy + self._s(24)),
+            unit,
+            fill=accent,
+            font=f_unit,
+            anchor="lm",
+        )
 
-    def _draw_tile(self, d: ImageDraw.ImageDraw, item: tuple[str, float],
-                   accent: tuple[int, int, int],
-                   x0: int, y0: int, x1: int, y1: int,
-                   f_lbl: FontT, f_val: FontT, f_unit: FontT) -> None:
+    def _draw_tile(
+        self,
+        d: ImageDraw.ImageDraw,
+        item: tuple[str, float],
+        accent: tuple[int, int, int],
+        x0: int,
+        y0: int,
+        x1: int,
+        y1: int,
+        fonts: tuple[FontT, FontT, FontT, FontT],
+    ) -> None:
         key, val = item
-        lbl  = LABEL_MAP.get(key, key)
+        f_lbl, _f_hero_val, f_tile_val, f_unit = fonts
         unit = UNIT_MAP.get(key, "")
-        cx   = (x0 + x1) // 2
-        cy   = (y0 + y1) // 2
+        cx = (x0 + x1) // 2
+        cy = (y0 + y1) // 2
 
         _pill_outline(d, x0, y0, x1, y1, SURFACE, BORDER, self._s(12))
-        d.rounded_rectangle([x0 + 1, y0 + 1, x1 - 1, y0 + self._s(3)],
-                            radius=self._s(12), fill=accent)
+        d.rounded_rectangle(
+            [x0 + 1, y0 + 1, x1 - 1, y0 + self._s(3)], radius=self._s(12), fill=accent
+        )
 
-        d.text((cx, cy - self._s(20)), lbl.upper(),
-               fill=MUTED, font=f_lbl, anchor="mm")
+        self._draw_label_row(d, key, cx, cy - self._s(40), self._s(20), f_lbl)
 
         val_str = f"{val:.1f}" if isinstance(val, float) else str(val)
-        d.text((cx, cy + self._s(8)), val_str,
-               fill=WHITE, font=f_val, anchor="mm")
+        d.text(
+            (cx, cy + self._s(12)), val_str, fill=WHITE, font=f_tile_val, anchor="mm"
+        )
 
         try:
-            val_w = int(f_val.getlength(val_str))
+            val_w = int(f_tile_val.getlength(val_str))
         except Exception:
-            val_w = self._s(50)
-        d.text((cx + val_w // 2 + self._s(4), cy + self._s(12)),
-               unit, fill=accent, font=f_unit, anchor="lm")
+            val_w = self._s(70)
+        d.text(
+            (cx + val_w // 2 + self._s(SPACE_XS), cy + self._s(20)),
+            unit,
+            fill=accent,
+            font=f_unit,
+            anchor="lm",
+        )

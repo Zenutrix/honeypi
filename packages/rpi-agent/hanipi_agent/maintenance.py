@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import json
 import logging
 import subprocess
@@ -28,11 +29,14 @@ class MaintenanceMonitor:
     def start(self) -> None:
         try:
             import RPi.GPIO as GPIO  # type: ignore[import-untyped]
+
             GPIO.setmode(GPIO.BCM)
             GPIO.setup(self._gpio_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             self._gpio = GPIO
         except Exception as exc:
-            logger.warning("MaintenanceMonitor: GPIO not available (%s) — disabled", exc)
+            logger.warning(
+                "MaintenanceMonitor: GPIO not available (%s) — disabled", exc
+            )
             return
 
         self._stop_event.clear()
@@ -49,12 +53,14 @@ class MaintenanceMonitor:
         try:
             if self._gpio is not None:
                 import RPi.GPIO as GPIO
+
                 GPIO.cleanup(self._gpio_pin)
         except Exception:
             pass
 
     def _poll_loop(self) -> None:
         import RPi.GPIO as GPIO
+
         while not self._stop_event.is_set():
             try:
                 pin_low = GPIO.input(self._gpio_pin) == GPIO.LOW

@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 import os
 import sqlite3
 import time
 from pathlib import Path
+from typing import Any
 
 DB_PATH = Path("/var/lib/hanipi/data.db")
 
@@ -13,7 +15,7 @@ def _conn() -> sqlite3.Connection:
     return c
 
 
-def get_latest(hive_id: str | None = None) -> list[dict]:
+def get_latest(hive_id: str | None = None) -> list[dict[str, Any]]:
     sql = (
         "SELECT sensor_name, key, value, hive_id, MAX(timestamp) as timestamp "
         "FROM measurements"
@@ -33,9 +35,12 @@ def get_measurements(
     sensor: str | None = None,
     hours: int = 24,
     hive_id: str | None = None,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     since = time.time() - hours * 3600
-    sql = "SELECT sensor_name, key, value, timestamp, hive_id FROM measurements WHERE timestamp > ?"
+    sql = (
+        "SELECT sensor_name, key, value, timestamp, hive_id "
+        "FROM measurements WHERE timestamp > ?"
+    )
     params: list[object] = [since]
     if sensor:
         sql += " AND sensor_name = ?"
@@ -50,7 +55,7 @@ def get_measurements(
     return [dict(r) for r in rows]
 
 
-def get_db_stats() -> dict:
+def get_db_stats() -> dict[str, Any]:
     size_mb = 0.0
     if DB_PATH.exists():
         size_mb = round(os.path.getsize(DB_PATH) / (1024 * 1024), 3)
@@ -68,11 +73,12 @@ def get_db_stats() -> dict:
 
 
 def get_sensor_keys() -> list[str]:
-    """Return all sensor_name.key combinations present in DB (for ThingSpeak mapping UI)."""
+    """Return sensor_name.key combinations present in DB (for ThingSpeak mapping)."""
     with _conn() as conn:
         _ensure_hive_id_column(conn)
         rows = conn.execute(
-            "SELECT DISTINCT sensor_name, key FROM measurements ORDER BY sensor_name, key"
+            "SELECT DISTINCT sensor_name, key FROM measurements "
+            "ORDER BY sensor_name, key"
         ).fetchall()
     return [f"{r[0]}.{r[1]}" for r in rows]
 
@@ -110,7 +116,7 @@ def get_measurements_range(
     to_ts: float,
     sensor: str | None = None,
     hive_id: str | None = None,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     sql = (
         "SELECT sensor_name, key, value, timestamp, hive_id FROM measurements "
         "WHERE timestamp >= ? AND timestamp <= ?"
@@ -133,14 +139,14 @@ def get_morning_weights(
     hive_id: str | None = None,
     target_hour: int = 6,
     days: int = 8,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """
     For each of the last `days` days find the weight_kg reading closest to
     target_hour (local time, ±2 h window).  Returns [{date, weight_kg, ts}].
     """
     import datetime
 
-    results: list[dict] = []
+    results: list[dict[str, Any]] = []
     today = datetime.date.today()
     with _conn() as conn:
         _ensure_hive_id_column(conn)
@@ -172,7 +178,7 @@ def get_morning_weights(
     return results
 
 
-def get_day_stats(hive_id: str | None = None) -> list[dict]:
+def get_day_stats(hive_id: str | None = None) -> list[dict[str, Any]]:
     """Today's min / max / avg per sensor_name + key."""
     import datetime
 
@@ -196,7 +202,9 @@ def get_day_stats(hive_id: str | None = None) -> list[dict]:
 
 
 def _ensure_hive_id_column(conn: sqlite3.Connection) -> None:
-    cols = {row[1] for row in conn.execute("PRAGMA table_info(measurements)").fetchall()}
+    cols = {
+        row[1] for row in conn.execute("PRAGMA table_info(measurements)").fetchall()
+    }
     if "hive_id" not in cols:
         conn.execute("ALTER TABLE measurements ADD COLUMN hive_id TEXT")
         conn.commit()

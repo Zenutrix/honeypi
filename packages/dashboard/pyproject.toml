@@ -20,7 +20,11 @@ dev-dependencies = [
     "httpx>=0.27",
     "ruff>=0.4",
     "mypy>=1.10",
+    "hanipi-agent",
 ]
+
+[tool.uv.sources]
+hanipi-agent = { path = "../rpi-agent", editable = true }
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]

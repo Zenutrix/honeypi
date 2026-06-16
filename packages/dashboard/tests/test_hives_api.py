@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 import json
 import sqlite3
-import time
 from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -30,21 +31,25 @@ def db_path(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def client(cfg_file: Path, db_path: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
+def client(
+    cfg_file: Path, db_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> TestClient:
     import hanipi_dashboard.api.config as cfg_module
     import hanipi_dashboard.db as db_module
+
     monkeypatch.setattr(cfg_module, "CONFIG_PATH", cfg_file)
-    monkeypatch.setattr(cfg_module, "_restart_agent", lambda: None)
     monkeypatch.setattr(db_module, "DB_PATH", db_path)
 
     # Patch _systemctl used by hives router via imported name in config
     monkeypatch.setattr(cfg_module, "_systemctl", lambda *a, **kw: None)
 
     from hanipi_dashboard.main import app
+
     return TestClient(app)
 
 
 # ── GET /api/hives ───────────────────────────────────────────────────────────
+
 
 def test_list_hives_empty(client: TestClient) -> None:
     r = client.get("/api/hives")
@@ -53,6 +58,7 @@ def test_list_hives_empty(client: TestClient) -> None:
 
 
 # ── POST /api/hives ──────────────────────────────────────────────────────────
+
 
 def test_add_hive_creates_with_id(client: TestClient, cfg_file: Path) -> None:
     r = client.post("/api/hives", json={"name": "Garten", "color": "#10b981"})
@@ -79,6 +85,7 @@ def test_add_multiple_hives(client: TestClient) -> None:
 
 # ── PUT /api/hives/{id} ──────────────────────────────────────────────────────
 
+
 def test_update_hive_changes_name_and_color(client: TestClient) -> None:
     hive = client.post("/api/hives", json={"name": "Alt", "color": "#aaa"}).json()
     hive_id = hive["id"]
@@ -95,6 +102,7 @@ def test_update_nonexistent_hive_returns_404(client: TestClient) -> None:
 
 
 # ── DELETE /api/hives/{id} ───────────────────────────────────────────────────
+
 
 def test_delete_hive_removes_it(client: TestClient) -> None:
     hive = client.post("/api/hives", json={"name": "Temp"}).json()

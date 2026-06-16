@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 import datetime
 import logging
 from typing import TYPE_CHECKING
+
 from .base import BaseDisplay, DisplayPage
 
 if TYPE_CHECKING:
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import ImageFont
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +49,7 @@ class TFTDisplay(BaseDisplay):
         self._available = False
         try:
             from PIL import Image, ImageDraw, ImageFont
+
             self._Image = Image
             self._ImageDraw = ImageDraw
             self._ImageFont = ImageFont
@@ -97,8 +100,12 @@ class TFTDisplay(BaseDisplay):
         color = (34, 197, 94) if page.connected else (239, 68, 68)
         draw.text((8, HEIGHT - 15), status, font=font_small, fill=color)
         if page.battery_voltage is not None:
-            draw.text((WIDTH - 90, HEIGHT - 15),
-                      f"Akku: {page.battery_voltage:.1f}V", font=font_small, fill=WHITE)
+            draw.text(
+                (WIDTH - 90, HEIGHT - 15),
+                f"Akku: {page.battery_voltage:.1f}V",
+                font=font_small,
+                fill=WHITE,
+            )
 
         if self._rotation:
             img = img.rotate(self._rotation, expand=True)

@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 import time
 from typing import Any
+
 from .base import BaseSensor, Measurement
 
 try:
-    import smbus2
     import bme280 as bme280_module  # type: ignore[import-not-found]
+    import smbus2
 except ImportError:
     smbus2 = None  # type: ignore[assignment]
     bme280_module = None
@@ -18,7 +20,9 @@ class BME280Sensor(BaseSensor):
         port = config.get("i2c_port", 1)
         self._address = config.get("i2c_address", 0x76)
         self._bus = smbus2.SMBus(port)
-        self._calibration = bme280_module.load_calibration_params(self._bus, self._address)
+        self._calibration = bme280_module.load_calibration_params(
+            self._bus, self._address
+        )
 
     def read(self) -> Measurement:
         data = bme280_module.sample(self._bus, self._address, self._calibration)

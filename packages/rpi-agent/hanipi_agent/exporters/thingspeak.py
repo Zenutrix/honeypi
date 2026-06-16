@@ -1,9 +1,12 @@
 from __future__ import annotations
+
 import logging
 from typing import Any
+
 import httpx
-from .base import BaseExporter
+
 from ..sensors.base import Measurement
+from .base import BaseExporter
 
 logger = logging.getLogger(__name__)
 _URL = "https://api.thingspeak.com/update"
@@ -22,6 +25,8 @@ class ThingSpeakExporter(BaseExporter):
             if field:
                 params[field] = value
         if len(params) < 2:
-            logger.warning("ThingSpeak: no fields mapped for sensor %s", measurement.name)
+            logger.warning(
+                "ThingSpeak: no fields mapped for sensor %s", measurement.name
+            )
             return
         httpx.get(_URL, params=params, timeout=10)

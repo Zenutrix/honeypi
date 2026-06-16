@@ -11,6 +11,7 @@ from hanipi_agent.sensors.base import Measurement
 
 # ── DisplayPage ──────────────────────────────────────────────────────────────
 
+
 def test_display_page_defaults() -> None:
     page = DisplayPage(
         hive_name="Stock A",
@@ -34,6 +35,7 @@ def test_display_page_custom_color() -> None:
 
 # ── TFTDisplay (mocked PIL) ──────────────────────────────────────────────────
 
+
 def _make_pil_mock() -> MagicMock:
     pil_mock = MagicMock()
     img_mock = MagicMock()
@@ -51,19 +53,25 @@ def test_tft_display_show_page_writes_to_device(tmp_path) -> None:
 
     pil_mock = _make_pil_mock()
 
-    with patch.dict("sys.modules", {
-        "PIL": pil_mock,
-        "PIL.Image": pil_mock.Image,
-        "PIL.ImageDraw": pil_mock.ImageDraw,
-        "PIL.ImageFont": pil_mock.ImageFont,
-    }):
+    with patch.dict(
+        "sys.modules",
+        {
+            "PIL": pil_mock,
+            "PIL.Image": pil_mock.Image,
+            "PIL.ImageDraw": pil_mock.ImageDraw,
+            "PIL.ImageFont": pil_mock.ImageFont,
+        },
+    ):
         from importlib import reload
 
         import hanipi_agent.display.tft as tft_mod
+
         reload(tft_mod)
 
         disp = tft_mod.TFTDisplay(device=str(device))
-        page = DisplayPage(hive_name="Garten", timestamp=time.time(), values={"weight_kg": 12.3})
+        page = DisplayPage(
+            hive_name="Garten", timestamp=time.time(), values={"weight_kg": 12.3}
+        )
         disp.show_page(page)
 
     # show_page should have called tobytes and written to device file
@@ -78,6 +86,7 @@ def test_tft_display_skips_when_pil_unavailable(tmp_path) -> None:
         from importlib import reload
 
         import hanipi_agent.display.tft as tft_mod
+
         try:
             reload(tft_mod)
             disp = tft_mod.TFTDisplay(device=str(device))
@@ -89,10 +98,12 @@ def test_tft_display_skips_when_pil_unavailable(tmp_path) -> None:
 
 # ── HDMIDisplay (mocked PIL + framebuffer) ───────────────────────────────────
 
+
 def test_hdmi_display_start_skips_when_fb_missing(mocker: MagicMock) -> None:
     mocker.patch("pathlib.Path.exists", return_value=False)
 
     import hanipi_agent.display.hdmi as hdmi_mod
+
     disp = hdmi_mod.HDMIDisplay()
     disp.start()
 
@@ -106,6 +117,7 @@ def test_hdmi_display_show_page_writes_to_framebuffer(mocker: MagicMock) -> None
     write_bytes = mocker.patch("pathlib.Path.write_bytes")
 
     import hanipi_agent.display.hdmi as hdmi_mod
+
     disp = hdmi_mod.HDMIDisplay()
     disp.start()
     assert disp._available is True
@@ -120,11 +132,14 @@ def test_hdmi_display_show_page_writes_to_framebuffer(mocker: MagicMock) -> None
 
 # ── DisplayRenderer ──────────────────────────────────────────────────────────
 
+
 def test_renderer_update_stores_measurements() -> None:
     mock_display = MagicMock()
     renderer = DisplayRenderer(display=mock_display, hives=[], page_interval=8)
 
-    m = Measurement(name="Waage", values={"weight_kg": 42.0}, timestamp=time.time(), hive_id="h1")
+    m = Measurement(
+        name="Waage", values={"weight_kg": 42.0}, timestamp=time.time(), hive_id="h1"
+    )
     renderer.update({"Waage": m})
 
     with renderer._lock:
@@ -136,7 +151,12 @@ def test_renderer_builds_pages_without_hive_config() -> None:
     renderer = DisplayRenderer(display=mock_display, hives=[], page_interval=8)
 
     now = time.time()
-    m1 = Measurement(name="Waage", values={"weight_kg": 42.0, "voltage_v": 3.8}, timestamp=now, hive_id=None)
+    m1 = Measurement(
+        name="Waage",
+        values={"weight_kg": 42.0, "voltage_v": 3.8},
+        timestamp=now,
+        hive_id=None,
+    )
     renderer.update({"Waage": m1})
 
     pages = renderer._build_pages()
@@ -152,7 +172,9 @@ def test_renderer_extracts_battery_voltage_from_values() -> None:
     renderer = DisplayRenderer(display=mock_display, hives=[], page_interval=8)
 
     now = time.time()
-    m = Measurement(name="Akku", values={"voltage_v": 12.6, "temperature_c": 28.0}, timestamp=now)
+    m = Measurement(
+        name="Akku", values={"voltage_v": 12.6, "temperature_c": 28.0}, timestamp=now
+    )
     renderer.update({"Akku": m})
 
     pages = renderer._build_pages()
@@ -165,7 +187,9 @@ def test_renderer_uses_hive_color_from_hives_list() -> None:
     hives = [{"id": "abc", "name": "Garten", "color": "#10b981"}]
     renderer = DisplayRenderer(display=mock_display, hives=hives, page_interval=8)
 
-    m = Measurement(name="Waage", values={"weight_kg": 40.0}, timestamp=time.time(), hive_id="abc")
+    m = Measurement(
+        name="Waage", values={"weight_kg": 40.0}, timestamp=time.time(), hive_id="abc"
+    )
     renderer.update({"Waage": m})
 
     pages = renderer._build_pages()

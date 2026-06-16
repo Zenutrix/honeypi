@@ -1,9 +1,12 @@
 from __future__ import annotations
+
 import logging
 from typing import Any
+
 import httpx
-from .base import BaseExporter
+
 from ..sensors.base import Measurement
+from .base import BaseExporter
 
 logger = logging.getLogger(__name__)
 _URL = "https://api.datacake.co/v1/device/measurements/"
@@ -19,12 +22,16 @@ class DatacakeExporter(BaseExporter):
         fields = []
         for key, value in measurement.values.items():
             full_key = f"{measurement.name}.{key}"
-            field_name = self._field_mapping.get(full_key) or self._field_mapping.get(key)
+            field_name = self._field_mapping.get(full_key) or self._field_mapping.get(
+                key
+            )
             if field_name:
                 fields.append({"field": field_name, "value": value})
 
         if not fields:
-            logger.warning("Datacake: keine Felder gemappt für Sensor %s", measurement.name)
+            logger.warning(
+                "Datacake: keine Felder gemappt für Sensor %s", measurement.name
+            )
             return
 
         payload = {"serial_number": self._serial, "fields": fields}

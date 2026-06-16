@@ -1,20 +1,22 @@
 from __future__ import annotations
+
 from typing import Any
+
 from .base import BaseExporter
-from .local import LocalExporter
-from .thingspeak import ThingSpeakExporter
+from .datacake import DatacakeExporter
 from .influxdb import InfluxDBExporter
+from .local import LocalExporter
 from .mqtt import MQTTExporter
 from .telegram import TelegramExporter
-from .datacake import DatacakeExporter
+from .thingspeak import ThingSpeakExporter
 
 _REGISTRY: dict[str, type[BaseExporter]] = {
-    "local":      LocalExporter,
+    "local": LocalExporter,
     "thingspeak": ThingSpeakExporter,
-    "influxdb":   InfluxDBExporter,
-    "mqtt":       MQTTExporter,
-    "telegram":   TelegramExporter,
-    "datacake":   DatacakeExporter,
+    "influxdb": InfluxDBExporter,
+    "mqtt": MQTTExporter,
+    "telegram": TelegramExporter,
+    "datacake": DatacakeExporter,
 }
 
 
