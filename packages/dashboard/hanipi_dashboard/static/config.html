@@ -654,16 +654,16 @@ const SENSOR_TYPES = {
   ds18b20:{ label:'DS18B20', max:20, fields:[
     { key:'sensor_id', label:'Sensor (1-Wire Bus scannen)', type:'wire_scan', default:'' },
   ]},
-  bme280: { label:'BME280',  max:1, fields:[
+  bme280: { label:'BME280',  max:1, noHive:true, fields:[
     { key:'i2c_address', label:'I²C-Adresse', type:'i2c_scan', default:'0x76' },
   ]},
-  bme680: { label:'BME680',  max:1, fields:[
+  bme680: { label:'BME680',  max:1, noHive:true, fields:[
     { key:'i2c_address', label:'I²C-Adresse', type:'i2c_scan', default:'0x76' },
   ]},
-  bh1750: { label:'BH1750',  max:1, fields:[
+  bh1750: { label:'BH1750',  max:1, noHive:true, fields:[
     { key:'i2c_address', label:'I²C-Adresse', type:'i2c_scan', default:'0x23' },
   ]},
-  ina3221:{ label:'INA3221', max:1, fields:[
+  ina3221:{ label:'INA3221', max:1, noHive:true, fields:[
     { key:'i2c_address',  label:'I²C-Adresse',             type:'i2c_scan', default:'0x40' },
     { key:'ch1_enabled',  label:'CH1 — Solar-Eingang',     type:'checkbox', default:true  },
     { key:'ch2_enabled',  label:'CH2 — Batterie',          type:'checkbox', default:true  },
@@ -698,7 +698,7 @@ function addSensor() {
   const cnt = countByType(selectedType);
   if (typeDef.max != null && cnt >= typeDef.max) return;
 
-  const def = { type: selectedType, name: typeDef.label + '_' + (cnt + 1) };
+  const def = { type: selectedType, name: typeDef.max === 1 ? typeDef.label : typeDef.label + '_' + (cnt + 1) };
   typeDef.fields.forEach(f => { def[f.key] = f.default; });
 
   // HX711: nächstes freies Profil automatisch wählen
@@ -782,9 +782,10 @@ function renderSensors() {
       const val = s[f.key] !== undefined ? s[f.key] : f.default;
 
       if (f.type === 'checkbox') {
+        const checked = val === true || val === 'true' || val === 1;
         return `<div class="field">
           <label class="check-label">
-            <input type="checkbox" ${val ? 'checked' : ''}
+            <input type="checkbox" ${checked ? 'checked' : ''}
               onchange="updateSensor(${i},'${f.key}',this.checked)">
             ${f.label}
           </label>
@@ -933,10 +934,10 @@ function renderSensors() {
             <label>Name</label>
             <input type="text" value="${s.name}" oninput="updateSensor(${i},'name',this.value)">
           </div>
-          <div class="field">
+          ${!SENSOR_TYPES[s.type]?.noHive ? `<div class="field">
             <label>Stock (Hive)</label>
             <select onchange="updateSensor(${i},'hive_id',this.value)">${hiveOptions(s.hive_id)}</select>
-          </div>
+          </div>` : ''}
         </div>
         ${fieldHtml}
         ${calHtml}
