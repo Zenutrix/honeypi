@@ -10,6 +10,21 @@ from fastapi import APIRouter, HTTPException
 router = APIRouter()
 CONFIG_PATH = Path("/etc/hanipi/hanipi.json")
 
+# Bekannte I²C-Geräte: Adresse → Name für die UI
+_KNOWN_I2C: dict[int, str] = {
+    0x23: "BH1750 — Licht (ADDR→GND)",
+    0x40: "INA3221 — Solar/Batterie (A0/A1→GND)",
+    0x41: "INA3221 (A0→VCC) / INA226 Batterie",
+    0x48: "ADS1115 (ADDR→GND)",
+    0x49: "ADS1115 (ADDR→VCC)",
+    0x4A: "ADS1115 (ADDR→SDA)",
+    0x4B: "ADS1115 (ADDR→SCL)",
+    0x5C: "BH1750 — Licht (ADDR→3.3V)",
+    0x68: "RTC DS3231 / DS1307",
+    0x76: "BME280 / BME680 (SDO→GND)",
+    0x77: "BME280 / BME680 (SDO→3.3V)",
+}
+
 
 def _systemctl(action: str) -> None:
     subprocess.run(
@@ -47,3 +62,36 @@ def control(action: str) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail=f"Ungültige Aktion: {action!r}")
     _systemctl(action)
     return {"status": "ok"}
+
+
+@router.get("/scan/i2c")
+def scan_i2c(bus: int = 1) -> list[dict[str, Any]]:
+    """Scannt den I²C-Bus und gibt gefundene Geräte mit Namen zurück."""
+    found: list[dict[str, Any]] = []
+    try:
+        import smbus2
+
+        b = smbus2.SMBus(bus)
+        for addr in range(0x03, 0x78):
+            try:
+                b.read_byte(addr)
+                hex_addr = f"0x{addr:02x}"
+                name = _KNOWN_I2C.get(addr, f"Unbekanntes Gerät @ {hex_addr}")
+                found.append({"address": addr, "hex": hex_addr, "name": name})
+            except OSError:
+                pass
+        b.close()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"I²C-Scan fehlgeschlagen: {exc}")
+    return found
+
+
+@router.get("/scan/1wire")
+def scan_1wire() -> list[dict[str, str]]:
+    """Scannt den 1-Wire-Bus und gibt gefundene DS18B20-Sensoren zurück."""
+    w1_root = Path("/sys/bus/w1/devices")
+    devices = []
+    if w1_root.exists():
+        for d in sorted(w1_root.glob("28-*")):
+            devices.append({"id": d.name, "label": f"DS18B20 — {d.name}"})
+    return devices

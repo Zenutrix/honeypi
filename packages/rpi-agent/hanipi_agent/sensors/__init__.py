@@ -8,6 +8,7 @@ from .bme280 import BME280Sensor
 from .bme680sensor import BME680Sensor
 from .ds18b20 import DS18B20Sensor
 from .hx711 import HX711Sensor
+from .ina3221 import INA3221Sensor
 
 _REGISTRY: dict[str, type[BaseSensor]] = {
     "hx711": HX711Sensor,
@@ -15,6 +16,7 @@ _REGISTRY: dict[str, type[BaseSensor]] = {
     "bme280": BME280Sensor,
     "bme680": BME680Sensor,
     "bh1750": BH1750Sensor,
+    "ina3221": INA3221Sensor,
 }
 
 

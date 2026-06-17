@@ -576,16 +576,20 @@ const PIN_INFO = {
     ],
     notes:"I²C-Adresse: 0x23 (ADDR→GND) oder 0x5C (ADDR→3.3V)."
   },
-  ads1115: {
-    title:"ADS1115 – 16-Bit ADC / Akkuspannung (I²C)",
+  ina3221: {
+    title:"INA3221 – 3-Kanal Leistungsmessung (I²C)",
     wiring:[
-      { signal:"VCC",  pin:"Pin 1 (3.3V)", gpio:"—",      note:"Oder 5V (Modul-abhängig)" },
+      { signal:"VCC",  pin:"Pin 1 (3.3V)", gpio:"—",      note:"Nur 3.3V" },
       { signal:"GND",  pin:"Pin 6 (GND)",  gpio:"—",      note:"" },
       { signal:"SDA",  pin:"Pin 3",        gpio:"GPIO 2", note:"I²C Daten (fest)" },
       { signal:"SCL",  pin:"Pin 5",        gpio:"GPIO 3", note:"I²C Takt (fest)" },
-      { signal:"A0",   pin:"—",            gpio:"—",      note:"Analogeingang (z.B. Spannungsteiler Akku)" },
+      { signal:"A0",   pin:"—",            gpio:"—",      note:"Adresspin: GND = 0x40" },
+      { signal:"A1",   pin:"—",            gpio:"—",      note:"Adresspin: GND = 0x40" },
+      { signal:"CH1 IN+/IN−", pin:"Solarpanel+", gpio:"—", note:"Shunt in Solar-Plusleitung" },
+      { signal:"CH2 IN+/IN−", pin:"Batterie+",   gpio:"—", note:"Shunt in Batterie-Plusleitung" },
+      { signal:"CH3 IN+/IN−", pin:"5V Ausgang+", gpio:"—", note:"Optional: Pi-Verbrauch messen" },
     ],
-    notes:"Adresse: 0x48 (ADDR→GND), 0x49 (ADDR→VCC), 0x4A (ADDR→SDA), 0x4B (ADDR→SCL)."
+    notes:"Adresse: 0x40 (A0/A1→GND). Shunt-Widerstände (0.1Ω) sind auf Breakout-Modulen bereits verbaut. CH1=Solar · CH2=Batterie · CH3=Pi-Ausgang."
   },
 };
 
@@ -624,34 +628,55 @@ function closePinModal(e) {
     document.getElementById('pinModal').classList.remove('open');
 }
 
+// GPIO-Optionen für HX711 (PCB-Standard + Reserve)
+const HX_GPIO_OPTS = [
+  [5,  'GPIO5  — HX1 DOUT (PCB Standard)'],
+  [6,  'GPIO6  — HX1 CLK  (PCB Standard)'],
+  [12, 'GPIO12 — HX2 DOUT (PCB Standard)'],
+  [13, 'GPIO13 — HX2 CLK  (PCB Standard)'],
+  [19, 'GPIO19 — HX3 DOUT (PCB Standard)'],
+  [16, 'GPIO16 — HX3 CLK  (PCB Standard)'],
+  [20, 'GPIO20 — HX4 DOUT (PCB Standard)'],
+  [21, 'GPIO21 — HX4 CLK  (PCB Standard)'],
+  [26, 'GPIO26 — Reserve'],
+  [17, 'GPIO17'],[18, 'GPIO18'],[22, 'GPIO22'],
+  [23, 'GPIO23'],[24, 'GPIO24'],[25, 'GPIO25'],[27, 'GPIO27'],
+];
+
+// Bekannte I²C-Adressen für Dropdown-Labels
+const KNOWN_I2C = {
+  '0x23':'BH1750 — Licht (ADDR→GND)',
+  '0x40':'INA3221 — Solar/Batterie (A0/A1→GND)',
+  '0x41':'INA3221 (A0→VCC) / INA226',
+  '0x5c':'BH1750 — Licht (ADDR→3.3V)',
+  '0x76':'BME280 / BME680 (SDO→GND)',
+  '0x77':'BME280 / BME680 (SDO→3.3V)',
+};
+
 const SENSOR_TYPES = {
   hx711:  { label:'HX711',   fields:[
-    { key:'data_pin',       label:'Data Pin (GPIO)',       type:'number', default:5 },
-    { key:'clock_pin',      label:'Clock Pin (GPIO)',      type:'number', default:6 },
+    { key:'data_pin',       label:'Data Pin (DOUT)',        type:'gpio',   default:5 },
+    { key:'clock_pin',      label:'Clock Pin (SCK)',        type:'gpio',   default:6 },
     { key:'reference_unit', label:'Referenzeinheit (auto)', type:'number', default:1000, readonly:true },
   ]},
   ds18b20:{ label:'DS18B20', fields:[
-    { key:'sensor_index',   label:'Index (bei mehreren)', type:'number', default:0 },
-    { key:'sensor_id',      label:'Sensor-ID (optional)', type:'text',   default:'' },
+    { key:'sensor_id', label:'Sensor (1-Wire Bus scannen)', type:'wire_scan', default:'' },
   ]},
   bme280: { label:'BME280',  fields:[
-    { key:'i2c_port',       label:'I²C-Bus',              type:'number', default:1 },
-    { key:'i2c_address',    label:'I²C-Adresse (hex)',    type:'text',   default:'0x76' },
+    { key:'i2c_address', label:'I²C-Adresse', type:'i2c_scan', default:'0x76' },
   ]},
   bme680: { label:'BME680',  fields:[
-    { key:'i2c_port',       label:'I²C-Bus',              type:'number', default:1 },
-    { key:'i2c_address',    label:'I²C-Adresse (hex)',    type:'text',   default:'0x76' },
+    { key:'i2c_address', label:'I²C-Adresse', type:'i2c_scan', default:'0x76' },
   ]},
   bh1750: { label:'BH1750',  fields:[
-    { key:'i2c_port',       label:'I²C-Bus',              type:'number', default:1 },
-    { key:'i2c_address',    label:'I²C-Adresse (hex)',    type:'text',   default:'0x23' },
+    { key:'i2c_address', label:'I²C-Adresse', type:'i2c_scan', default:'0x23' },
   ]},
-  ads1115:{ label:'ADS1115', fields:[
-    { key:'i2c_port',        label:'I²C-Bus',             type:'number', default:1 },
-    { key:'i2c_address',     label:'I²C-Adresse (hex)',   type:'text',   default:'0x48' },
-    { key:'channel',         label:'Kanal (0–3)',          type:'number', default:0 },
-    { key:'gain',            label:'Gain (2/3,1,2,4,8,16)',type:'number', default:1 },
-    { key:'voltage_divider', label:'Spannungsteiler',      type:'number', default:1.0 },
+  ina3221:{ label:'INA3221', fields:[
+    { key:'i2c_address',  label:'I²C-Adresse',             type:'i2c_scan', default:'0x40' },
+    { key:'ch1_enabled',  label:'CH1 — Solar-Eingang',     type:'checkbox', default:true  },
+    { key:'ch2_enabled',  label:'CH2 — Batterie',          type:'checkbox', default:true  },
+    { key:'ch3_enabled',  label:'CH3 — Pi-Verbrauch',      type:'checkbox', default:false },
+    { key:'shunt_ohms',   label:'Shunt-Widerstand (Ω)',    type:'number',   default:0.1  },
   ]},
 };
 
@@ -678,6 +703,53 @@ function addSensor() {
 
 function removeSensor(i) { sensors.splice(i, 1); renderSensors(); markDirty(); }
 
+async function scanI2C(sIdx, fieldKey) {
+  const sel = document.getElementById(`i2c-sel-${sIdx}-${fieldKey}`);
+  if (!sel) return;
+  sel.innerHTML = '<option>Scanne…</option>';
+  try {
+    const res = await fetch('/api/scan/i2c');
+    if (!res.ok) throw new Error(await res.text());
+    const devices = await res.json();
+    const cur = sensors[sIdx][fieldKey] || '';
+    if (devices.length === 0) {
+      sel.innerHTML = '<option value="">Keine I²C-Geräte gefunden</option>';
+      return;
+    }
+    sel.innerHTML = devices.map(d =>
+      `<option value="${d.hex}"${d.hex===cur?' selected':''}>${d.hex} — ${d.name}</option>`
+    ).join('');
+    // Wert auf erste Übereinstimmung setzen
+    const match = devices.find(d => d.hex === cur) || devices[0];
+    updateSensor(sIdx, fieldKey, match.hex);
+  } catch(e) {
+    sel.innerHTML = `<option value="">Fehler: ${e.message}</option>`;
+  }
+}
+
+async function scan1Wire(sIdx, fieldKey) {
+  const sel = document.getElementById(`wire-sel-${sIdx}`);
+  if (!sel) return;
+  sel.innerHTML = '<option>Scanne…</option>';
+  try {
+    const res = await fetch('/api/scan/1wire');
+    if (!res.ok) throw new Error(await res.text());
+    const devices = await res.json();
+    const cur = sensors[sIdx][fieldKey] || '';
+    if (devices.length === 0) {
+      sel.innerHTML = '<option value="">Keine DS18B20-Sensoren gefunden</option>';
+      return;
+    }
+    sel.innerHTML = devices.map(d =>
+      `<option value="${d.id}"${d.id===cur?' selected':''}>${d.label}</option>`
+    ).join('');
+    const match = devices.find(d => d.id === cur) || devices[0];
+    updateSensor(sIdx, fieldKey, match.id);
+  } catch(e) {
+    sel.innerHTML = `<option value="">Fehler: ${e.message}</option>`;
+  }
+}
+
 function hiveOptions(currentId) {
   return `<option value="">Keinem Stock zugewiesen</option>` +
     hives.map(h => `<option value="${h.id}"${currentId===h.id?' selected':''}>${h.name}</option>`).join('');
@@ -691,18 +763,63 @@ function renderSensors() {
     const fields = SENSOR_TYPES[s.type]?.fields || [];
     const fieldHtml = fields.map(f => {
       const val = s[f.key] !== undefined ? s[f.key] : f.default;
-      const hexVal = (f.key === 'i2c_address' && typeof val === 'number') ? '0x' + val.toString(16) : val;
+
+      if (f.type === 'checkbox') {
+        return `<div class="field">
+          <label class="check-label">
+            <input type="checkbox" ${val ? 'checked' : ''}
+              onchange="updateSensor(${i},'${f.key}',this.checked)">
+            ${f.label}
+          </label>
+        </div>`;
+      }
+
+      if (f.type === 'i2c_scan') {
+        const hexVal = typeof val === 'number' ? '0x' + val.toString(16) : (val || f.default);
+        return `<div class="field">
+          <label>${f.label}</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="i2c-sel-${i}-${f.key}" onchange="updateSensor(${i},'${f.key}',this.value)">
+              <option value="${hexVal}">${hexVal} — (noch nicht gescannt)</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" onclick="scanI2C(${i},'${f.key}')">Scannen</button>
+          </div>
+        </div>`;
+      }
+
+      if (f.type === 'wire_scan') {
+        return `<div class="field">
+          <label>${f.label}</label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="wire-sel-${i}" onchange="updateSensor(${i},'${f.key}',this.value)">
+              <option value="${val || ''}">${val || '— noch nicht gescannt —'}</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" onclick="scan1Wire(${i},'${f.key}')">Scannen</button>
+          </div>
+        </div>`;
+      }
+
+      if (f.type === 'gpio') {
+        const gpioOpts = HX_GPIO_OPTS.map(([pin, lbl]) =>
+          `<option value="${pin}"${pin == val ? ' selected' : ''}>${lbl}</option>`).join('');
+        return `<div class="field">
+          <label>${f.label}</label>
+          <select onchange="updateSensor(${i},'${f.key}',+this.value)">${gpioOpts}</select>
+        </div>`;
+      }
+
       if (f.readonly) {
         return `<div class="field">
           <label>${f.label}</label>
-          <input type="${f.type}" value="${hexVal}" readonly style="opacity:.5;cursor:default">
+          <input type="${f.type}" value="${val}" readonly style="opacity:.5;cursor:default">
           <div class="field-hint">Wird automatisch durch den Kalibrierungs-Wizard gesetzt.</div>
         </div>`;
       }
+
       return `<div class="field">
         <label>${f.label}</label>
-        <input type="${f.type}" value="${hexVal}"
-          oninput="updateSensor(${i},'${f.key}',this.value,${f.key.includes('i2c_address')})">
+        <input type="${f.type}" value="${val}"
+          oninput="updateSensor(${i},'${f.key}',this.value)">
       </div>`;
     }).join('');
 
@@ -809,11 +926,15 @@ function toggleSensorBody(header) {
   header.nextElementSibling.classList.toggle('open');
 }
 
-function updateSensor(i, key, val, isHex) {
-  if (isHex) {
-    sensors[i][key] = parseInt(val, 16) || parseInt(val, 10) || 0;
+function updateSensor(i, key, val) {
+  if (typeof val === 'boolean') {
+    sensors[i][key] = val;
+  } else if (key === 'i2c_address') {
+    // Hex-String direkt speichern (z.B. "0x40")
+    sensors[i][key] = val;
   } else if (!isNaN(val) && val !== '') {
-    sensors[i][key] = key === 'name' || key === 'hive_id' || key === 'sensor_id' ? val : Number(val);
+    const strKeys = ['name', 'hive_id', 'sensor_id'];
+    sensors[i][key] = strKeys.includes(key) ? val : Number(val);
   } else {
     sensors[i][key] = val;
   }
@@ -875,7 +996,7 @@ function loadDcMappingRows() {
       .map(k => `${s.name}.${k}`)
   );
   const sensorKeys = sensors.flatMap(s => {
-    const typeDefaults = { hx711: ['weight_kg'], bme280: ['temperature_c','humidity_pct','pressure_hpa'], bme680: ['temperature_c','humidity_pct','pressure_hpa','gas_resistance_ohm'], ds18b20: ['temperature_c'], bh1750: ['lux'], ads1115: ['voltage_v'], hx711: ['weight_kg'] };
+    const typeDefaults = { hx711: ['weight_kg'], bme280: ['temperature_c','humidity_pct','pressure_hpa'], bme680: ['temperature_c','humidity_pct','pressure_hpa','gas_resistance_ohm'], ds18b20: ['temperature_c'], bh1750: ['lux'], ina3221: ['solar_voltage_v','solar_current_a','battery_voltage_v','battery_current_a','pi_voltage_v','pi_current_a'] };
     return (typeDefaults[s.type] || []).map(k => `${s.name}.${k}`);
   });
   const displayKeys = sensorKeys.length ? sensorKeys : keys;
