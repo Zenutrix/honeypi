@@ -12,7 +12,7 @@ try:
     import RPi.GPIO as GPIO  # type: ignore[import-untyped]
 
     _GPIO_AVAILABLE = True
-except ImportError:
+except Exception:
     _GPIO_AVAILABLE = False
 
 

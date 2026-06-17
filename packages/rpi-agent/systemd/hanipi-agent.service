@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=hanipi
-WorkingDirectory=/opt/hanipi
+WorkingDirectory=/var/lib/hanipi
 ExecStart=/opt/hanipi/venv/bin/hanipi-agent
 Restart=always
 RestartSec=30
