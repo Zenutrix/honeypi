@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from .ads1115 import ADS1115Sensor
 from .base import BaseSensor
 from .bh1750 import BH1750Sensor
 from .bme280 import BME280Sensor
@@ -16,7 +15,6 @@ _REGISTRY: dict[str, type[BaseSensor]] = {
     "bme280": BME280Sensor,
     "bme680": BME680Sensor,
     "bh1750": BH1750Sensor,
-    "ads1115": ADS1115Sensor,
 }
 
 

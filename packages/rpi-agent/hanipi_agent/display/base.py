@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -12,6 +12,7 @@ class DisplayPage:
     hive_color: str = "#f59e0b"
     battery_voltage: float | None = None
     connected: bool = True
+    trends: dict[str, str] = field(default_factory=dict)  # key -> "up"|"down"|"stable"
 
 
 class BaseDisplay(ABC):

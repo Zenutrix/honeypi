@@ -34,6 +34,20 @@ def _chunk_values(values: dict[str, float]) -> list[dict[str, float]]:
     ]
 
 
+_TREND_THRESHOLD = 0.005  # 0.5 %
+
+
+def _compute_trend(prev: float, curr: float) -> str:
+    if prev == 0:
+        return "stable"
+    delta = (curr - prev) / abs(prev)
+    if delta > _TREND_THRESHOLD:
+        return "up"
+    if delta < -_TREND_THRESHOLD:
+        return "down"
+    return "stable"
+
+
 class DisplayRenderer:
     """Cycles through hive pages on a background thread."""
 
@@ -51,6 +65,7 @@ class DisplayRenderer:
         self._stop_event = threading.Event()
         self._thread: threading.Thread | None = None
         self._page_index = 0
+        self._prev_values: dict[tuple[str | None, str], float] = {}
 
     def update(self, latest: dict[str, Measurement]) -> None:
         with self._lock:
@@ -94,6 +109,7 @@ class DisplayRenderer:
             timestamps[hid] = max(timestamps[hid], m.timestamp)
 
         pages: list[DisplayPage] = []
+        next_prev: dict[tuple[str | None, str], float] = {}
         for hid, values in by_hive.items():
             if hid and hid in self._hives:
                 hive = self._hives[hid]
@@ -102,6 +118,13 @@ class DisplayRenderer:
             else:
                 name = "Alle Sensoren" if hid is None else hid
                 color = "#f59e0b"
+
+            trends: dict[str, str] = {}
+            for key, val in values.items():
+                pk = (hid, key)
+                prev = self._prev_values.get(pk)
+                trends[key] = _compute_trend(prev, val) if prev is not None else "stable"
+                next_prev[pk] = val
 
             batt = values.pop("voltage_v", None)
             for chunk in _chunk_values(values):
@@ -112,8 +135,11 @@ class DisplayRenderer:
                         values=chunk,
                         hive_color=color,
                         battery_voltage=batt,
+                        trends={k: trends[k] for k in chunk if k in trends},
                     )
                 )
+
+        self._prev_values = next_prev
         return pages
 
     def _loop(self) -> None:

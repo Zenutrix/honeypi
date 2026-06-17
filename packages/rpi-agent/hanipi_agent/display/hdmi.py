@@ -275,6 +275,104 @@ def _draw_icon(
         d.ellipse([cx - cr, cy - cr, cx + cr, cy + cr], fill=color)
 
 
+# ── Normalbereiche & Statusfarben ────────────────────────────────────────────
+
+_BAR_RANGES: dict[str, tuple[float, float]] = {
+    "temperature_c": (0.0, 60.0),
+    "humidity_pct": (0.0, 100.0),
+    "illuminance_lux": (0.0, 100_000.0),
+    "pressure_hpa": (950.0, 1050.0),
+    "gas_resistance_ohm": (0.0, 500_000.0),
+    "voltage_v": (3.0, 4.2),
+}
+
+
+def _bar_range(key: str) -> tuple[float, float] | None:
+    return _BAR_RANGES.get(key)
+
+
+def _value_status(key: str, val: float) -> str:
+    if key == "temperature_c":
+        if 15 <= val <= 40:
+            return "good"
+        if 10 <= val <= 45:
+            return "warn"
+        return "bad"
+    if key == "humidity_pct":
+        if 40 <= val <= 80:
+            return "good"
+        if 30 <= val <= 90:
+            return "warn"
+        return "bad"
+    if key == "voltage_v":
+        if val > 3.7:
+            return "good"
+        if val >= 3.5:
+            return "warn"
+        return "bad"
+    if key == "pressure_hpa":
+        if 990 <= val <= 1030:
+            return "good"
+        return "warn"
+    return "neutral"
+
+
+def _status_color(status: str) -> tuple[int, int, int]:
+    return {"good": GREEN, "warn": AMBER, "bad": RED}.get(status, MUTED)
+
+
+def _draw_trend(
+    d: ImageDraw.ImageDraw,
+    trend: str,
+    x: int,
+    y: int,
+    size: int,
+    key: str,
+    val: float,
+) -> None:
+    if trend == "up":
+        color = GREEN if key != "weight_kg" else GREEN
+    elif trend == "down":
+        status = _value_status(key, val)
+        color = RED if status == "bad" or key == "weight_kg" else AMBER
+    else:
+        color = MUTED
+
+    h = size
+    w = max(2, size // 3)
+    if trend == "up":
+        d.polygon([(x, y - h // 2), (x - w, y + h // 2), (x + w, y + h // 2)], fill=color)
+    elif trend == "down":
+        d.polygon([(x, y + h // 2), (x - w, y - h // 2), (x + w, y - h // 2)], fill=color)
+    else:
+        d.line([x - w, y, x + w, y], fill=color, width=max(2, size // 6))
+
+
+def _draw_bar(
+    d: ImageDraw.ImageDraw,
+    key: str,
+    val: float,
+    x0: int,
+    y0: int,
+    x1: int,
+    y1: int,
+) -> None:
+    rng = _bar_range(key)
+    if rng is None:
+        return
+    lo, hi = rng
+    frac = max(0.0, min(1.0, (val - lo) / (hi - lo)))
+    status = _value_status(key, val)
+    fill_color = _status_color(status)
+    r = (y1 - y0) // 2
+    d.rounded_rectangle([x0, y0, x1, y1], radius=r, fill=SURF2)
+    fill_w = int((x1 - x0) * frac)
+    if fill_w > r * 2:
+        d.rounded_rectangle([x0, y0, x0 + fill_w, y1], radius=r, fill=fill_color)
+    elif fill_w > 0:
+        d.ellipse([x0, y0, x0 + r * 2, y1], fill=fill_color)
+
+
 # ── Display ───────────────────────────────────────────────────────────────────
 
 
@@ -522,6 +620,7 @@ class HDMIDisplay(BaseDisplay):
             logger.error("Datenseite: %s", exc)
 
     def _render_data(self, page: DisplayPage) -> None:
+        trends = page.trends
         img, d = self._new()
         W, H = self._w, self._h
 
@@ -619,65 +718,36 @@ class HDMIDisplay(BaseDisplay):
 
         if len(items) == 1:
             self._draw_hero(
-                d, items[0], accent, PAD, body_top + PAD, W - PAD, fy - PAD, fonts
+                d, items[0], accent, PAD, body_top + PAD, W - PAD, fy - PAD, fonts,
+                trend=trends.get(items[0][0], "stable"),
             )
         elif len(items) == 2:
             avail_w = W - PAD * 3
             hero_w = int(avail_w * 0.58)
             self._draw_hero(
-                d,
-                items[0],
-                accent,
-                PAD,
-                body_top + PAD,
-                PAD + hero_w,
-                fy - PAD,
-                fonts,
+                d, items[0], accent, PAD, body_top + PAD, PAD + hero_w, fy - PAD, fonts,
+                trend=trends.get(items[0][0], "stable"),
             )
             self._draw_tile(
-                d,
-                items[1],
-                accent,
-                PAD * 2 + hero_w,
-                body_top + PAD,
-                W - PAD,
-                fy - PAD,
-                fonts,
+                d, items[1], accent, PAD * 2 + hero_w, body_top + PAD, W - PAD, fy - PAD, fonts,
+                trend=trends.get(items[1][0], "stable"),
             )
         else:
             avail_w = W - PAD * 3
             hero_w = int(avail_w * 0.58)
             self._draw_hero(
-                d,
-                items[0],
-                accent,
-                PAD,
-                body_top + PAD,
-                PAD + hero_w,
-                fy - PAD,
-                fonts,
+                d, items[0], accent, PAD, body_top + PAD, PAD + hero_w, fy - PAD, fonts,
+                trend=trends.get(items[0][0], "stable"),
             )
             tile_x0 = PAD * 2 + hero_w
             tile_h = (body_h - PAD * 3) // 2
             self._draw_tile(
-                d,
-                items[1],
-                accent,
-                tile_x0,
-                body_top + PAD,
-                W - PAD,
-                body_top + PAD + tile_h,
-                fonts,
+                d, items[1], accent, tile_x0, body_top + PAD, W - PAD, body_top + PAD + tile_h, fonts,
+                trend=trends.get(items[1][0], "stable"),
             )
             self._draw_tile(
-                d,
-                items[2],
-                accent,
-                tile_x0,
-                body_top + PAD * 2 + tile_h,
-                W - PAD,
-                fy - PAD,
-                fonts,
+                d, items[2], accent, tile_x0, body_top + PAD * 2 + tile_h, W - PAD, fy - PAD, fonts,
+                trend=trends.get(items[2][0], "stable"),
             )
 
         self._flush(img)
@@ -717,6 +787,7 @@ class HDMIDisplay(BaseDisplay):
         x1: int,
         y1: int,
         fonts: tuple[FontT, FontT, FontT, FontT],
+        trend: str = "stable",
     ) -> None:
         key, val = item
         f_lbl, f_hero_val, _f_tile_val, f_unit = fonts
@@ -740,13 +811,25 @@ class HDMIDisplay(BaseDisplay):
             val_w = int(f_hero_val.getlength(val_str))
         except Exception:
             val_w = self._s(140)
+
+        unit_x = cx + val_w // 2 + self._s(SPACE_SM)
         d.text(
-            (cx + val_w // 2 + self._s(SPACE_SM), cy + self._s(24)),
+            (unit_x, cy + self._s(24)),
             unit,
             fill=accent,
             font=f_unit,
             anchor="lm",
         )
+
+        trend_size = self._s(36)
+        trend_x = unit_x + self._s(SPACE_MD)
+        _draw_trend(d, trend, trend_x, cy + self._s(10), trend_size, key, val)
+
+        bar_h = self._s(8)
+        bar_w = int((x1 - x0) * 0.68)
+        bar_x0 = cx - bar_w // 2
+        bar_y0 = cy + self._s(52)
+        _draw_bar(d, key, val, bar_x0, bar_y0, bar_x0 + bar_w, bar_y0 + bar_h)
 
     def _draw_tile(
         self,
@@ -758,6 +841,7 @@ class HDMIDisplay(BaseDisplay):
         x1: int,
         y1: int,
         fonts: tuple[FontT, FontT, FontT, FontT],
+        trend: str = "stable",
     ) -> None:
         key, val = item
         f_lbl, _f_hero_val, f_tile_val, f_unit = fonts
@@ -781,10 +865,21 @@ class HDMIDisplay(BaseDisplay):
             val_w = int(f_tile_val.getlength(val_str))
         except Exception:
             val_w = self._s(70)
+
+        unit_x = cx + val_w // 2 + self._s(SPACE_XS)
         d.text(
-            (cx + val_w // 2 + self._s(SPACE_XS), cy + self._s(20)),
+            (unit_x, cy + self._s(20)),
             unit,
             fill=accent,
             font=f_unit,
             anchor="lm",
         )
+
+        trend_size = self._s(24)
+        trend_x = unit_x + self._s(SPACE_SM)
+        _draw_trend(d, trend, trend_x, cy + self._s(12), trend_size, key, val)
+
+        bar_h = self._s(5)
+        pad = self._s(SPACE_SM)
+        bar_y1 = y1 - pad
+        _draw_bar(d, key, val, x0 + pad, bar_y1 - bar_h, x1 - pad, bar_y1)
