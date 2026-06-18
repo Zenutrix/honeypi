@@ -518,14 +518,21 @@ input[type=number][readonly] { -moz-appearance: textfield; }
   padding: 12px 12px 2px;
 }
 .sidebar-nav-sub {
-  display: flex; align-items: center;
-  padding: 5px 12px 5px 22px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 12px;
   font-size: 12px; font-weight: 500; color: var(--text-muted);
   text-decoration: none; border-radius: var(--radius-sm); margin: 0;
   transition: background .15s, color .15s;
 }
+.sidebar-nav-sub svg { width: 15px; height: 15px; stroke-width: 1.8; flex-shrink: 0; }
 .sidebar-nav-sub:hover  { background: var(--surface-2); color: var(--text); }
 .sidebar-nav-sub.active { background: var(--amber-glow); color: var(--amber); font-weight: 600; }
+.sidebar-copyright {
+  margin-top: auto; padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 10px; color: var(--text-faint);
+  line-height: 1.5; padding-left: 2px;
+}
 
 .sidebar-footer {
   padding-top: 12px;
