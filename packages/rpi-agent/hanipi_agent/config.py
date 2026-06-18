@@ -33,6 +33,7 @@ class DisplayConfig(BaseModel):
     eink_dc_pin: int = 25
     eink_rst_pin: int = 27
     eink_busy_pin: int = 22
+    button_gpio: int = 18      # 0 = deaktiviert
 
 
 class HaniPiConfig(BaseModel):

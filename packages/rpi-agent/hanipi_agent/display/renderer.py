@@ -94,6 +94,24 @@ class DisplayRenderer:
         except Exception as exc:
             logger.warning("Idle screen error: %s", exc)
 
+    # ── Button-Callbacks ──────────────────────────────────────────────────────
+
+    def next_page(self) -> None:
+        """Kurzer Druck: sofort zur nächsten Seite springen."""
+        pages = self._build_pages()
+        if not pages:
+            self._show_idle()
+            return
+        self._page_index = (self._page_index + 1) % len(pages)
+        try:
+            self._display.show_page(pages[self._page_index])
+        except Exception as exc:
+            logger.error("Button next_page: %s", exc)
+
+    def show_idle_now(self) -> None:
+        """Langer Druck: sofort zum Idle-Screen."""
+        self._show_idle()
+
     def _build_pages(self) -> list[DisplayPage]:
         with self._lock:
             latest = dict(self._latest)

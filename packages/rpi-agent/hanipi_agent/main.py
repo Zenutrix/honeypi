@@ -94,6 +94,20 @@ def main() -> None:
         except Exception as exc:
             logger.warning("Could not initialize display: %s", exc)
 
+    button_monitor = None
+    if display_renderer is not None and cfg.display.button_gpio > 0:
+        try:
+            from .display.button import ButtonMonitor
+
+            button_monitor = ButtonMonitor(
+                gpio_pin=cfg.display.button_gpio,
+                on_short_press=display_renderer.next_page,
+                on_long_press=display_renderer.show_idle_now,
+            )
+            button_monitor.start()
+        except Exception as exc:
+            logger.warning("Could not initialize button monitor: %s", exc)
+
     runner = MeasurementRunner(
         sensors=sensors,
         exporters=exporters,
@@ -107,6 +121,8 @@ def main() -> None:
     def _shutdown(sig: int, frame: object) -> None:
         logger.info("Shutting down...")
         runner.stop()
+        if button_monitor is not None:
+            button_monitor.stop()
         if display_renderer is not None:
             display_renderer.stop()
         for exp in exporters:

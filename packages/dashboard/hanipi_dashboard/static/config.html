@@ -394,6 +394,17 @@
             </div>
             <div class="field-hint">SPI0: MOSI=GPIO10 · SCK=GPIO11 · MISO=GPIO9 (geteilt mit LoRa)</div>
           </div>
+          <div class="field">
+            <label>Taster-Pin</label>
+            <select id="disp-btn-gpio">
+              <option value="0">Kein Taster</option>
+              <option value="18">GPIO18 — Pin 12 (Standard)</option>
+              <option value="23">GPIO23 — Pin 16</option>
+              <option value="24">GPIO24 — Pin 18</option>
+              <option value="26">GPIO26 — Pin 37</option>
+            </select>
+            <div class="field-hint">Kurz = nächste Seite · Lang (&gt;2s) = Idle-Screen</div>
+          </div>
           <div class="field-row">
             <div class="field">
               <label>Rotation</label>
@@ -1160,6 +1171,7 @@ async function loadConfig() {
   document.getElementById('disp-eink-dc').value    = disp.eink_dc_pin  ?? 25;
   document.getElementById('disp-eink-rst').value   = disp.eink_rst_pin ?? 27;
   document.getElementById('disp-eink-busy').value  = disp.eink_busy_pin ?? 22;
+  document.getElementById('disp-btn-gpio').value   = disp.button_gpio ?? 18;
   toggleDisplayFields();
   toggleTftField();
 
@@ -1204,6 +1216,7 @@ async function saveConfig() {
       eink_dc_pin:    parseInt(document.getElementById('disp-eink-dc').value),
       eink_rst_pin:   parseInt(document.getElementById('disp-eink-rst').value),
       eink_busy_pin:  parseInt(document.getElementById('disp-eink-busy').value),
+      button_gpio:    parseInt(document.getElementById('disp-btn-gpio').value),
     },
     maintenance_switch: {
       enabled:          document.getElementById('maint-on').checked,
