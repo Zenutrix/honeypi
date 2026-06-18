@@ -66,6 +66,18 @@ def main() -> None:
                 from .display.hdmi import HDMIDisplay
 
                 display_obj: object = HDMIDisplay(rotation=cfg.display.rotation)
+            elif cfg.display.type == "eink":
+                from .display.eink import EInkDisplay
+
+                display_obj = EInkDisplay(
+                    model=cfg.display.eink_model,
+                    spi_bus=cfg.display.eink_spi_bus,
+                    spi_cs=cfg.display.eink_spi_cs,
+                    dc_pin=cfg.display.eink_dc_pin,
+                    rst_pin=cfg.display.eink_rst_pin,
+                    busy_pin=cfg.display.eink_busy_pin,
+                    rotation=cfg.display.rotation,
+                )
             else:
                 from .display.tft import TFTDisplay
 

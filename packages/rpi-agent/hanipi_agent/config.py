@@ -21,11 +21,18 @@ class MaintenanceSwitchConfig(BaseModel):
 
 class DisplayConfig(BaseModel):
     enabled: bool = False
-    type: str = "none"  # "none" | "hdmi" | "tft"
+    type: str = "none"  # "none" | "hdmi" | "tft" | "eink"
     tft_device: str = "/dev/fb1"
     brightness: int = 80
     rotation: int = 0  # 0 | 90 | 180 | 270
     page_interval: int = 8
+    # E-Ink spezifisch
+    eink_model: str = "2.7"       # "2.13" | "2.7" | "4.2" | "7.5"
+    eink_spi_bus: int = 0
+    eink_spi_cs: int = 0          # 0=GPIO8, 1=GPIO7
+    eink_dc_pin: int = 25
+    eink_rst_pin: int = 27
+    eink_busy_pin: int = 22
 
 
 class HaniPiConfig(BaseModel):

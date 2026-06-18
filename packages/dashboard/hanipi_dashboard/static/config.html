@@ -336,15 +336,63 @@
           <div class="field"><label class="check-label"><input type="checkbox" id="disp-on"> Aktiviert</label></div>
           <div class="field">
             <label>Typ</label>
-            <select id="disp-type" onchange="toggleTftField()">
+            <select id="disp-type" onchange="toggleDisplayFields()">
               <option value="none">Kein Display</option>
-              <option value="hdmi">HDMI (Framebuffer)</option>
+              <option value="hdmi">HDMI (Framebuffer /dev/fb0)</option>
+              <option value="eink">E-Ink (Waveshare, SPI)</option>
               <option value="tft">TFT (SPI / Framebuffer)</option>
             </select>
           </div>
           <div class="field" id="disp-tft-field" style="display:none">
             <label>TFT-Gerät</label>
             <input type="text" id="disp-tft-dev" value="/dev/fb1">
+          </div>
+          <div id="disp-eink-fields" style="display:none">
+            <div class="field-row">
+              <div class="field">
+                <label>Display-Modell</label>
+                <select id="disp-eink-model">
+                  <option value="2.7">2.7″ (264×176) — Standard</option>
+                  <option value="2.13">2.13″ (212×104)</option>
+                  <option value="4.2">4.2″ (400×300)</option>
+                  <option value="7.5">7.5″ (800×480)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>SPI CS</label>
+                <select id="disp-eink-cs">
+                  <option value="0">CE0 — GPIO8 (PCB Standard)</option>
+                  <option value="1">CE1 — GPIO7</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>DC-Pin</label>
+                <select id="disp-eink-dc">
+                  <option value="25">GPIO25 (Standard)</option>
+                  <option value="24">GPIO24</option>
+                  <option value="23">GPIO23</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>RST-Pin</label>
+                <select id="disp-eink-rst">
+                  <option value="27">GPIO27 (Standard)</option>
+                  <option value="17">GPIO17</option>
+                  <option value="26">GPIO26</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>BUSY-Pin</label>
+                <select id="disp-eink-busy">
+                  <option value="22">GPIO22 (Standard)</option>
+                  <option value="24">GPIO24</option>
+                  <option value="23">GPIO23</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-hint">SPI0: MOSI=GPIO10 · SCK=GPIO11 · MISO=GPIO9 (geteilt mit LoRa)</div>
           </div>
           <div class="field-row">
             <div class="field">
@@ -995,9 +1043,10 @@ function syncBadge(id) {
   markDirty();
 }
 
-function toggleTftField() {
+function toggleDisplayFields() {
   const type = document.getElementById('disp-type').value;
-  document.getElementById('disp-tft-field').style.display = type === 'tft' ? 'block' : 'none';
+  document.getElementById('disp-tft-field').style.display   = type === 'tft'  ? 'block' : 'none';
+  document.getElementById('disp-eink-fields').style.display = type === 'eink' ? 'block' : 'none';
 }
 
 let tsMapping = {};
@@ -1106,6 +1155,12 @@ async function loadConfig() {
   document.getElementById('disp-page-interval').value  = disp.page_interval ?? 8;
   const dispRot = document.getElementById('disp-rotation');
   if (dispRot) dispRot.value = disp.rotation ?? 0;
+  document.getElementById('disp-eink-model').value = disp.eink_model   || '2.7';
+  document.getElementById('disp-eink-cs').value    = disp.eink_spi_cs ?? 0;
+  document.getElementById('disp-eink-dc').value    = disp.eink_dc_pin  ?? 25;
+  document.getElementById('disp-eink-rst').value   = disp.eink_rst_pin ?? 27;
+  document.getElementById('disp-eink-busy').value  = disp.eink_busy_pin ?? 22;
+  toggleDisplayFields();
   toggleTftField();
 
   const maint = cfg.maintenance_switch || {};
@@ -1137,12 +1192,18 @@ async function saveConfig() {
       datacake:   { enabled: document.getElementById('dc-on').checked, token: document.getElementById('dc-token').value, serial_number: document.getElementById('dc-serial').value, field_mapping: dcMapping },
     },
     display: {
-      enabled:       document.getElementById('disp-on').checked,
-      type:          document.getElementById('disp-type').value,
-      tft_device:    document.getElementById('disp-tft-dev').value,
-      brightness:    80,
-      rotation:      parseInt(document.getElementById('disp-rotation')?.value || 0),
-      page_interval: parseInt(document.getElementById('disp-page-interval').value) || 8,
+      enabled:        document.getElementById('disp-on').checked,
+      type:           document.getElementById('disp-type').value,
+      tft_device:     document.getElementById('disp-tft-dev').value,
+      brightness:     80,
+      rotation:       parseInt(document.getElementById('disp-rotation')?.value || 0),
+      page_interval:  parseInt(document.getElementById('disp-page-interval').value) || 8,
+      eink_model:     document.getElementById('disp-eink-model').value,
+      eink_spi_bus:   0,
+      eink_spi_cs:    parseInt(document.getElementById('disp-eink-cs').value),
+      eink_dc_pin:    parseInt(document.getElementById('disp-eink-dc').value),
+      eink_rst_pin:   parseInt(document.getElementById('disp-eink-rst').value),
+      eink_busy_pin:  parseInt(document.getElementById('disp-eink-busy').value),
     },
     maintenance_switch: {
       enabled:          document.getElementById('maint-on').checked,
