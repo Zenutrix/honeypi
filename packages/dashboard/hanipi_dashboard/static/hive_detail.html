@@ -158,57 +158,58 @@ function chartOptions(unit, color) {
 // ── Gewichtstrend ─────────────────────────────────────────────────────────────
 async function loadWeightTrend() {
   const card = document.getElementById('weightTrendCard');
-  const canvas = document.getElementById('weightTrendChart');
-  if (!card || !canvas) return;
-
-  // Fetch this hive's weight trend
+  if (!card) return;
   let trendData = null;
   try {
     const r = await fetch(`/api/data/weight-trend?hive_id=${encodeURIComponent(hiveId)}&days=30`);
     trendData = await r.json();
   } catch { return; }
-
   if (!trendData || !trendData.points || trendData.points.length === 0) return;
   card.style.display = 'block';
-
-  await renderWeightChart(trendData.points, compareHiveId);
+  await renderWeightChart(trendData.points, null);
 }
 
-async function renderWeightChart(points, compareId) {
+async function renderWeightChart(primaryPoints, cmpPoints) {
   const canvas = document.getElementById('weightTrendChart');
+  if (!canvas) return;
   if (weightChart) { weightChart.destroy(); weightChart = null; }
 
-  const labels   = points.map(p => p.date);
+  const allDates = [...new Set([
+    ...primaryPoints.map(p => p.date),
+    ...(cmpPoints ? cmpPoints.map(p => p.date) : []),
+  ])].sort();
+
+  const primaryColor = thisHive ? thisHive.color : '#f59e0b';
   const datasets = [{
     label: thisHive ? thisHive.name : 'Dieser Stock',
-    data: points.map(p => p.weight_kg),
-    borderColor: thisHive ? thisHive.color : '#f59e0b',
-    backgroundColor: (thisHive ? thisHive.color : '#f59e0b') + '12',
-    borderWidth: 2, pointRadius: 3, tension: 0.35, fill: true,
+    data: allDates.map(d => {
+      const p = primaryPoints.find(pt => pt.date === d);
+      return { x: d, y: p ? p.weight_kg : null };
+    }),
+    borderColor: primaryColor,
+    backgroundColor: primaryColor + '12',
+    borderWidth: 2, pointRadius: 3, tension: 0.35, fill: true, spanGaps: false,
   }];
 
-  if (compareId) {
-    try {
-      const r = await fetch(`/api/data/weight-trend?hive_id=${encodeURIComponent(compareId)}&days=30`);
-      const cmp = await r.json();
-      const cmpHive = allHives.find(h => h.id === compareId);
-      const cmpColor = cmpHive ? cmpHive.color : '#10b981';
-      if (cmp && cmp.points && cmp.points.length > 0) {
-        datasets.push({
-          label: cmpHive ? cmpHive.name : compareId,
-          data: cmp.points.map(p => ({ x: p.date, y: p.weight_kg })),
-          borderColor: cmpColor,
-          backgroundColor: cmpColor + '12',
-          borderWidth: 2, pointRadius: 3, tension: 0.35, fill: false,
-        });
-      }
-    } catch {}
+  if (cmpPoints && compareHiveId) {
+    const cmpHive = allHives.find(h => h.id === compareHiveId);
+    const cmpColor = cmpHive ? cmpHive.color : '#10b981';
+    datasets.push({
+      label: cmpHive ? cmpHive.name : compareHiveId,
+      data: allDates.map(d => {
+        const p = cmpPoints.find(pt => pt.date === d);
+        return { x: d, y: p ? p.weight_kg : null };
+      }),
+      borderColor: cmpColor,
+      backgroundColor: cmpColor + '12',
+      borderWidth: 2, pointRadius: 3, tension: 0.35, fill: false, spanGaps: false,
+    });
   }
 
   weightChart = new Chart(canvas, {
     type: 'line',
-    data: { labels, datasets },
-    options: chartOptions('kg', thisHive ? thisHive.color : '#f59e0b'),
+    data: { labels: allDates, datasets },
+    options: chartOptions('kg', primaryColor),
   });
 }
 
@@ -237,13 +238,21 @@ async function setCompare(id, btn) {
   compareHiveId = id;
   document.querySelectorAll('#compareButtons .hive-pick-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-
-  // Re-fetch this hive's points and re-render
+  let primaryPoints = [];
+  let cmpPoints = null;
   try {
     const r = await fetch(`/api/data/weight-trend?hive_id=${encodeURIComponent(hiveId)}&days=30`);
     const d = await r.json();
-    if (d && d.points) await renderWeightChart(d.points, compareHiveId);
+    primaryPoints = d && d.points ? d.points : [];
   } catch {}
+  if (id) {
+    try {
+      const r = await fetch(`/api/data/weight-trend?hive_id=${encodeURIComponent(id)}&days=30`);
+      const d = await r.json();
+      cmpPoints = d && d.points ? d.points : null;
+    } catch {}
+  }
+  await renderWeightChart(primaryPoints, cmpPoints);
 }
 
 // ── Sensor-Charts ─────────────────────────────────────────────────────────────
