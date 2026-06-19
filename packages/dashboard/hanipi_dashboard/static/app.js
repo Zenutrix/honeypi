@@ -247,6 +247,8 @@ function buildCard(sensor, key, latestRow, sparkVals, color) {
 
 // ── Data refresh ──────────────────────────────────────────────────────────────
 async function refreshData() {
+  const ts = document.getElementById('lastUpdated');
+  if (ts) ts.classList.add('refreshing');
   await Promise.all([fetchDayStats(), fetchWeightTrend(), fetchConfigSensors()]);
 
   const params = new URLSearchParams();
@@ -324,8 +326,10 @@ async function refreshData() {
 
   cards.forEach(el => grid.appendChild(el));
 
-  const ts = document.getElementById('lastUpdated');
-  if (ts) ts.textContent = new Date().toLocaleTimeString('de-AT');
+  if (ts) {
+    ts.classList.remove('refreshing');
+    ts.textContent = new Date().toLocaleTimeString('de-AT');
+  }
 
   updateCsvLink();
 
@@ -466,7 +470,7 @@ async function init() {
   await loadHives();
   await refreshData();
   await refreshStatus();
-  setInterval(refreshData, 30000);
+  setInterval(refreshData, 60000);
   setInterval(refreshStatus, 60000);
 }
 

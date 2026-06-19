@@ -129,6 +129,7 @@ main { padding: 16px 16px 100px; max-width: 1240px; margin: 0 auto; }
   background: var(--glass-card);
   color: var(--text-muted); font-size: 13px; font-weight: 600;
   cursor: pointer; white-space: nowrap; transition: all .18s;
+  min-height: 44px;
 }
 .hive-tab:hover  { border-color: rgba(245,158,11,.35); color: var(--text); }
 .hive-tab.active { background: var(--amber-glow); border-color: rgba(245,158,11,.4); color: var(--amber); }
@@ -161,6 +162,19 @@ main { padding: 16px 16px 100px; max-width: 1240px; margin: 0 auto; }
   font-size: 22px; font-weight: 700; letter-spacing: -.03em;
 }
 .last-updated { font-size: 11px; color: var(--text-faint); }
+.last-updated.refreshing::after {
+  content: ' ●';
+  display: inline-block;
+  animation: spin-dot 1s linear infinite;
+  color: var(--amber);
+  font-size: 8px;
+  vertical-align: middle;
+}
+@keyframes spin-dot {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.2; }
+  100% { opacity: 1; }
+}
 
 /* ── SENSOR CARDS (dashboard) ── */
 .cards-grid {
@@ -170,6 +184,7 @@ main { padding: 16px 16px 100px; max-width: 1240px; margin: 0 auto; }
 }
 @media (min-width: 640px)  { .cards-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 1024px) { .cards-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 539px)  { .cards-grid { grid-template-columns: 1fr; } }
 
 .sensor-card {
   background: rgba(255,255,255,0.04);
