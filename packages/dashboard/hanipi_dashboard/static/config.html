@@ -850,7 +850,7 @@ function selectAddSensorType(type) {
       <label>Name</label>
       <input type="text" value="${addSensorData.name}" oninput="addSensorData.name=this.value">
     </div>
-    ${!typeDef.noHive ? `<div class="field"><label>Stock (Hive)</label><select onchange="addSensorData.hive_id=this.value">${hiveOptions('')}</select></div>` : ''}
+    ${!typeDef.noHive ? `<div class="field"><label>Stock (Hive)</label>${hivePicker('', null)}</div>` : ''}
     ${typeDef.fields.map((f,fi) => renderAddField(f, fi)).join('')}
   `;
   document.getElementById('addSensorStep1').classList.add('hidden');
@@ -958,6 +958,30 @@ async function scan1Wire(sIdx, fieldKey) {
 function hiveOptions(currentId) {
   return `<option value="">Keinem Stock zugewiesen</option>` +
     hives.map(h => `<option value="${h.id}"${currentId===h.id?' selected':''}>${h.name}</option>`).join('');
+}
+
+function hivePicker(currentId, sensorIdx) {
+  const mkBtn = (id, label, dot) => {
+    const active = (currentId || '') === id;
+    const idxArg = sensorIdx !== null && sensorIdx !== undefined ? ',' + sensorIdx : '';
+    return `<button type="button" class="hive-pick-btn${active ? ' active' : ''}"
+      onclick="event.stopPropagation();hivePickerSelect(this,'${id}'${idxArg})">${dot}${label}</button>`;
+  };
+  const btns = [
+    mkBtn('', 'Kein Stock', '<span class="hive-pick-none">—</span>'),
+    ...hives.map(h => mkBtn(h.id, h.name, `<span class="hive-dot" style="background:${h.color}"></span>`)),
+  ];
+  return `<div class="hive-picker">${btns.join('')}</div>`;
+}
+
+function hivePickerSelect(btn, hiveId, sensorIdx) {
+  btn.closest('.hive-picker').querySelectorAll('.hive-pick-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (sensorIdx !== undefined) {
+    updateSensor(sensorIdx, 'hive_id', hiveId);
+  } else {
+    addSensorData.hive_id = hiveId;
+  }
 }
 
 function renderSensors() {
@@ -1127,7 +1151,7 @@ function renderSensors() {
           </div>
           ${!SENSOR_TYPES[s.type]?.noHive ? `<div class="field">
             <label>Stock (Hive)</label>
-            <select onchange="updateSensor(${i},'hive_id',this.value)">${hiveOptions(s.hive_id)}</select>
+            ${hivePicker(s.hive_id, i)}
           </div>` : ''}
         </div>
         ${fieldHtml}
