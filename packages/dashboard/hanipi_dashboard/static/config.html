@@ -1353,6 +1353,7 @@ async function saveConfig() {
       gpio_pin:         parseInt(document.getElementById('maint-pin').value)  || 17,
       hotspot_password: document.getElementById('maint-pass').value           || 'hanipi123',
     },
+    hives,
   };
 
   const statusEl = document.getElementById('saveStatus');
