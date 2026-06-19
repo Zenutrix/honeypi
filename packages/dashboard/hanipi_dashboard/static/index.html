@@ -114,8 +114,24 @@
     </div>
   </div>
 
-  <div class="chart-card hidden" id="chartCard">
-    <canvas id="chart" height="260"></canvas>
+  <!-- Chart Modal -->
+  <div class="modal-overlay" id="chartModal" onclick="closeChartModal(event)">
+    <div class="modal modal-chart">
+      <span class="modal-handle"></span>
+      <div class="modal-header">
+        <span class="modal-title" id="chartModalTitle">Chart</span>
+        <button class="modal-close" onclick="closeChartModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="time-range" id="chartModalRange" style="margin-bottom:16px">
+          <button class="time-btn" data-h="1">1h</button>
+          <button class="time-btn active" data-h="6">6h</button>
+          <button class="time-btn" data-h="24">24h</button>
+          <button class="time-btn" data-h="168">7d</button>
+        </div>
+        <canvas id="chartModalCanvas" height="220"></canvas>
+      </div>
+    </div>
   </div>
 </main>
 

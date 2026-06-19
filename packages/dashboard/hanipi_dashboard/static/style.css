@@ -808,6 +808,12 @@ input[type=number][readonly] { -moz-appearance: textfield; }
 .modal-close:hover { background: var(--surface-3); color: var(--text); }
 .modal-body { padding: 18px 22px; overflow-x: auto; }
 
+/* Chart-Modal: breiter als Standard-Modals */
+@media (min-width: 640px) {
+  .modal-chart { max-width: 780px; }
+}
+.modal-chart canvas { width: 100% !important; }
+
 /* ── MOBILE: Sidebar verstecken, Bottom-Nav zeigen ── */
 @media (max-width: 1023px) {
   header nav  { display: none; }

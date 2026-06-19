@@ -29,7 +29,6 @@ const SENSOR_ICONS = {
 
 const HIVE_COLORS = ['#f59e0b','#10b981','#3b82f6','#8b5cf6','#ef4444','#06b6d4','#f97316'];
 
-let chart = null;
 let currentHours = 1;
 let currentHiveId = null;
 let customFromTs = null;
@@ -241,7 +240,7 @@ function buildCard(sensor, key, latestRow, sparkVals, color) {
       <span class="card-time">${fmtTime(latestRow.timestamp)}</span>
     </div>`;
 
-  card.onclick = () => loadChart(latestRow.sensor_name, key);
+  card.onclick = () => openChartModal(latestRow.sensor_name, key, label, unit, color);
   return card;
 }
 
@@ -320,7 +319,6 @@ async function refreshData() {
       <p>Noch keine Sensoren konfiguriert.</p>
       <p>Sensoren in den <a href="/config-ui">Einstellungen</a> konfigurieren.</p>
     </div>`;
-    document.getElementById('chartCard')?.classList.add('hidden');
     return;
   }
 
@@ -332,10 +330,6 @@ async function refreshData() {
   }
 
   updateCsvLink();
-
-  // Auto-load chart for first sensor with data
-  const firstWithData = latestRows[0];
-  if (firstWithData) loadChartAuto(latestRows);
 }
 
 // ── CSV export ────────────────────────────────────────────────────────────────
@@ -371,52 +365,76 @@ function clearCustomRange() {
   customToTs   = null;
 }
 
-// ── Chart ─────────────────────────────────────────────────────────────────────
-async function loadChartAuto(rows) {
-  if (!rows.length) return;
-  await loadChart(rows[0].sensor_name, rows[0].key);
+// ── Chart Modal ───────────────────────────────────────────────────────────────
+let _modalChart = null;
+let _modalSensor = null;
+let _modalKey = null;
+let _modalUnit = '';
+let _modalColor = '#f59e0b';
+let _modalHours = 6;
+
+async function openChartModal(sensorName, key, label, unit, color) {
+  _modalSensor = sensorName;
+  _modalKey    = key;
+  _modalUnit   = unit || '';
+  _modalColor  = color || '#f59e0b';
+
+  const titleEl = document.getElementById('chartModalTitle');
+  if (titleEl) titleEl.textContent = `${label || key} — ${sensorName}`;
+
+  // Sync range buttons to current modal hours
+  document.querySelectorAll('#chartModalRange .time-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.h) === _modalHours);
+  });
+
+  document.getElementById('chartModal')?.classList.add('open');
+  await _renderModalChart();
 }
 
-async function loadChart(sensor, key) {
+function closeChartModal(e) {
+  if (e && e.target !== document.getElementById('chartModal')) return;
+  document.getElementById('chartModal')?.classList.remove('open');
+  if (_modalChart) { _modalChart.destroy(); _modalChart = null; }
+}
+
+async function _renderModalChart() {
   let history = [];
   try {
-    const p = new URLSearchParams({ sensor });
+    const p = new URLSearchParams({ sensor: _modalSensor, hours: _modalHours });
     if (currentHiveId) p.set('hive_id', currentHiveId);
-    if (customFromTs && customToTs) {
-      p.set('from_ts', customFromTs);
-      p.set('to_ts', customToTs);
-    } else {
-      p.set('hours', currentHours);
-    }
     const r = await fetch('/api/data/history?' + p);
     history = await r.json();
   } catch {}
 
-  const card   = document.getElementById('chartCard');
-  const canvas = document.getElementById('chart');
-  if (!card || !canvas) return;
+  const canvas = document.getElementById('chartModalCanvas');
+  if (!canvas) return;
 
-  const filtered = history.filter(r => r.sensor_name === sensor && r.key === key);
-  if (filtered.length === 0) { card.classList.add('hidden'); return; }
+  const filtered = history.filter(r => r.sensor_name === _modalSensor && r.key === _modalKey);
 
-  card.classList.remove('hidden');
+  if (_modalChart) { _modalChart.destroy(); _modalChart = null; }
+
+  if (filtered.length === 0) {
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+
   const labels = filtered.map(r => fmtDate(r.timestamp));
-  const data   = filtered.map(r => r.value);
-  const unit   = UNITS[key] || '';
+  const data   = filtered.map(r => parseFloat(r.value));
 
-  if (chart) chart.destroy();
-  chart = new Chart(canvas, {
+  _modalChart = new Chart(canvas, {
     type: 'line',
     data: {
       labels,
       datasets: [{
-        label: `${sensor} · ${key}`,
+        label: `${_modalSensor} · ${_modalKey}`,
         data,
-        borderColor: '#f59e0b',
-        backgroundColor: 'rgba(245,158,11,.07)',
+        borderColor: _modalColor,
+        backgroundColor: _modalColor.startsWith('#')
+          ? _modalColor + '12'
+          : 'rgba(245,158,11,0.07)',
         borderWidth: 1.8,
         pointRadius: filtered.length > 100 ? 0 : 2.5,
-        pointBackgroundColor: '#f59e0b',
+        pointBackgroundColor: _modalColor,
         tension: 0.35,
         fill: true,
       }],
@@ -431,19 +449,19 @@ async function loadChart(sensor, key) {
           borderWidth: 1,
           titleColor: '#faf6ed',
           bodyColor: 'rgba(250,246,237,0.5)',
-          callbacks: { label: ctx => `${ctx.parsed.y.toFixed(2)} ${unit}` },
+          callbacks: { label: ctx => `${ctx.parsed.y.toFixed(2)} ${_modalUnit}` },
         },
       },
       scales: {
         x: {
-          ticks: { maxTicksLimit: 7, font: { size: 10.5 }, color: 'rgba(250,246,237,0.3)' },
+          ticks: { maxTicksLimit: 8, font: { size: 10.5 }, color: 'rgba(250,246,237,0.3)' },
           grid:  { color: 'rgba(255,255,255,0.05)' },
-          border: { color: 'rgba(255,255,255,0.07)' },
+          border:{ color: 'rgba(255,255,255,0.07)' },
         },
         y: {
-          ticks: { callback: v => `${v} ${unit}`, font: { size: 10.5 }, color: 'rgba(250,246,237,0.3)' },
+          ticks: { callback: v => `${v} ${_modalUnit}`, font: { size: 10.5 }, color: 'rgba(250,246,237,0.3)' },
           grid:  { color: 'rgba(255,255,255,0.05)' },
-          border: { color: 'rgba(255,255,255,0.07)' },
+          border:{ color: 'rgba(255,255,255,0.07)' },
         },
       },
     },
@@ -451,6 +469,19 @@ async function loadChart(sensor, key) {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+document.querySelectorAll('#chartModalRange .time-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    _modalHours = parseInt(btn.dataset.h);
+    document.querySelectorAll('#chartModalRange .time-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    await _renderModalChart();
+  });
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeChartModal();
+});
+
 document.querySelectorAll('.time-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     if (btn.id === 'customRangeToggle') {
