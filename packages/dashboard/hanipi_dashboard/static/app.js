@@ -483,6 +483,7 @@ document.addEventListener('keydown', e => {
 });
 
 document.querySelectorAll('.time-btn').forEach(btn => {
+  if (btn.closest('#chartModalRange')) return;   // skip modal range buttons
   btn.addEventListener('click', () => {
     if (btn.id === 'customRangeToggle') {
       document.getElementById('dateRangeRow')?.classList.toggle('hidden');
