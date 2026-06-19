@@ -38,8 +38,9 @@ def history(
 def weight_trend(
     hive_id: str | None = Query(default=None),
     target_hour: int = Query(default=6, ge=0, le=23),
+    days: int = Query(default=30, ge=1, le=365),
 ) -> dict[str, Any]:
-    points = db.get_morning_weights(hive_id=hive_id, target_hour=target_hour)
+    points = db.get_morning_weights(hive_id=hive_id, target_hour=target_hour, days=days)
 
     delta_1d: float | None = None
     delta_7d: float | None = None

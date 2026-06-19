@@ -133,6 +133,15 @@ main { padding: 16px 16px 100px; max-width: 1240px; margin: 0 auto; }
 }
 .hive-tab:hover  { border-color: rgba(245,158,11,.35); color: var(--text); }
 .hive-tab.active { background: var(--amber-glow); border-color: rgba(245,158,11,.4); color: var(--amber); }
+.hive-tab-wrap { display: flex; align-items: center; gap: 2px; }
+.hive-tab-detail {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  color: var(--text-faint); text-decoration: none;
+  transition: color .15s, background .15s;
+  flex-shrink: 0;
+}
+.hive-tab-detail:hover { color: var(--amber); background: var(--amber-glow); }
 .hive-dot { width: 7px; height: 7px; border-radius: 50%; }
 
 /* ── HIVE PICKER ── */

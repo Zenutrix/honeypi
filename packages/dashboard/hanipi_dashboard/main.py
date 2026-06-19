@@ -98,6 +98,11 @@ def hives_page() -> FileResponse:
     return FileResponse(str(_STATIC / "hives.html"))
 
 
+@app.get("/hives/{hive_id}", include_in_schema=False)
+def hive_detail_page(hive_id: str) -> FileResponse:
+    return FileResponse(str(_STATIC / "hive_detail.html"))
+
+
 @app.get("/network", include_in_schema=False)
 def network_page() -> FileResponse:
     return FileResponse(str(_STATIC / "network.html"))

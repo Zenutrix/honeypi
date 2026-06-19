@@ -90,12 +90,24 @@ function renderHiveTabs() {
   container.appendChild(all);
 
   hives.forEach((h, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'hive-tab-wrap';
+
     const btn = document.createElement('button');
     btn.className = 'hive-tab' + (currentHiveId === h.id ? ' active' : '');
     const dot = `<span class="hive-dot" style="background:${h.color || HIVE_COLORS[i % HIVE_COLORS.length]}"></span>`;
     btn.innerHTML = dot + h.name;
     btn.onclick = () => { currentHiveId = h.id; renderHiveTabs(); refreshData(); };
-    container.appendChild(btn);
+
+    const link = document.createElement('a');
+    link.className = 'hive-tab-detail';
+    link.href = `/hives/${h.id}`;
+    link.title = `${h.name} Details`;
+    link.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
+
+    wrap.appendChild(btn);
+    wrap.appendChild(link);
+    container.appendChild(wrap);
   });
 }
 
